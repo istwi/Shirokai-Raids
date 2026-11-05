@@ -28,7 +28,8 @@ No ambiente cloud, `bash scripts/prepare-test-server.sh` prepara `/workspace/sha
 ```sh
 source /workspace/Shirokai-Raids/scripts/cloud-env.sh
 cd /workspace/shared/raids-test-server
-java -Xms512M -Xmx3G -jar fabric-server-launch.jar nogui
+read -r -a raids_jvm_options <<< "${GRADLE_OPTS:-}"
+java "${raids_jvm_options[@]}" -Xms512M -Xmx3G -jar fabric-server-launch.jar nogui
 ```
 
 A configuração inicial desabilita aparições até um administrador usar `/raidadmin setspawn`. A arena deve estar em um chunk carregado; o mod não força carregamento ilimitado. A participação exige entrar fisicamente na arena, sem teleporte automático.
