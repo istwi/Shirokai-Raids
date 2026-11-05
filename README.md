@@ -1,6 +1,6 @@
 # Shirokai Raids
 
-Projeto independente para Minecraft Java 1.21.1, Fabric e Cobblemon 1.8.3. Não deriva do GTS-Shirokai.
+Projeto independente para Minecraft Java 1.21.1, Fabric e Cobblemon 1.8.3.
 
 **Estado: 0.1.0-dev, em desenvolvimento. Não há Release v1.0.0 aprovada.** O JAR compila e o ciclo básico do boss foi testado em servidor dedicado; combate com três jogadores e distribuição real de recompensas ainda precisam de validação.
 
