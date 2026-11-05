@@ -1,0 +1,11 @@
+{
+  "id": "rayquaza",
+  "species": "rayquaza",
+  "form": "",
+  "name": "Rayquaza — World Boss",
+  "level": 100,
+  "hp": 10000000,
+  "shiny": false,
+  "scale": 2.0,
+  "rewards": "default"
+}

@@ -1,0 +1,98 @@
+name: Release oficial
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Conferir versão e aceite de integração
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          python - <<'PY'
+          import json, os, re
+          from pathlib import Path
+          tag = os.environ['TAG']
+          assert re.fullmatch(r'v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)', tag), 'Tag deve ser SemVer estável'
+          props = dict(line.split('=',1) for line in Path('gradle.properties').read_text().splitlines() if '=' in line)
+          assert props['mod_version'] == tag[1:], 'Tag e versão do mod divergem'
+          acceptance = json.loads(Path(f'release/{tag}.json').read_text())
+          assert acceptance['approved'] is True
+          assert acceptance['three_player_dedicated_server_test'] is True
+          assert acceptance['cobblemon'] == '1.8.3'
+          assert acceptance['evidence'].strip(), 'Registre evidência do teste real'
+          notes = Path(f'release/{tag}.md').read_text()
+          for section in ['Novas funcionalidades', 'Bugs corrigidos', 'Configurações', 'Compatibilidade', 'Atualização']:
+              assert section in notes, section
+          PY
+      - run: bash ./gradlew --no-daemon build
+      - name: Validar artefato
+        env:
+          TAG: ${{ github.ref_name }}
+        run: python scripts/verify_jar.py --version "${TAG#v}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-verificada
+          path: |
+            build/libs/Shirokai-Raids-*-fabric-1.21.1.jar
+            build/libs/SHA256SUMS
+  publish:
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-verificada
+          path: dist
+      - name: Publicar sem sobrescrever versões existentes
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const crypto = require('crypto');
+            const tag = context.ref.slice('refs/tags/'.length);
+            const base = {owner: context.repo.owner, repo: context.repo.repo};
+            let object = (await github.rest.git.getRef({...base, ref:`tags/${tag}`})).data.object;
+            while (object.type === 'tag') object = (await github.rest.git.getTag({...base, tag_sha:object.sha})).data.object;
+            if (object.type !== 'commit' || object.sha !== context.sha) throw new Error('A tag mudou desde o início do workflow. Publicação bloqueada.');
+            let release;
+            try { release = (await github.rest.repos.getReleaseByTag({...base, tag})).data; }
+            catch (e) { if (e.status !== 404) throw e; }
+            const date = new Intl.DateTimeFormat('pt-BR', {timeZone:'America/Sao_Paulo'}).format(new Date());
+            if (!release) release = (await github.rest.repos.createRelease({
+              ...base, tag_name:tag, name:`Shirokai Raids ${tag}`, draft:true,
+              body:`Data da publicação: ${date}\nCommit validado: ${context.sha}\n\n` + fs.readFileSync(`release/${tag}.md`, 'utf8')
+            })).data;
+            const assets = await github.paginate(github.rest.repos.listReleaseAssets, {...base, release_id:release.id});
+            const files = [`Shirokai-Raids-${tag.slice(1)}-fabric-1.21.1.jar`, 'SHA256SUMS'];
+            for (const name of files) {
+              const data = fs.readFileSync(`dist/${name}`);
+              const digest = `sha256:${crypto.createHash('sha256').update(data).digest('hex')}`;
+              const existing = assets.find(a => a.name === name);
+              if (existing) {
+                if (existing.digest !== digest) throw new Error(`Asset ${name} já existe com conteúdo diferente ou integridade não verificável. Nada será sobrescrito.`);
+              } else {
+                if (!release.draft) throw new Error('Release publicada incompleta: intervenção manual necessária; não será alterada.');
+                await github.rest.repos.uploadReleaseAsset({...base, release_id:release.id, name, data, headers:{'content-type':'application/octet-stream','content-length':data.length}});
+              }
+            }
+            if (release.draft) await github.rest.repos.updateRelease({...base, release_id:release.id, draft:false});
+            core.notice(release.html_url);

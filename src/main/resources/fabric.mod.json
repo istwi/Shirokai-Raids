@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "shirokai_raids",
+  "version": "${version}",
+  "name": "Shirokai Raids",
+  "description": "Raids cooperativas em tempo real para o servidor Shirokai.",
+  "environment": "server",
+  "entrypoints": { "main": ["com.shirokai.raids.ShirokaiRaids"] },
+  "depends": { "fabricloader": ">=0.17.2", "minecraft": "1.21.1", "java": ">=21", "fabric-api": "*", "cobblemon": "1.8.3+1.21.1" }
+}

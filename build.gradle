@@ -1,0 +1,33 @@
+plugins {
+    id 'fabric-loom' version '1.10.5'
+    id 'java'
+}
+group = 'com.shirokai.raids'
+version = providers.gradleProperty('mod_version').get()
+base { archivesName = 'Shirokai-Raids' }
+repositories {
+    mavenCentral()
+    maven { url = 'https://artefacts.cobblemon.com/releases' }
+}
+dependencies {
+    minecraft 'com.mojang:minecraft:1.21.1'
+    mappings loom.officialMojangMappings()
+    modImplementation 'net.fabricmc:fabric-loader:0.17.2'
+    modImplementation 'net.fabricmc.fabric-api:fabric-api:0.116.6+1.21.1'
+    modImplementation 'com.cobblemon:fabric:1.8.3+1.21.1'
+    modCompileOnly 'net.luckperms:api:5.4'
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+java { toolchain.languageVersion = JavaLanguageVersion.of(21); withSourcesJar() }
+tasks.withType(JavaCompile).configureEach { options.release = 21 }
+processResources { inputs.property 'version', project.version; filesMatching('fabric.mod.json') { expand version: project.version } }
+test { useJUnitPlatform() }
+remapJar { archiveFileName = "Shirokai-Raids-${project.version}-fabric-1.21.1.jar" }
+
+tasks.withType(AbstractArchiveTask).configureEach {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+

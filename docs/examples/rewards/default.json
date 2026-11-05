@@ -1,0 +1,12 @@
+{
+  "minimumContribution": 0.01,
+  "maximumItems": 64,
+  "items": [
+    {
+      "item": "minecraft:diamond",
+      "minimum": 1,
+      "maximum": 3,
+      "weight": 1
+    }
+  ]
+}

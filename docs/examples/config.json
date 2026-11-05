@@ -1,0 +1,42 @@
+{
+  "intervalSeconds": 7200,
+  "durationSeconds": 1200,
+  "dimension": "minecraft:overworld",
+  "x": 0,
+  "y": 100,
+  "z": 0,
+  "spawnConfigured": false,
+  "arenaRadius": 48.0,
+  "attackRange": 32.0,
+  "attackCooldownTicks": 40,
+  "maximumParticipants": 32,
+  "bossAttackSeconds": 5,
+  "bossDamage": 10,
+  "restartPolicy": "SKIP_MISSED",
+  "warningsSeconds": [
+    900,
+    300,
+    60
+  ],
+  "supportedMoves": [
+    "tackle",
+    "scratch",
+    "pound",
+    "quickattack",
+    "dragonclaw",
+    "dragonpulse",
+    "airslash",
+    "flamethrower",
+    "watergun",
+    "thunderbolt",
+    "icebeam",
+    "psychic",
+    "shadowball",
+    "energyball",
+    "earthpower",
+    "rockslide",
+    "ironhead",
+    "moonblast",
+    "aerialace"
+  ]
+}
