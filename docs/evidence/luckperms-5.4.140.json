@@ -1,0 +1,129 @@
+{
+  "passed": true,
+  "details": {
+    "luckpermsVersion": "5.4.140",
+    "contexts": "[gamemode\u003dsurvival, world\u003doverworld]",
+    "cachedChecks": 5000,
+    "meanPermissionMicros": 9.7660752
+  },
+  "checks": [
+    {
+      "name": "real-luckperms-loaded",
+      "passed": true
+    },
+    {
+      "name": "requested-version",
+      "passed": true
+    },
+    {
+      "name": "unloaded-user-fails-closed",
+      "passed": true
+    },
+    {
+      "name": "default-public-use",
+      "passed": true
+    },
+    {
+      "name": "default-public-join",
+      "passed": true
+    },
+    {
+      "name": "default-public-lobby",
+      "passed": true
+    },
+    {
+      "name": "default-public-rewards",
+      "passed": true
+    },
+    {
+      "name": "default-public-history",
+      "passed": true
+    },
+    {
+      "name": "default-public-ranking",
+      "passed": true
+    },
+    {
+      "name": "undefined-admin-no-op-denied",
+      "passed": true
+    },
+    {
+      "name": "undefined-admin-op-fallback",
+      "passed": true
+    },
+    {
+      "name": "normal-command-tree-denies-admin",
+      "passed": true
+    },
+    {
+      "name": "explicit-admin-deny-overrides-op",
+      "passed": true
+    },
+    {
+      "name": "wildcard-grants-admin",
+      "passed": true
+    },
+    {
+      "name": "specific-deny-overrides-wildcard",
+      "passed": true
+    },
+    {
+      "name": "use-deny-blocks-root",
+      "passed": true
+    },
+    {
+      "name": "join-denied",
+      "passed": true
+    },
+    {
+      "name": "live-removal-restores-fallback",
+      "passed": true
+    },
+    {
+      "name": "group-inheritance-denies-history",
+      "passed": true
+    },
+    {
+      "name": "rewards-menu-denied",
+      "passed": true
+    },
+    {
+      "name": "manual-claim-command-denied",
+      "passed": true
+    },
+    {
+      "name": "history-menu-denied",
+      "passed": true
+    },
+    {
+      "name": "global-menu-denied",
+      "passed": true
+    },
+    {
+      "name": "admin-without-reconcile-cannot-review",
+      "passed": true
+    },
+    {
+      "name": "native-world-context-present",
+      "passed": true
+    },
+    {
+      "name": "native-contextual-data-denies",
+      "passed": true
+    },
+    {
+      "name": "mod-respects-current-world-denial",
+      "passed": true
+    },
+    {
+      "name": "different-world-denial-not-global",
+      "passed": true
+    },
+    {
+      "name": "console-trusted",
+      "passed": true
+    }
+  ],
+  "realClients": 0,
+  "message": "Real LuckPerms defaults, explicit denial, inheritance, wildcard, contexts and command tree tested"
+}

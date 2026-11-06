@@ -28,9 +28,9 @@ Escolha o grupo que realmente existe no seu servidor. Estes comandos configuram 
 /lp group default permission set shirokai.raids.rewards true
 /lp group default permission set shirokai.raids.history true
 /lp group default permission set shirokai.raids.ranking true
-/lp group default permission set shirokai.raids.admin false
-/lp group default permission set shirokai.raids.reconcile false
 ```
+
+Sem definição de `admin`/`reconcile`, jogadores comuns são negados e OP 2 mantém o fallback administrativo. Evite colocar negações gerais no grupo `default` sem revisar a herança dos administradores. Se aplicou os negativos do exemplo anterior, remova-os conscientemente com `/lp group default permission unset shirokai.raids.admin` e o equivalente de `reconcile`, após conferir sua política.
 
 ## Administração
 
@@ -48,9 +48,9 @@ Use um grupo administrativo separado; revise herança/prioridades no LuckPerms a
 ```text
 /lp user NOME permission set shirokai.raids.join false
 /lp user NOME permission unset shirokai.raids.join
-/lp user NOME permission set shirokai.raids.join false world=minecraft:the_nether
+/lp user NOME permission set shirokai.raids.join false world=the_nether
 ```
 
-Confirme o nome do contexto `world` que a versão instalada do LuckPerms expõe. O teste automatizado registra os contextos efetivos; não presuma que todo servidor/plugin use os mesmos nomes. Ao investigar um bloqueio, confira também `use`, heranças, negativos e contextos, não apenas o node específico.
+No LuckPerms Fabric 5.4.140 testado, o contexto observado foi `world=overworld` (sem `minecraft:`), além de `gamemode=survival`. Para o Nether, o exemplo usa `world=the_nether`. Confirme o nome do contexto `world` que a versão instalada do LuckPerms expõe. O teste automatizado registra os contextos efetivos; não presuma que todo servidor/plugin use os mesmos nomes. Ao investigar um bloqueio, confira também `use`, heranças, negativos e contextos, não apenas o node específico.
 
 Menus checam permissão na abertura e navegação e invalidam acesso revogado. O teste em conexão controlada não substitui login real, grupos do seu servidor, proxies ou sincronização em banco externo.
