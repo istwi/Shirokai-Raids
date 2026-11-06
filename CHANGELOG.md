@@ -1,5 +1,13 @@
 # Histórico de alterações
 
+## 0.1.5-dev
+
+- Entrega automática no inventário após vitória global e login, com novas tentativas periódicas e manuais; saldo parcial e contribuintes offline preservados.
+- Reservas com recibo salvo junto ao inventário vanilla e confirmação por releitura do arquivo, permitindo reconciliar interrupções sem repetir itens. Reservas antigas ambíguas continuam sem replay automático.
+- Testes de inventário cheio, entrega parcial, offline, repetição, falha silenciosa de salvamento e interrupções em cada fronteira de gravação.
+- Preparação do servidor descartável pelo modo oficial de Loader local, com versões e checksums verificados, sem consulta ao catálogo de versões.
+- Menu de pendências, clientes reais e ensaios de capacidade continuam pendentes; nenhuma Release estável.
+
 ## 0.1.4-dev
 
 - Multiplicador de dano por boss, preservando proteções nativas e isolamento entre sessões.

@@ -13,7 +13,31 @@ root=Path('/workspace/shared/raids-test-server')
 assert hashlib.sha256((root/'fabric-installer.jar').read_bytes()).hexdigest() == (root/'fabric-installer.sha256').read_text().split()[0]
 PY
 read -r -a raids_jvm_options <<< "${GRADLE_OPTS:-}"
-(cd "$root" && java "${raids_jvm_options[@]}" -jar fabric-installer.jar server -mcversion 1.21.1 -loader 0.17.2)
+# All versions are pinned; the official local-loader API does not need the remote version catalogue.
+loader_base=https://maven.fabricmc.net/net/fabricmc/fabric-loader/0.17.2/fabric-loader-0.17.2.jar
+curl -fLsS "$loader_base" -o "$root/fabric-loader.jar"
+curl -fLsS "$loader_base.sha256" -o "$root/fabric-loader.sha256"
+python3 - <<'PY'
+import hashlib
+from pathlib import Path
+root=Path('/workspace/shared/raids-test-server')
+assert hashlib.sha256((root/'fabric-loader.jar').read_bytes()).hexdigest() == (root/'fabric-loader.sha256').read_text().split()[0]
+PY
+java "${raids_jvm_options[@]}" --class-path "$root/fabric-installer.jar" scripts/InstallPinnedFabric.java "$root" "$root/fabric-loader.jar"
+python3 - <<'PY'
+import hashlib,json,subprocess,zipfile
+from pathlib import Path
+root=Path('/workspace/shared/raids-test-server')
+with zipfile.ZipFile(root/'fabric-loader.jar') as jar:
+    libraries=json.loads(jar.read('fabric-installer.json'))['libraries']
+for entry in libraries['common']+libraries['server']:
+    group,name,version=entry['name'].split(':')
+    path=root/'libraries'/group.replace('.','/')/name/version/f'{name}-{version}.jar'
+    assert hashlib.sha256(path.read_bytes()).hexdigest()==entry['sha256'], f'Checksum divergente: {path}'
+path=root/'libraries/net/fabricmc/intermediary/1.21.1/intermediary-1.21.1.jar'
+checksum=subprocess.check_output(['curl','-fLsS','https://maven.fabricmc.net/net/fabricmc/intermediary/1.21.1/intermediary-1.21.1.jar.sha256'],text=True).split()[0]
+assert hashlib.sha256(path.read_bytes()).hexdigest()==checksum
+PY
 python3 - <<'PY'
 import hashlib, json, os, shutil, zipfile
 from pathlib import Path

@@ -12,6 +12,7 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -25,7 +26,6 @@ import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.BossEvent;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.phys.Vec3;
@@ -48,6 +48,8 @@ public final class ShirokaiRaids implements ModInitializer {
     private Active active;
     private boolean healthy;
     private long tick;
+    private RewardDelivery rewardDelivery;
+    private final Set<UUID> rewardQueue = new LinkedHashSet<>();
     private final Map<UUID,Long> claimCooldown = new HashMap<>();
     private final Map<UUID,Long> teleportCooldown = new HashMap<>();
     private final Set<Integer> warned = new HashSet<>();
@@ -78,6 +80,7 @@ public final class ShirokaiRaids implements ModInitializer {
         ServerLifecycleEvents.SERVER_STARTED.register(this::started);
         ServerLifecycleEvents.SERVER_STOPPING.register(s -> { if (active != null) finish(false, "Servidor encerrando; raid cancelada."); });
         ServerTickEvents.END_SERVER_TICK.register(s -> tick());
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, s) -> rewardQueue.add(handler.getPlayer().getUUID()));
         ServerLivingEntityEvents.ALLOW_DAMAGE.register((entity, source, amount) -> !isBoss(entity.getUUID()));
         ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
             if (entity instanceof PokemonEntity && entity.getTags().contains("shirokai_raids_boss") && !isBoss(entity.getUUID())) entity.discard();
@@ -154,6 +157,8 @@ public final class ShirokaiRaids implements ModInitializer {
             if (state.nextRaid == 0 || (state.nextRaid < System.currentTimeMillis() && config.restartPolicy.equals("SKIP_MISSED")))
                 state.nextRaid = RaidSchedule.next(System.currentTimeMillis(),config.intervalSeconds);
             healthy = true; save();
+            rewardDelivery = new RewardDelivery(state, this::save);
+            rewardQueue.clear();
         } catch (Exception e) { healthy = false; LOG.error("Raids desativadas: falha ao carregar estado; arquivo preservado",e); }
     }
     private void save() {
@@ -317,6 +322,7 @@ public final class ShirokaiRaids implements ModInitializer {
         tick++;
         if (!healthy || server == null) return;
         try {
+            retryRewards();
             if(active!=null) {
                 active.battles.tick();
                 if(active.health.current()==0) { finish(true,"Boss derrotado! Recompensas disponíveis em /raid recompensas."); return; }
@@ -366,6 +372,36 @@ public final class ShirokaiRaids implements ModInitializer {
             state.activeRaid=null; state.bossEntity=null; save();
         } finally { raid.battles.close(); raid.bar.removeAllPlayers(); raid.boss.discard(); active=null; }
         broadcast(message);
+        if (defeated) {
+            // Includes contributors who left combat; offline players are retried on login.
+            for (var entry : raid.damage.ranking()) rewardQueue.add(entry.player());
+        }
+    }
+    private void retryRewards() {
+        if (tick % 100 == 0) for (var player : server.getPlayerList().getPlayers()) {
+            String key = player.getUUID().toString();
+            if (!state.pending.getOrDefault(key, List.of()).isEmpty()
+                || state.deliveries.values().stream().anyMatch(d -> d.player.equals(key))) rewardQueue.add(player.getUUID());
+        }
+        if (rewardQueue.isEmpty()) return;
+        var iterator = rewardQueue.iterator();
+        UUID id = iterator.next(); iterator.remove();
+        var player = server.getPlayerList().getPlayer(id);
+        if (player != null) deliverRewards(player);
+    }
+    private int deliverRewards(ServerPlayer player) {
+        try {
+            int delivered = rewardDelivery.deliver(new PlayerRewardTarget(server, player), 4);
+            if (delivered > 0) player.sendSystemMessage(Component.literal("[Raids] Itens entregues: " + delivered + ". Use /raid recompensas para tentar resgatar pendências."));
+            return delivered;
+        } catch (Exception error) {
+            healthy = false;
+            LOG.error("Entregas suspensas: reserva preservada. Confira os armazenamentos antes de reiniciar.", error);
+            if (active != null) {
+                active.battles.close(); active.bar.removeAllPlayers(); active.boss.discard(); active = null;
+            }
+            throw new IllegalStateException("Persistência de recompensas precisa de atenção", error);
+        }
     }
     private int claim(CommandSourceStack source) {
         if(!healthy) return reply(source,"Resgate indisponível: persistência precisa de atenção.");
@@ -373,26 +409,11 @@ public final class ShirokaiRaids implements ModInitializer {
             var player=source.getPlayerOrException(); var key=player.getUUID().toString();
             if(tick < claimCooldown.getOrDefault(player.getUUID(),0L)) return reply(source,"Aguarde cinco segundos entre resgates.");
             claimCooldown.put(player.getUUID(),tick+100);
-            var pending=state.pending.computeIfAbsent(key,k->new ArrayList<>());
-            if(pending.isEmpty()) return reply(source,"Nenhuma recompensa pendente.");
-            int delivered=0;
-            if(!pending.isEmpty()) {
-                var reward=pending.getFirst(); var id=ResourceLocation.tryParse(reward.item);
-                if(id==null || !BuiltInRegistries.ITEM.containsKey(id)) return reply(source,"Item indisponível; recompensa preservada para a administração corrigir.");
-                var item=BuiltInRegistries.ITEM.get(id); int maxStack=new ItemStack(item).getMaxStackSize();
-                int count=Math.min(reward.count,maxStack);
-                int slot=player.getInventory().getFreeSlot();
-                if(slot<0) return reply(source,"Inventário cheio; recompensas preservadas."); // Only empty slots: no partial inventory insertion.
-                var reservation=new RaidState.Pending(reward.raid,reward.item,count);
-                reservation.id=key+":"+reward.id+":"+UUID.randomUUID();
-                reward.count-=count;
-                if(reward.count==0) pending.removeFirst();
-                state.uncertain.put(reservation.id,reservation); save();
-                player.getInventory().setItem(slot,new ItemStack(item,count));
-                server.getPlayerList().saveAll();
-                state.uncertain.remove(reservation.id); save(); delivered+=count;
-            }
-            return reply(source,"Itens entregues: " + delivered + ". Pendências: " + pending.size() + ". Resgates interrompidos por crash exigem conferência administrativa.");
-        } catch(Exception e) { LOG.error("Falha no resgate; reserva preservada para conferência",e); return reply(source,"Resgate interrompido. Avise a administração; não será repetido automaticamente."); }
+            int delivered = deliverRewards(player);
+            int pending = state.pending.getOrDefault(key, List.of()).stream().mapToInt(r -> r.count).sum()
+                + state.deliveries.values().stream().filter(d -> d.player.equals(key)).mapToInt(d -> d.reward.count).sum();
+            return reply(source,"Itens entregues: " + delivered + ". Itens pendentes: " + pending
+                + ". Sem espaço ou com item indisponível, as pendências são preservadas. Reservas antigas incertas exigem conferência administrativa.");
+        } catch(Exception e) { LOG.error("Falha no resgate; reserva preservada",e); return reply(source,"Resgate interrompido. Avise a administração; a reserva foi preservada."); }
     }
 }

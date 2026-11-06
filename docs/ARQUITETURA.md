@@ -1,5 +1,7 @@
 # Arquitetura legada da 0.1.0-dev
 
+**Atualização 0.1.5-dev:** a entrega abaixo descreve o protocolo antigo, ainda relevante para entradas em `uncertain`. Novas entregas usam [reservas e recibos no playerdata](ENTREGA_RECOMPENSAS.md), com entrega automática e reconciliação após interrupção. As limitações de backup e armazenamento estão documentadas nesse protocolo.
+
 Este documento descreve o sistema preservado provisoriamente. O objetivo atual é combate tradicional multiplayer; consulte COBBLEMON_MULTIPLAYER_AUDIT.md. Não representa a arquitetura definitiva solicitada.
 
 `ShirokaiRaids` integra callbacks Fabric e Cobblemon na thread do servidor. Somente o servidor seleciona os movimentos e calcula dano. Não há pacote de cliente que aceite dano informado externamente.

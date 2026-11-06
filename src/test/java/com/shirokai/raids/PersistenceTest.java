@@ -53,4 +53,22 @@ class PersistenceTest {
         var rewards=new RaidConfig.Rewards();rewards.items.getFirst().maximum=0;
         assertThrows(IllegalArgumentException.class,rewards::validate);
     }
+    @Test void legacyStateLoadsWithoutInventingNewDeliveries() throws Exception {
+        Path p = dir.resolve("legacy.json");
+        Files.writeString(p, "{\"nextRaid\":123,\"pending\":{},\"completed\":[\"old-raid\"],\"uncertain\":{},\"damage\":{}}");
+        var state = JsonFiles.read(p, RaidState.class); state.validate();
+        assertTrue(state.deliveries.isEmpty()); assertTrue(state.completed.contains("old-raid"));
+    }
+    @Test void malformedOrDuplicateDeliveryJournalIsRejected() {
+        var state = new RaidState();
+        var reward = new RaidState.Pending("raid", "minecraft:apple", 3);
+        state.deliveries.put(reward.id, new RaidState.Delivery(UUID.randomUUID().toString(), reward));
+        state.validate();
+        state.pending.put("player", new ArrayList<>(List.of(reward)));
+        assertThrows(IllegalArgumentException.class, state::validate);
+        state.pending.clear(); reward.count = 0;
+        assertThrows(IllegalArgumentException.class, state::validate);
+        reward.count = 3; state.deliveries.get(reward.id).player = "invalid-player";
+        assertThrows(IllegalArgumentException.class, state::validate);
+    }
 }

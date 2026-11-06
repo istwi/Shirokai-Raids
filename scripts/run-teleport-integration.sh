@@ -44,6 +44,10 @@ assert result['passed'] is True,result
 assert result['realClients']==0,result
 if mode=='combat':
     assert result['controlledSessions']==3 and result['effectiveDamage']==2000,result
+if mode=='challenge':
+    recovery=json.loads((root/'reward-recovery-result.json').read_text())
+    assert recovery['passed'] is True and recovery['scenarios']==6 and recovery['realClients']==0,recovery
+    print(json.dumps(recovery,ensure_ascii=False))
 print(json.dumps(result,ensure_ascii=False))
 print(f'Resultado e logs preservados em {root}')
 PY

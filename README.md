@@ -2,7 +2,7 @@
 
 Mod **somente servidor** para Minecraft 1.21.1, Fabric e Cobblemon 1.8.3.
 
-**0.1.4-dev: integração inicial do combate tradicional. Não é uma Release estável.**
+**0.1.5-dev: combate tradicional e entrega automática de drops. Não é uma Release estável.**
 
 O fluxo implementado é `/raid` → enviar seu Pokémon → apontar para o boss e pressionar **R** (ou a tecla configurada no Cobblemon) → escolher os movimentos na interface normal. Cada jogador tem uma batalha real independente, com sua equipe, movimentos e PP; o dano aplicado reduz o HP global do evento. O jogo aguarda a escolha do jogador. Não há `/raid atacar` nem loop de ataques automáticos.
 
@@ -14,7 +14,7 @@ A implementação intercepta o pacote padrão de desafio do Cobblemon somente qu
 
 `maxConcurrentPlayers` tem padrão 100 e aceita de 1 até 100. Ao lotar, o servidor recusa novas batalhas até haver vaga. **A capacidade de 100 combatentes não está comprovada.** Os ensaios realizados até agora incluem três sessões controladas em servidor real; não incluem clientes Minecraft reais nem medição de capacidade para 100 pessoas.
 
-O adaptador exige o serviço Graal padrão do Cobblemon 1.8.3. Cura do boss está desabilitada; Perish Song e sacrifícios do próprio boss têm restrições para impedir vitórias locais. Captura e entrega de Pokémon não fazem parte do evento. Animações/representação visual em clientes e compatibilidade com outros mods ainda precisam de validação. Veja [validação e limitações](docs/VALIDACAO_0.1.4-dev.md) e [auditoria](docs/COBBLEMON_MULTIPLAYER_AUDIT.md).
+O adaptador exige o serviço Graal padrão do Cobblemon 1.8.3. Cura do boss está desabilitada; Perish Song e sacrifícios do próprio boss têm restrições para impedir vitórias locais. Captura e entrega de Pokémon não fazem parte do evento. Animações/representação visual em clientes e compatibilidade com outros mods ainda precisam de validação. Veja [validação das recompensas](docs/VALIDACAO_0.1.5-dev.md), [validação do combate](docs/VALIDACAO_0.1.4-dev.md) e [auditoria](docs/COBBLEMON_MULTIPLAYER_AUDIT.md).
 
 ## Testar o fluxo no jogo
 
@@ -44,12 +44,16 @@ Sair encerra somente sua sessão e libera a vaga. Seu dano permanece no ranking 
 | `/raid tempo` | Estado/tempo, sem teleporte |
 | `/raid dano`, `/raid top` | Dano efetivo e ranking |
 | `/raid sair` | Encerrar a própria batalha e preservar contribuição |
-| `/raid recompensas` | Resgatar um stack pendente do sistema existente |
+| `/raid recompensas` | Tentar novamente a entrega das pendências, com limite por tentativa |
 | `/raidadmin iniciar <boss>`, `parar`, `setspawn`, `reload`, `status`, `listar` | Administração |
 
 Participação é permitida por padrão; administração exige OP 2 ou `shirokai.raids.admin`. LuckPerms, quando instalado, respeita negações explícitas. `shirokai.raids.attack` e os campos de cooldown/dano do combate antigo não controlam mais golpes. O limite efetivo usa `maxConcurrentPlayers`.
 
-Novas tabelas padrão usam duas etapas: raridade conforme a faixa de contribuição, depois item ponderado dentro da raridade. Arquivos antigos continuam usando seus itens e regras anteriores; não são sobrescritos. Entrega automática e menu de pendências ainda estão pendentes. Não há Raid Pouch. Inventário cheio preserva pendências; reservas interrompidas exigem conferência administrativa conforme a arquitetura existente.
+Novas tabelas padrão usam duas etapas: raridade conforme a faixa de contribuição, depois item ponderado dentro da raridade. Arquivos antigos continuam usando seus itens e regras anteriores; não são sobrescritos. Não há Raid Pouch nem menu de pendências nesta etapa.
+
+Após a derrota global, os drops entram no registro persistente antes da entrega. Jogadores online recebem no inventário principal, completando stacks compatíveis e usando slots vazios. Quem saiu continua elegível; quem está offline recebe ao entrar. Falta de espaço preserva o saldo, com novas tentativas periódicas e por `/raid recompensas`. Itens não são jogados no chão. Cada passagem atende um jogador, com até quatro transações; filas grandes podem demorar.
+
+Novas reservas usam recibos nas tags vanilla do jogador, salvos no mesmo arquivo que o inventário, para reconciliar reinícios sem repetir a inserção. Reservas antigas em `uncertain` continuam exigindo conferência administrativa. Falha de persistência suspende raids e entregas. Preserve **juntos** `state.json` e os arquivos `playerdata` ao restaurar backups; recuperação de apenas um deles, corrupção de arquivos ou mods que alterem recibos/armazenamento não têm garantia de entrega única. Veja [protocolo e limites](docs/ENTREGA_RECOMPENSAS.md).
 
 ## Compilar e validar
 
@@ -59,10 +63,10 @@ Requer JDK 21 completo, Node e Python:
 bash gradlew --no-daemon build
 python3 scripts/run_showdown_audit.py
 python3 scripts/run_traditional_probe.py
-python3 scripts/verify_jar.py --version 0.1.4-dev
+python3 scripts/verify_jar.py --version 0.1.5-dev
 ```
 
-Windows: `gradlew.bat build`. O artefato é `build/libs/Shirokai-Raids-0.1.4-dev-fabric-1.21.1.jar`; o verificador gera `SHA256SUMS`. O workflow mantém builds e Artifacts de desenvolvimento em Linux e Windows.
+Windows: `gradlew.bat build`. O artefato é `build/libs/Shirokai-Raids-0.1.5-dev-fabric-1.21.1.jar`; o verificador gera `SHA256SUMS`. O workflow mantém builds e Artifacts de desenvolvimento em Linux e Windows.
 
 No ambiente cloud, `scripts/setup-cloud.sh` prepara o JDK e a compilação. Com servidor preparado por `scripts/prepare-test-server.sh` e EULA aceita para os testes:
 

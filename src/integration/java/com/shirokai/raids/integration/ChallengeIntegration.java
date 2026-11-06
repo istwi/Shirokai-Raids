@@ -19,6 +19,9 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import java.lang.reflect.*;
@@ -39,6 +42,7 @@ public final class ChallengeIntegration implements ModInitializer {
     private long damageBeforeReturn;
     private int ppBeforeReturn;
     private boolean late,finished,swapRequested,switched,departed,returned,secondExit;
+    private boolean partialChecked, rewardsChecked;
     private long hpBeforeChoices;
 
     @Override public void onInitialize() {
@@ -65,6 +69,11 @@ public final class ChallengeIntegration implements ModInitializer {
             player.setPos(5+i*2,200,0);
             require(lookup.putIfAbsent(player.getUUID(),player)==null,"UUID já existia");
             players.add(player);
+            if (i == 0) {
+                for (int slot = 0; slot < player.getInventory().items.size(); slot++)
+                    player.getInventory().setItem(slot, new ItemStack(Items.STONE, 64));
+                player.getInventory().setItem(0, new ItemStack(Items.APPLE, 63));
+            }
             var party=Cobblemon.INSTANCE.getStorage().getParty(player);
             var lead=PokemonProperties.Companion.parse("garchomp level=100 moves=dragonclaw"," ","=").create();
             party.add(lead); leads.add(lead);
@@ -146,6 +155,8 @@ public final class ChallengeIntegration implements ModInitializer {
                 server.getCommands().getDispatcher().execute("raid sair",players.get(1).createCommandSourceStack());
                 require(state().getAsJsonObject("damage").get(players.get(1).getUUID().toString()).getAsLong()>damageBeforeReturn,"Dano novo não acumulou ao anterior");
                 secondExit=true;
+                // Contributor really absent from the online lookup when the boss is defeated.
+                lookup.remove(players.get(1).getUUID());
             }
         }
         if(ticks>220 && ticks%20==0 && !boss.isRemoved()) for(int i=0;i<players.size();i++) {
@@ -190,7 +201,35 @@ public final class ChallengeIntegration implements ModInitializer {
             }
             raidEndedTick=ticks;
         }
+        if (raidEndedTick >= 0 && ticks >= raidEndedTick + 20 && !partialChecked) {
+            require(apples(players.get(0)) == 64, "Entrega parcial não completou o stack existente");
+            require(pendingApples(players.get(0)) == 3, "Entrega parcial perdeu o saldo");
+            require(apples(players.get(2)) == 4 && pendingApples(players.get(2)) == 0, "Entrega automática online falhou");
+            require(apples(players.get(1)) == 0 && pendingApples(players.get(1)) == 4, "Contribuinte offline perdeu pendências");
+            players.get(0).getInventory().setItem(1, ItemStack.EMPTY);
+            lookup.put(players.get(1).getUUID(), players.get(1));
+            // Exercise the registered login callback; no real network/client is simulated here.
+            for (int i = 0; i < 2; i++) ServerPlayConnectionEvents.JOIN.invoker().onPlayReady(players.get(i).connection, null, server);
+            partialChecked = true;
+        }
+        if (partialChecked && ticks >= raidEndedTick + 40 && !rewardsChecked) {
+            require(apples(players.get(0)) == 67 && pendingApples(players.get(0)) == 0, "Saldo parcial não foi entregue após liberar espaço");
+            require(apples(players.get(1)) == 4 && pendingApples(players.get(1)) == 0, "Login não entregou pendências offline");
+            var deliveries = state().getAsJsonObject("deliveries");
+            require(deliveries.isEmpty(), "Reservas concluídas não foram confirmadas");
+            for (var player : players) {
+                int before = apples(player);
+                server.getCommands().getDispatcher().execute("raid recompensas", player.createCommandSourceStack());
+                require(apples(player) == before, "Tentativa repetida duplicou itens");
+                var path = Path.of("world/playerdata", player.getUUID() + ".dat");
+                var nbt = net.minecraft.nbt.NbtIo.readCompressed(path, net.minecraft.nbt.NbtAccounter.unlimitedHeap());
+                require(!nbt.getList("Inventory", net.minecraft.nbt.Tag.TAG_COMPOUND).isEmpty(), "Inventário não persistiu no arquivo vanilla");
+                require(!nbt.getList("Tags", net.minecraft.nbt.Tag.TAG_STRING).isEmpty(), "Recibo não foi salvo junto do inventário");
+            }
+            rewardsChecked = true;
+        }
         if(raidEndedTick>=0 && ticks>=raidEndedTick+60) {
+            require(rewardsChecked, "Validação de recompensas não executou");
             var player=players.get(2);
             var wild=PokemonProperties.Companion.parse("magikarp level=5"," ","=").createEntity(server.overworld());
             wild.setNoAi(true); wild.setNoGravity(true); wild.setPos(0,200,-5);
@@ -202,10 +241,20 @@ public final class ChallengeIntegration implements ModInitializer {
             require(normal!=null,"Desafio de Pokémon normal foi quebrado");
             require(normal.getSide2().getActors()[0].getPokemonList().getFirst().getUuid().equals(wild.getPokemon().getUuid()),"Desafio normal entrou no adaptador de raid");
             normal.stop(); wild.discard();
-            complete(true,"Desafio padrão, UI, movimentos, PP, troca, saída/retorno com dano acumulado, dano/tamanho/HP/drops por boss, reload inválido e batalha normal verificados. FakePlayers; nenhum cliente real.");
+            com.shirokai.raids.RewardRecoveryIntegration.verify(server);
+            complete(true,"Desafio padrão, UI, movimentos, PP, troca, contribuição acumulada, configuração por boss, reload inválido, entrega automática/parcial/offline/login, recibos no playerdata, repetição sem duplicação e batalha normal verificados. FakePlayers; nenhum cliente real.");
         }
         if(ticks==600) require(switched,"A troca de Pokémon não terminou em 30 segundos");
         require(ticks<2200,"Timeout do desafio padrão");
+    }
+    private static int apples(ServerPlayer player) {
+        return player.getInventory().items.stream().filter(s -> s.is(Items.APPLE)).mapToInt(ItemStack::getCount).sum();
+    }
+    private int pendingApples(ServerPlayer player) throws Exception {
+        int count = 0;
+        var entries = state().getAsJsonObject("pending").getAsJsonArray(player.getUUID().toString());
+        if (entries != null) for (var entry : entries) count += entry.getAsJsonObject().get("count").getAsInt();
+        return count;
     }
     private static int pp(Pokemon pokemon,String name) {
         return pokemon.getMoveSet().getMoves().stream().filter(m -> m.getName().equals(name)).findFirst().orElseThrow().getCurrentPp();

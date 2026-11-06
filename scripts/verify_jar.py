@@ -22,13 +22,14 @@ with zipfile.ZipFile(jar) as z:
     assert meta['depends']['java'] == '>=21'
     assert 'shirokai-raids.mixins.json' in meta.get('mixins', []), 'Desafio padrão não está conectado'
     mixins=json.loads(z.read('shirokai-raids.mixins.json'))
-    assert {'ChallengeHandlerMixin','InitializeInstructionMixin','SwitchInstructionMixin'} <= set(mixins['server'])
+    assert {'ChallengeHandlerMixin','InitializeInstructionMixin','SwitchInstructionMixin','PlayerListAccessor'} <= set(mixins['server'])
     assert z.read('shirokai/raid-battle.js'), 'Adaptador do combate ausente'
     assert 'cobblemonraiddens' not in meta['depends'], 'Raid Dens não pode ser dependência de produção'
     for name in z.namelist():
         assert not name.startswith(('com/necro/raid/dens/', 'assets/cobblemonraiddens/',
                                     'data/cobblemonraiddens/')), f'Conteúdo Raid Dens incorporado: {name}'
         assert not name.startswith('com/shirokai/raids/integration/'), 'Fixture vazou para produção'
+        assert not name.startswith('com/shirokai/raids/RewardRecoveryIntegration'), 'Fixture de recuperação vazou para produção'
     classes = [n for n in z.namelist() if n.startswith('com/shirokai/raids/') and n.endswith('.class')]
     assert 'com/shirokai/raids/ShirokaiRaids.class' in classes
     for name in classes:
