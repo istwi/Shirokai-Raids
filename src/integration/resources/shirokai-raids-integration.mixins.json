@@ -1,0 +1,7 @@
+{
+  "required": true,
+  "package": "com.shirokai.raids.integration.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "server": ["BattlePacketCaptureMixin"],
+  "injectors": {"defaultRequire": 1}
+}

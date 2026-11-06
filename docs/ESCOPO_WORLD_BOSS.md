@@ -17,4 +17,4 @@ Este documento registra o pedido atual e prevalece sobre os requisitos históric
 - Persistência, recuperação, liberação de chunks e pendências de inventário, com limites de atomicidade documentados.
 - Releases oficiais apenas após validação funcional e de capacidade. Compilação e testes de unidade não comprovam o aceite final.
 
-O código legado ainda contém combate automático. Sua existência não significa cumprimento do novo fluxo. A substituição só deve ser habilitada quando houver um caminho de combate tradicional validado.
+A versão 0.1.3-dev substitui os loops automáticos pelo caminho de desafio padrão e batalhas reais. Isso ainda é uma integração de desenvolvimento; a validação com clientes reais e dos demais critérios continua pendente. O escopo não considera o projeto concluído apenas por compilar ou passar em testes controlados.

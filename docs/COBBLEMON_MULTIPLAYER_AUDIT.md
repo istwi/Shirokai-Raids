@@ -1,5 +1,19 @@
 # Auditoria de batalhas tradicionais multiplayer — Cobblemon 1.8.3
 
+## Implementação atual: 0.1.3-dev, desafio padrão somente servidor
+
+A revisão mais recente prioriza o fluxo pedido pelo usuário: apontar para o boss, pressionar R e escolher golpes na interface normal. A implementação inicial está ligada ao runtime; o combate automático e `/raid atacar` foram removidos. O relato histórico de “legado preservado” abaixo descreve a versão anterior e não o estado atual. Ver [VALIDACAO_0.1.3-dev.md](VALIDACAO_0.1.3-dev.md) para resultados e limites.
+
+- `ChallengeHandlerMixin` intercepta somente o alvo da raid no `BattleChallengePacket` padrão. Alvos normais continuam no handler original. Arena, distância/linha de visão, permissões, equipe e admissão são verificadas no servidor.
+- `TraditionalRaidBattles` cria `PlayerBattleActor` com equipe real não clonada/não curada e ator adversário com Pokémon próprio por sessão. O boss público é uma âncora `EntityBackedBattleActor` para posicionamento; a lista de `BattlePokemon` nunca contém o objeto Pokémon público. Assim, `startShowdown` não atribui o `battleId` da sessão à entidade pública.
+- `InitializeInstructionMixin` preenche o slot do boss antes da construção do pacote nativo da interface. `SwitchInstructionMixin` impede apenas o send-out do ator customizado, mantendo um boss físico. As trocas do jogador seguem o caminho original. O uso da âncora também permite `Pokemon.sendOutWithAnimation` encontrar a posição adversária ao enviar o próximo Pokémon.
+- O código próprio `shirokai/raid-battle.js` é instalado só na instância boss de cada batalha. A reserva de dano é feita por callback Graal exportado no ponto de aplicação nativa, depois de precisão/tipo/habilidades. O valor efetivo retornado continua na lógica normal de drain e recoil; não se retorna zero para todo dano como no hook original do Raid Dens.
+- O coordenador é a fonte única do HP virtual; o motor recebe uma projeção desse HP, sem multiplicador arbitrário de dano. Desmaios locais do clone não encerram o evento. Na derrota, a fila de resposta do boss é cancelada e o servidor fecha as sessões com forcetie.
+- Antes da remoção da sessão, o PP real do motor é aplicado à equipe por callback. Isso cobre a parada central e a saída via BATTLE_ENDED enquanto o stream ainda existe. Nenhum decremento de PP é inventado pelo mod.
+- O serviço requer Graal padrão. Cura do boss e alguns efeitos de sacrifício/Perish Song têm política restrita; imunidade a faint direto é deliberada. Não há alegação de compatibilidade integral com todo efeito/mod.
+
+O teste do handler padrão com três FakePlayers já demonstrou batalha real, inicialização, golpes escolhidos, troca, PP, entrada tardia, crédito total e encerramento. O ensaio com captura do pacote real e batalha selvagem normal também passou. Não houve cliente Minecraft real: tecla física, tela e apresentação visual ainda precisam de aceite ponta a ponta. Não se considera comprovada a capacidade de 100 combatentes apenas pelo limite de admissão.
+
 ## Revisão: Raid Dens 0.13.4 e decisão de arquitetura
 
 O escopo vigente está em [ESCOPO_WORLD_BOSS.md](ESCOPO_WORLD_BOSS.md). O mod final não deve registrar itens ou blocos do Raid Dens, nem depender do seu JAR. As conclusões históricas abaixo dizem respeito à API pública; o Raid Dens demonstra uma extensão do simulador e Mixins, não uma simples chamada adicional do builder.

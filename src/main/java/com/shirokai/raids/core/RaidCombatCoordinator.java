@@ -101,4 +101,7 @@ public final class RaidCombatCoordinator {
     public synchronized Snapshot snapshot() {
         return new Snapshot(raid, state, health, maximum, version, Map.copyOf(damage), sessions.size());
     }
+    public synchronized long current() { return health; }
+    public long maximum() { return maximum; }
+    public synchronized double fraction() { return (double)health/maximum; }
 }

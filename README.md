@@ -1,67 +1,69 @@
 # Shirokai Raids
 
-Projeto independente para Minecraft Java 1.21.1, Fabric e Cobblemon 1.8.3.
+Mod **somente servidor** para Minecraft 1.21.1, Fabric e Cobblemon 1.8.3.
 
-**Estado: 0.1.2-dev, auditoria e protótipo de simulador. Não há Release estável aprovada.**
+**0.1.3-dev: integração inicial do combate tradicional. Não é uma Release estável.**
 
-A instalação deve funcionar **somente no servidor**, com teto configurável de **100 jogadores em combate simultâneo**. Esse teto ainda não tem validação de desempenho no Minecraft. O [escopo vigente](docs/ESCOPO_WORLD_BOSS.md) exclui itens, blocos, cristais e geração de mundo do Raid Dens. O Shirokai continua independente. As recompensas devem usar itens existentes dos mods configurados, entregues diretamente.
+O fluxo implementado é `/raid` → enviar seu Pokémon → apontar para o boss e pressionar **R** (ou a tecla configurada no Cobblemon) → escolher os movimentos na interface normal. Cada jogador tem uma batalha real independente, com sua equipe, movimentos e PP; o dano aplicado reduz o HP global do evento. O jogo aguarda a escolha do jogador. Não há `/raid atacar` nem loop de ataques automáticos.
 
-Esta versão acrescenta um coordenador central com testes de replay, overkill, saída e encerramento único. O protótipo conecta três sessões reais do simulador oficial 1.8.3 ao coordenador Java e verifica entrada tardia e contribuição. Ele é uma fixture de teste, não uma integração de produção com o servidor/cliente Minecraft. Veja [validação 0.1.2-dev](docs/VALIDACAO_0.1.2-dev.md).
+Não exige Shirokai Raids no cliente nem o JAR do Raid Dens no servidor. Não registra cristais, itens, blocos, receitas ou dimensões do Raid Dens. O [escopo vigente](docs/ESCOPO_WORLD_BOSS.md) continua válido; as demais etapas de World Boss/recompensas ainda não estão concluídas.
 
-O objetivo atual é utilizar a interface tradicional Cobblemon/Showdown, seleção manual de movimentos e um World Boss com HP global. A [auditoria multiplayer](docs/COBBLEMON_MULTIPLAYER_AUDIT.md) encontrou impedimentos na API existente: MULTI não oferece três jogadores cooperativos com entrada contínua, e sessões separadas não compartilham HP/KO automaticamente. A substituição do combate ainda não foi implementada nem validada.
+## Combate e limites
 
-Conforme a condição de auditar antes de substituir, o combate automático da 0.1.0-dev permanece no código **como legado provisório**. Não é o comportamento definitivo solicitado. Esta build acrescenta teleporte seguro e ferramentas de auditoria; pressionar R ainda não inicia uma raid tradicional multiplayer.
+A implementação intercepta o pacote padrão de desafio do Cobblemon somente quando o alvo é o boss ativo. Usa `PlayerBattleActor`, Showdown/Graal e pacotes normais da interface. O Pokémon de cada boss de sessão é uma cópia própria; a entidade pública não recebe um `battleId` de uma das sessões. A vida compartilhada, o crédito efetivo e o encerramento pertencem ao coordenador central.
 
-## Funcionamento
+`maxConcurrentPlayers` tem padrão 100 e aceita de 1 até 100. Ao lotar, o servidor recusa novas batalhas até haver vaga. **A capacidade de 100 combatentes não está comprovada.** Os ensaios realizados até agora incluem três sessões controladas em servidor real; não incluem clientes Minecraft reais nem medição de capacidade para 100 pessoas.
 
-O agendamento, a identidade do boss, HP virtual, contribuição individual e caixa postal de recompensas são preservados. Com raid ativa, `/raid` procura um destino seguro na arena e teleporta o jogador; sem raid, informa o agendamento. `/raid tempo` continua sendo apenas consulta.
+O adaptador exige o serviço Graal padrão do Cobblemon 1.8.3. Cura do boss está desabilitada; Perish Song e sacrifícios do próprio boss têm restrições para impedir vitórias locais. Captura e entrega de Pokémon não fazem parte do evento. Animações/representação visual em clientes e compatibilidade com outros mods ainda precisam de validação. Veja [validação e limitações](docs/VALIDACAO_0.1.3-dev.md) e [auditoria](docs/COBBLEMON_MULTIPLAYER_AUDIT.md).
 
-O sistema legado usa `/raid atacar`. Ele não representa uma batalha tradicional e não deve ser apresentado como atendimento ao novo critério de aceitação. A futura migração precisa provar criação de sessões válidas, interface real, HP autoritativo e encerramento seguro antes de substituir esse código.
+## Testar o fluxo no jogo
 
-## Compilar
+1. Instale Fabric Loader 0.17.2+, Fabric API 0.116.6+1.21.1, Fabric Language Kotlin 1.13.6+kotlin.2.2.20, Cobblemon 1.8.3 e o JAR Shirokai **no servidor de testes**.
+2. Construa uma arena segura e use `/raidadmin setspawn` no ponto desejado. Não há geração de arena nem modificação automática de blocos.
+3. Use `/raidadmin iniciar rayquaza`.
+4. Entre com `/raid`, envie seu Pokémon normalmente e aponte diretamente para o Rayquaza, dentro do alcance normal de desafio.
+5. Pressione R (ou a tecla configurada). Escolha um movimento na batalha normal. Trocas usam o menu normal da equipe.
+6. Repita com três jogadores e confira BossBar, `/raid top` e `/raid dano`. Verifique PP, saída, entrada tardia e encerramento conjunto.
 
-Requer JDK 21 completo, não apenas JRE:
+O HP padrão é 10.000.000. Para um teste curto, configure um valor menor em `config/shirokai-raids/bosses/rayquaza.json` e use `/raidadmin reload` fora de uma raid ativa. Arquivos personalizados não são sobrescritos. Não use a fixture de integração em mundo de produção.
+
+## Comandos
+
+| Comando | Função |
+| --- | --- |
+| `/raid` | Teleporte seguro se houver raid; senão, próxima ocorrência |
+| `/raid entrar` | Orientações para participar pela batalha normal |
+| `/raid tempo` | Estado/tempo, sem teleporte |
+| `/raid dano`, `/raid top` | Dano efetivo e ranking |
+| `/raid sair` | Encerrar a própria batalha e preservar contribuição |
+| `/raid recompensas` | Resgatar um stack pendente do sistema existente |
+| `/raidadmin iniciar <boss>`, `parar`, `setspawn`, `reload`, `status`, `listar` | Administração |
+
+Participação é permitida por padrão; administração exige OP 2 ou `shirokai.raids.admin`. LuckPerms, quando instalado, respeita negações explícitas. `shirokai.raids.attack` e os campos de cooldown/dano do combate antigo não controlam mais golpes. O limite efetivo usa `maxConcurrentPlayers`.
+
+O sistema de recompensas existente foi preservado nesta etapa. O novo sorteio por raridade, entrega automática e menu de pendências ainda estão pendentes. Não há Raid Pouch. Inventário cheio preserva pendências; reservas interrompidas exigem conferência administrativa conforme a arquitetura existente.
+
+## Compilar e validar
+
+Requer JDK 21 completo, Node e Python:
 
 ```sh
-./gradlew build
-python3 scripts/verify_jar.py --version 0.1.2-dev
+bash gradlew --no-daemon build
+python3 scripts/run_showdown_audit.py
 python3 scripts/run_traditional_probe.py
+python3 scripts/verify_jar.py --version 0.1.3-dev
 ```
 
-Windows: `gradlew.bat build`. O JAR é `build/libs/Shirokai-Raids-0.1.2-dev-fabric-1.21.1.jar`, acompanhado de `SHA256SUMS` após a validação. Para o ambiente cloud, use `bash scripts/setup-cloud.sh`.
+Windows: `gradlew.bat build`. O artefato é `build/libs/Shirokai-Raids-0.1.3-dev-fabric-1.21.1.jar`; o verificador gera `SHA256SUMS`. O workflow mantém builds e Artifacts de desenvolvimento em Linux e Windows.
 
-## Instalação e servidor de teste
-
-Instale Fabric Loader 0.17.2+, Fabric API 0.116.6+1.21.1, Fabric Language Kotlin 1.13.6+kotlin.2.2.20 e Cobblemon 1.8.3. Coloque o JAR em `mods/`. Faça backup antes de usar em qualquer mundo com dados importantes.
-
-No ambiente cloud, `bash scripts/prepare-test-server.sh` prepara `/workspace/shared/raids-test-server` usando artefatos oficiais já resolvidos. Com a EULA aceita para esse servidor:
+No ambiente cloud, `scripts/setup-cloud.sh` prepara o JDK e a compilação. Com servidor preparado por `scripts/prepare-test-server.sh` e EULA aceita para os testes:
 
 ```sh
-source /workspace/Shirokai-Raids/scripts/cloud-env.sh
-cd /workspace/shared/raids-test-server
-read -r -a raids_jvm_options <<< "${GRADLE_OPTS:-}"
-java "${raids_jvm_options[@]}" -Xms512M -Xmx3G -jar fabric-server-launch.jar nogui
+bash scripts/run-teleport-integration.sh
+bash scripts/run-combat-integration.sh
+bash scripts/run-challenge-integration.sh
 ```
 
-A configuração inicial desabilita aparições até um administrador usar `/raidadmin setspawn`. A arena deve estar em um chunk carregado; o mod não força carregamento ilimitado. `/raid` teleporta apenas para chunks já carregados, com piso e espaço livre. Não há fallback para dentro do boss, do vazio ou de blocos. Jogadores em batalha, veículos, mortos ou espectadores não são teleportados; há cooldown de cinco segundos.
+Os scripts criam mundos descartáveis separados. As fixtures ficam em `build/integration/shirokai-raids-integration.jar`, fora do JAR distribuível; simulam participantes controlados, não clientes reais. Resultados e logs são preservados no diretório de cada execução.
 
-## Comandos e permissões
-
-| Comando | Função | Permissão |
-| --- | --- | --- |
-| `/raid` | Teleporte seguro se houver raid; senão, próxima ocorrência | shirokai.raids.use + shirokai.raids.join |
-| `/raid tempo` | Estado e próxima ocorrência, sem teleporte | shirokai.raids.use |
-| `/raid entrar` | Mostrar participação na arena | shirokai.raids.join |
-| `/raid atacar` | Comando legado provisório, sem interface tradicional | shirokai.raids.attack |
-| `/raid sair` | Parar ataques e preservar contribuição | shirokai.raids.use |
-| `/raid dano`, `/raid top` | Dano aplicado e ranking | shirokai.raids.use |
-| `/raid recompensas` | Resgatar um stack pendente | shirokai.raids.rewards |
-| `/raidadmin iniciar <boss>`, `parar`, `setspawn`, `reload`, `status`, `listar` | Administração | shirokai.raids.admin |
-
-Jogadores têm permissões de participação por padrão. Administração exige OP 2 por padrão. Se LuckPerms estiver instalado, negações explícitas são respeitadas. Resgates têm intervalo de cinco segundos; inventário cheio preserva itens. Reservas interrompidas exigem conferência administrativa, sem pagamento automático repetido.
-
-Configurações geradas em `config/shirokai-raids/config.json`, `bosses/rayquaza.json` e `rewards/default.json`. Atualizações não sobrescrevem arquivos personalizados. Exemplos estão em [docs/examples](docs/examples).
-
-Consulte [auditoria da API](COBBLEMON_API_AUDIT.md), [arquitetura e limitações](docs/ARQUITETURA.md), [validação desta build](docs/VALIDACAO_0.1.1-dev.md), [teste obrigatório com três jogadores](docs/TESTE_DE_ACEITACAO.md), [requisitos atuais de combate tradicional](docs/REQUISITOS_COMBATE_TRADICIONAL.md) e [processo de Releases](release/README.md).
-
-Builds de desenvolvimento e PRs geram Artifacts temporários em Linux e Windows e executam oito verificações no simulador oficial. A fixture `build/integration/shirokai-raids-integration.jar` é exclusiva de testes em mundo descartável; não é incorporada ao mod distribuível e não deve ser instalada em produção. Tags SemVer oficiais disparam build, testes e validação de metadados antes de publicar o JAR e checksum. Nenhuma tag deve ser criada antes da aprovação da atualização.
+Não criar uma Release v1.0.0 antes do aceite funcional com clientes reais e dos ensaios de capacidade. Consulte [processo de Releases](release/README.md), [histórico](CHANGELOG.md) e [teste de aceitação](docs/TESTE_DE_ACEITACAO.md).

@@ -10,6 +10,7 @@ public final class RaidConfig {
     public boolean spawnConfigured = false;
     public double arenaRadius = 48, attackRange = 32;
     public int attackCooldownTicks = 40, maximumParticipants = 32;
+    public int maxConcurrentPlayers = 100;
     public int bossAttackSeconds = 5, bossDamage = 10;
     public String restartPolicy = "SKIP_MISSED";
     public List<Integer> warningsSeconds = List.of(900,300,60);
@@ -20,6 +21,7 @@ public final class RaidConfig {
             || !Double.isFinite(arenaRadius) || arenaRadius < 8 || arenaRadius > 128
             || !Double.isFinite(attackRange) || attackRange < 1 || attackRange > arenaRadius
             || attackCooldownTicks < 10 || attackCooldownTicks > 1200 || maximumParticipants < 1 || maximumParticipants > 100
+            || maxConcurrentPlayers < 1 || maxConcurrentPlayers > 100
             || bossAttackSeconds < 1 || bossAttackSeconds > 120 || bossDamage < 1 || bossDamage > 1000
             || !List.of("SKIP_MISSED", "START_ONCE").contains(restartPolicy) || supportedMoves == null || supportedMoves.isEmpty()
             || warningsSeconds == null || warningsSeconds.stream().anyMatch(s -> s == null || s < 1 || s > intervalSeconds))

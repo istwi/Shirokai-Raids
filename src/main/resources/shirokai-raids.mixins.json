@@ -1,0 +1,7 @@
+{
+  "required": true,
+  "package": "com.shirokai.raids.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "server": ["ChallengeHandlerMixin", "InitializeInstructionMixin", "SwitchInstructionMixin"],
+  "injectors": {"defaultRequire": 1}
+}

@@ -20,6 +20,10 @@ with zipfile.ZipFile(jar) as z:
     assert meta['depends']['minecraft'] == '1.21.1'
     assert meta['depends']['cobblemon'] == '1.8.3+1.21.1'
     assert meta['depends']['java'] == '>=21'
+    assert 'shirokai-raids.mixins.json' in meta.get('mixins', []), 'Desafio padrão não está conectado'
+    mixins=json.loads(z.read('shirokai-raids.mixins.json'))
+    assert {'ChallengeHandlerMixin','InitializeInstructionMixin','SwitchInstructionMixin'} <= set(mixins['server'])
+    assert z.read('shirokai/raid-battle.js'), 'Adaptador do combate ausente'
     assert 'cobblemonraiddens' not in meta['depends'], 'Raid Dens não pode ser dependência de produção'
     for name in z.namelist():
         assert not name.startswith(('com/necro/raid/dens/', 'assets/cobblemonraiddens/',

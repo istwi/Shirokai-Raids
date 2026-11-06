@@ -8,6 +8,15 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class PersistenceTest {
     @TempDir Path dir;
+    @Test void concurrentCombatConfigurationDefaultsToOneHundredAndRejectsHigherLimits() {
+        var config=new RaidConfig();
+        assertEquals(100,config.maxConcurrentPlayers);
+        config.validate();
+        config.maxConcurrentPlayers=101;
+        assertThrows(IllegalArgumentException.class,config::validate);
+        config.maxConcurrentPlayers=0;
+        assertThrows(IllegalArgumentException.class,config::validate);
+    }
     @Test void restartKeepsPendingOfflineRewardsAndCompletedRaidLedger() throws Exception {
         var state=new RaidState(); state.nextRaid=12345;
         state.completed.add("raid-1");

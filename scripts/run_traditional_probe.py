@@ -26,5 +26,11 @@ with tempfile.TemporaryDirectory(prefix='shirokai-traditional-probe-') as direct
     showdown = directory / 'showdown.zip'
     with zipfile.ZipFile(jars[0]) as jar:
         showdown.write_bytes(jar.read('data/cobblemon/showdown.zip'))
+    if hashlib.sha256(showdown.read_bytes()).hexdigest() != 'aad1393c313359bcb8ca9482baede9009c55256730ef1fd1905c147d8464385e':
+        raise SystemExit('Checksum do simulador divergente')
+    engine=directory/'engine'
+    with zipfile.ZipFile(showdown) as archive:
+        archive.extractall(engine)
+    subprocess.run(['node',str(root/'scripts/audit_raid_adapter.cjs'),str(engine)],check=True)
     subprocess.run([sys.executable, str(root / 'scripts/run_raiddens_audit.py'), str(raid_jar),
                     '--showdown', str(showdown), '--coordinator-classpath', classpath], check=True)
