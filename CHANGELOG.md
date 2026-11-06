@@ -1,5 +1,13 @@
 # Histórico de alterações
 
+## 0.1.6-dev
+
+- Menu vanilla de histórico pessoal com 20 eventos: boss, data, resultado, duração, dano, contribuição, posição, participantes e drops sorteados/pendentes.
+- Ranking global público por participações, dano acumulado e vitórias, com paginação e totais persistentes por UUID, inclusive para jogadores offline.
+- Entrada e retorno ao mesmo evento contam uma participação; encerramento e recuperação após reinício registram os totais junto ao estado, sem contar o mesmo evento novamente.
+- Menus somente de consulta, sem transferência de ícones ou alteração do inventário, com permissões opcionais e fuso horário configurável.
+- Dados começam nesta versão; raids antigas sem histórico não são reconstruídas. Validação visual com clientes reais continua pendente.
+
 ## 0.1.5-dev
 
 - Entrega automática no inventário após vitória global e login, com novas tentativas periódicas e manuais; saldo parcial e contribuintes offline preservados.

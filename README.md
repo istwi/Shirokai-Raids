@@ -2,7 +2,7 @@
 
 Mod **somente servidor** para Minecraft 1.21.1, Fabric e Cobblemon 1.8.3.
 
-**0.1.5-dev: combate tradicional e entrega automática de drops. Não é uma Release estável.**
+**0.1.6-dev: histórico pessoal e ranking global em menus vanilla. Não é uma Release estável.**
 
 O fluxo implementado é `/raid` → enviar seu Pokémon → apontar para o boss e pressionar **R** (ou a tecla configurada no Cobblemon) → escolher os movimentos na interface normal. Cada jogador tem uma batalha real independente, com sua equipe, movimentos e PP; o dano aplicado reduz o HP global do evento. O jogo aguarda a escolha do jogador. Não há `/raid atacar` nem loop de ataques automáticos.
 
@@ -43,13 +43,21 @@ Sair encerra somente sua sessão e libera a vaga. Seu dano permanece no ranking 
 | `/raid entrar` | Orientações para participar pela batalha normal |
 | `/raid tempo` | Estado/tempo, sem teleporte |
 | `/raid dano`, `/raid top` | Dano efetivo e ranking |
+| `/raid menu`, `/raid historico` | Menu com suas 20 últimas raids, resultado, contribuição, posição e drops |
+| `/raid ranking` | Ranking global público: participações, dano acumulado e vitórias |
 | `/raid sair` | Encerrar a própria batalha e preservar contribuição |
 | `/raid recompensas` | Tentar novamente a entrega das pendências, com limite por tentativa |
 | `/raidadmin iniciar <boss>`, `parar`, `setspawn`, `reload`, `status`, `listar` | Administração |
 
 Participação é permitida por padrão; administração exige OP 2 ou `shirokai.raids.admin`. LuckPerms, quando instalado, respeita negações explícitas. `shirokai.raids.attack` e os campos de cooldown/dano do combate antigo não controlam mais golpes. O limite efetivo usa `maxConcurrentPlayers`.
 
-Novas tabelas padrão usam duas etapas: raridade conforme a faixa de contribuição, depois item ponderado dentro da raridade. Arquivos antigos continuam usando seus itens e regras anteriores; não são sobrescritos. Não há Raid Pouch nem menu de pendências nesta etapa.
+Novas tabelas padrão usam duas etapas: raridade conforme a faixa de contribuição, depois item ponderado dentro da raridade. Arquivos antigos continuam usando seus itens e regras anteriores; não são sobrescritos. Não há Raid Pouch. O menu de histórico exibe drops e saldo pendente por evento; resgate manual continua em `/raid recompensas`.
+
+Os menus funcionam com o cliente Cobblemon normal, usando uma janela de baú somente para consulta. Abra `/raid historico` para ver boss, data, resultado, duração, dano efetivo, contribuição sobre o HP inicial, posição no evento, quantidade de participantes e drops sorteados. As setas mudam a página; os botões inferiores levam ao ranking global por participações, dano ou vitórias. Clique em **Seus totais** para atualizar a página. Ícones não podem ser retirados nem usados como itens.
+
+O histórico guarda os 20 últimos eventos encerrados de cada jogador. Os totais globais continuam acumulando além desse limite e incluem jogadores offline. Participar significa iniciar uma batalha aceita pelo servidor: sair e retornar conta uma vez, inclusive se não causou dano. Vitórias são eventos vencidos nos quais participou; o dano acumulado inclui eventos cancelados/expirados. O registro começa nesta versão, sem inventar raids antigas. Em queda abrupta, o histórico usa o último snapshot e marca o evento como interrompido. Veja [detalhes e validação](docs/VALIDACAO_0.1.6-dev.md).
+
+Todos podem consultar os rankings por padrão. LuckPerms pode restringir `shirokai.raids.history` e `shirokai.raids.ranking`, além de `shirokai.raids.use`. O fuso do menu é `menuTimeZone` em `config.json`, padrão `America/Sao_Paulo`; valores inválidos são rejeitados no reload. O histórico pessoal não permite consultar o de outro jogador.
 
 Após a derrota global, os drops entram no registro persistente antes da entrega. Jogadores online recebem no inventário principal, completando stacks compatíveis e usando slots vazios. Quem saiu continua elegível; quem está offline recebe ao entrar. Falta de espaço preserva o saldo, com novas tentativas periódicas e por `/raid recompensas`. Itens não são jogados no chão. Cada passagem atende um jogador, com até quatro transações; filas grandes podem demorar.
 
@@ -63,10 +71,10 @@ Requer JDK 21 completo, Node e Python:
 bash gradlew --no-daemon build
 python3 scripts/run_showdown_audit.py
 python3 scripts/run_traditional_probe.py
-python3 scripts/verify_jar.py --version 0.1.5-dev
+python3 scripts/verify_jar.py --version 0.1.6-dev
 ```
 
-Windows: `gradlew.bat build`. O artefato é `build/libs/Shirokai-Raids-0.1.5-dev-fabric-1.21.1.jar`; o verificador gera `SHA256SUMS`. O workflow mantém builds e Artifacts de desenvolvimento em Linux e Windows.
+Windows: `gradlew.bat build`. O artefato é `build/libs/Shirokai-Raids-0.1.6-dev-fabric-1.21.1.jar`; o verificador gera `SHA256SUMS`. O workflow mantém builds e Artifacts de desenvolvimento em Linux e Windows.
 
 No ambiente cloud, `scripts/setup-cloud.sh` prepara o JDK e a compilação. Com servidor preparado por `scripts/prepare-test-server.sh` e EULA aceita para os testes:
 

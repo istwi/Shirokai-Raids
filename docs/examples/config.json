@@ -13,6 +13,7 @@
   "bossAttackSeconds": 5,
   "bossDamage": 10,
   "restartPolicy": "SKIP_MISSED",
+  "menuTimeZone": "America/Sao_Paulo",
   "warningsSeconds": [
     900,
     300,

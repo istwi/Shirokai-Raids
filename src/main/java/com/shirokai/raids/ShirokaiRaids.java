@@ -102,6 +102,9 @@ public final class ShirokaiRaids implements ModInitializer {
             raid.then(Commands.literal("tempo").executes(c -> info(c.getSource())));
             raid.then(Commands.literal("dano").executes(c -> damage(c.getSource())));
             raid.then(Commands.literal("top").executes(c -> ranking(c.getSource())));
+            raid.then(Commands.literal("menu").executes(c -> openRaidMenu(c.getSource(), false)));
+            raid.then(Commands.literal("historico").executes(c -> openRaidMenu(c.getSource(), false)));
+            raid.then(Commands.literal("ranking").executes(c -> openRaidMenu(c.getSource(), true)));
             raid.then(Commands.literal("recompensas").requires(s -> RaidPermissions.check(s,"shirokai.raids.rewards",true)).executes(c -> claim(c.getSource())));
             dispatcher.register(raid);
             var admin = Commands.literal("raidadmin").requires(s -> RaidPermissions.check(s,"shirokai.raids.admin",s.hasPermission(2)));
@@ -152,6 +155,7 @@ public final class ShirokaiRaids implements ModInitializer {
         statePath = server.getWorldPath(LevelResource.ROOT).resolve("data/shirokai-raids/state.json");
         try {
             state = Files.exists(statePath) ? JsonFiles.read(statePath,RaidState.class) : new RaidState(); state.validate();
+            state.archive.complete(RaidArchive.Outcome.INTERRUPTED, System.currentTimeMillis(), Map.of());
             // Restart recovery cancels the active raid; no repeat rewards or accumulated raids.
             state.activeRaid = null; state.bossEntity = null;
             if (state.nextRaid == 0 || (state.nextRaid < System.currentTimeMillis() && config.restartPolicy.equals("SKIP_MISSED")))
@@ -179,7 +183,12 @@ public final class ShirokaiRaids implements ModInitializer {
                 com.cobblemon.mod.common.Cobblemon.config.getBattleWildMaxDistance()))
                 throw new IllegalStateException("Aproxime-se do boss para desafiá-lo.");
             mod.active.battles.challenge(player,packet.getSelectedPokemonId());
+            mod.state.archive.current.participants.put(player.getUUID().toString(), player.getGameProfile().getName());
+            mod.snapshot();
         } catch(RuntimeException error) {
+            if (!mod.healthy && mod.active != null) {
+                mod.active.battles.close(); mod.active.bar.removeAllPlayers(); mod.active.boss.discard(); mod.active = null;
+            }
             player.sendSystemMessage(Component.literal(error.getMessage()==null?"Não foi possível iniciar a batalha.":error.getMessage()));
             LOG.debug("Desafio de raid recusado",error);
         }
@@ -290,6 +299,7 @@ public final class ShirokaiRaids implements ModInitializer {
         active = candidate; // entity load callback must recognize it before insertion
         if (!world.addFreshEntity(entity)) { active = null; throw new IllegalStateException("Spawn recusado"); }
         state.activeRaid = candidate.id; state.bossEntity = entity.getUUID().toString(); state.hp = definition.hp; state.damage.clear();
+        state.archive.current = new RaidArchive.Event(candidate.id, definition.name, definition.species, System.currentTimeMillis(), definition.hp);
         state.nextRaid = RaidSchedule.next(System.currentTimeMillis(),config.intervalSeconds); warned.clear();
         try { save(); } catch (RuntimeException e) { entity.discard(); active = null; throw e; }
         broadcast(definition.name + " apareceu! Use /raid, envie seu Pokémon e desafie com R.");
@@ -330,7 +340,7 @@ public final class ShirokaiRaids implements ModInitializer {
             if (tick % 20 != 0) return;
             long now = System.currentTimeMillis();
             if (active != null) {
-                if (now >= active.ends) { finish(false,"Raid encerrada por tempo."); return; }
+                if (now >= active.ends) { finish(RaidArchive.Outcome.TIMEOUT,"Raid encerrada por tempo."); return; }
                 if (active.boss.isRemoved()) { finish(false,"Boss removido; raid cancelada com segurança."); return; }
                 if (active.boss.position().distanceToSqr(active.center) > config.arenaRadius*config.arenaRadius)
                     active.boss.teleportTo(active.center.x,active.center.y,active.center.z);
@@ -349,26 +359,42 @@ public final class ShirokaiRaids implements ModInitializer {
         } catch (Exception e) { LOG.error("Raid suspensa após falha; verifique o estado persistente",e); healthy=false; if(active!=null) { active.battles.close(); active.bar.removeAllPlayers(); active.boss.discard(); active=null; } }
     }
     private void snapshot() {
-        state.hp=active.health.current(); state.damage.clear();
-        for(var e:active.damage.ranking()) state.damage.put(e.player().toString(),e.damage());
+        capture(active);
         save();
     }
+    private void capture(Active raid) {
+        state.hp = raid.health.current(); state.damage.clear();
+        state.archive.current.damage.clear();
+        for (var e : raid.damage.ranking()) {
+            String key = e.player().toString();
+            state.damage.put(key, e.damage());
+            state.archive.current.damage.put(key, e.damage());
+            state.archive.current.participants.put(key, e.name());
+        }
+    }
     private void finish(boolean defeated,String message) {
+        finish(defeated ? RaidArchive.Outcome.VICTORY : RaidArchive.Outcome.CANCELLED, message);
+    }
+    private void finish(RaidArchive.Outcome outcome, String message) {
         if(active==null) return;
         var raid=active;
+        boolean defeated = outcome == RaidArchive.Outcome.VICTORY;
         try {
-            state.hp=raid.health.current(); state.damage.clear();
-            for(var e:raid.damage.ranking()) state.damage.put(e.player().toString(),e.damage());
+            capture(raid);
+            var drops = new HashMap<String, Map<String, Integer>>();
             if(defeated && !state.completed.contains(raid.id)) {
                 var table=rewards.get(raid.definition.rewards);
                 for(var entry:raid.damage.ranking()) {
                     double contribution=raid.damage.contribution(entry.player(),raid.health.maximum());
                     if(contribution<table.minimumContribution) continue;
-                    for(var drop:RaidLootRoller.roll(table,contribution,random))
+                    for(var drop:RaidLootRoller.roll(table,contribution,random)) {
                         state.pending.computeIfAbsent(entry.player().toString(),k->new ArrayList<>()).add(new RaidState.Pending(raid.id,drop.item(),drop.count()));
+                        drops.computeIfAbsent(entry.player().toString(), key -> new TreeMap<>()).merge(drop.item(), drop.count(), Integer::sum);
+                    }
                 }
                 state.completed.add(raid.id);
             }
+            state.archive.complete(outcome, System.currentTimeMillis(), drops);
             state.activeRaid=null; state.bossEntity=null; save();
         } finally { raid.battles.close(); raid.bar.removeAllPlayers(); raid.boss.discard(); active=null; }
         broadcast(message);
@@ -376,6 +402,16 @@ public final class ShirokaiRaids implements ModInitializer {
             // Includes contributors who left combat; offline players are retried on login.
             for (var entry : raid.damage.ranking()) rewardQueue.add(entry.player());
         }
+    }
+    private int openRaidMenu(CommandSourceStack source, boolean global) {
+        if (!healthy) return reply(source, "Histórico indisponível: confira a persistência.");
+        try {
+            var player = source.getPlayerOrException();
+            if (!RaidMenu.allowed(player, global)) return reply(source, "Você não tem permissão para abrir este menu.");
+            RaidMenu.open(player, state, java.time.ZoneId.of(config.menuTimeZone), global, RaidArchive.Metric.PARTICIPATIONS, 0,
+                () -> healthy);
+            return 1;
+        } catch (Exception error) { return reply(source, "Menu disponível para jogadores com permissão."); }
     }
     private void retryRewards() {
         if (tick % 100 == 0) for (var player : server.getPlayerList().getPlayers()) {

@@ -230,6 +230,18 @@ public final class ChallengeIntegration implements ModInitializer {
         }
         if(raidEndedTick>=0 && ticks>=raidEndedTick+60) {
             require(rewardsChecked, "Validação de recompensas não executou");
+            var archive = state().getAsJsonObject("archive");
+            require(archive.getAsJsonObject("totals").size() == 3, "Participantes ausentes do ranking global");
+            long archivedDamage = 0;
+            for (var participant : players) {
+                String key = participant.getUUID().toString();
+                var totals = archive.getAsJsonObject("totals").getAsJsonObject(key);
+                require(totals.get("participations").getAsInt() == 1 && totals.get("victories").getAsInt() == 1, "Retorno contou duas participações");
+                archivedDamage += totals.get("damage").getAsLong();
+                var history = archive.getAsJsonObject("history").getAsJsonArray(key);
+                require(history.size() == 1 && history.get(0).getAsJsonObject().getAsJsonObject("drops").get("minecraft:apple").getAsInt() == 4, "Histórico perdeu drops");
+            }
+            require(archivedDamage == RAID_HP, "Ranking global perdeu dano efetivo");
             var player=players.get(2);
             var wild=PokemonProperties.Companion.parse("magikarp level=5"," ","=").createEntity(server.overworld());
             wild.setNoAi(true); wild.setNoGravity(true); wild.setPos(0,200,-5);
@@ -242,6 +254,7 @@ public final class ChallengeIntegration implements ModInitializer {
             require(normal.getSide2().getActors()[0].getPokemonList().getFirst().getUuid().equals(wild.getPokemon().getUuid()),"Desafio normal entrou no adaptador de raid");
             normal.stop(); wild.discard();
             com.shirokai.raids.RewardRecoveryIntegration.verify(server);
+            com.shirokai.raids.RaidMenuIntegration.verify(server);
             complete(true,"Desafio padrão, UI, movimentos, PP, troca, contribuição acumulada, configuração por boss, reload inválido, entrega automática/parcial/offline/login, recibos no playerdata, repetição sem duplicação e batalha normal verificados. FakePlayers; nenhum cliente real.");
         }
         if(ticks==600) require(switched,"A troca de Pokémon não terminou em 30 segundos");

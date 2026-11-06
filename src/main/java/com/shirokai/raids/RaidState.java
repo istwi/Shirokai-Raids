@@ -13,6 +13,7 @@ final class RaidState {
     Map<String, Pending> uncertain = new HashMap<>();
     // New reservations can be reconciled using receipts stored with the player's inventory.
     Map<String, Delivery> deliveries = new HashMap<>();
+    RaidArchive archive = new RaidArchive();
     static final class Delivery {
         String player;
         Pending reward;
@@ -26,6 +27,8 @@ final class RaidState {
         }
     }
     void validate() {
+        if (archive == null) throw new IllegalArgumentException("Histórico persistente inválido");
+        archive.validate();
         if (nextRaid < 0 || pending == null || completed == null || uncertain == null || damage == null || deliveries == null)
             throw new IllegalArgumentException("Estado persistente inválido; restaure um backup");
         var ids = new HashSet<String>();

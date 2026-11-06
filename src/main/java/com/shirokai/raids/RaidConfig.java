@@ -13,9 +13,12 @@ public final class RaidConfig {
     public int maxConcurrentPlayers = 100;
     public int bossAttackSeconds = 5, bossDamage = 10;
     public String restartPolicy = "SKIP_MISSED";
+    public String menuTimeZone = "America/Sao_Paulo";
     public List<Integer> warningsSeconds = List.of(900,300,60);
     public List<String> supportedMoves = List.of("tackle", "scratch", "pound", "quickattack", "dragonclaw", "dragonpulse", "airslash", "flamethrower", "watergun", "thunderbolt", "icebeam", "psychic", "shadowball", "energyball", "earthpower", "rockslide", "ironhead", "moonblast", "aerialace");
     public void validate() {
+        if (menuTimeZone == null) throw new IllegalArgumentException("Fuso horário do menu ausente");
+        java.time.ZoneId.of(menuTimeZone);
         com.shirokai.raids.core.RaidSchedule.next(0, intervalSeconds);
         if (durationSeconds < 30 || durationSeconds > 7200 || !Double.isFinite(x+y+z)
             || !Double.isFinite(arenaRadius) || arenaRadius < 8 || arenaRadius > 128

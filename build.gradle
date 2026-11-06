@@ -49,6 +49,8 @@ tasks.register('integrationJar', Jar) {
 }
 tasks.register('remapIntegrationJar', net.fabricmc.loom.task.RemapJarTask) {
     dependsOn tasks.integrationJar
+    // Resolve inherited Minecraft methods through our main classes when remapping fixtures.
+    classpath.from(sourceSets.main.output)
     inputFile = tasks.integrationJar.archiveFile
     archiveFileName = 'shirokai-raids-integration.jar'
     destinationDirectory = layout.buildDirectory.dir('integration')
