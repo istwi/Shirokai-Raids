@@ -20,6 +20,11 @@ with zipfile.ZipFile(jar) as z:
     assert meta['depends']['minecraft'] == '1.21.1'
     assert meta['depends']['cobblemon'] == '1.8.3+1.21.1'
     assert meta['depends']['java'] == '>=21'
+    assert 'cobblemonraiddens' not in meta['depends'], 'Raid Dens não pode ser dependência de produção'
+    for name in z.namelist():
+        assert not name.startswith(('com/necro/raid/dens/', 'assets/cobblemonraiddens/',
+                                    'data/cobblemonraiddens/')), f'Conteúdo Raid Dens incorporado: {name}'
+        assert not name.startswith('com/shirokai/raids/integration/'), 'Fixture vazou para produção'
     classes = [n for n in z.namelist() if n.startswith('com/shirokai/raids/') and n.endswith('.class')]
     assert 'com/shirokai/raids/ShirokaiRaids.class' in classes
     for name in classes:

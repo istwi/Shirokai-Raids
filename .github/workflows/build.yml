@@ -31,6 +31,9 @@ jobs:
       - name: Auditar simulador oficial Cobblemon 1.8.3
         shell: bash
         run: python scripts/run_showdown_audit.py
+      - name: Validar três sessões Showdown com coordenador Java
+        shell: bash
+        run: python scripts/run_traditional_probe.py
       - name: Verificar JAR e gerar checksum
         shell: bash
         run: |

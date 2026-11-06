@@ -2,7 +2,11 @@
 
 Projeto independente para Minecraft Java 1.21.1, Fabric e Cobblemon 1.8.3.
 
-**Estado: 0.1.1-dev, migração em avaliação. Não há Release estável aprovada.**
+**Estado: 0.1.2-dev, auditoria e protótipo de simulador. Não há Release estável aprovada.**
+
+A instalação deve funcionar **somente no servidor**, com teto configurável de **100 jogadores em combate simultâneo**. Esse teto ainda não tem validação de desempenho no Minecraft. O [escopo vigente](docs/ESCOPO_WORLD_BOSS.md) exclui itens, blocos, cristais e geração de mundo do Raid Dens. O Shirokai continua independente. As recompensas devem usar itens existentes dos mods configurados, entregues diretamente.
+
+Esta versão acrescenta um coordenador central com testes de replay, overkill, saída e encerramento único. O protótipo conecta três sessões reais do simulador oficial 1.8.3 ao coordenador Java e verifica entrada tardia e contribuição. Ele é uma fixture de teste, não uma integração de produção com o servidor/cliente Minecraft. Veja [validação 0.1.2-dev](docs/VALIDACAO_0.1.2-dev.md).
 
 O objetivo atual é utilizar a interface tradicional Cobblemon/Showdown, seleção manual de movimentos e um World Boss com HP global. A [auditoria multiplayer](docs/COBBLEMON_MULTIPLAYER_AUDIT.md) encontrou impedimentos na API existente: MULTI não oferece três jogadores cooperativos com entrada contínua, e sessões separadas não compartilham HP/KO automaticamente. A substituição do combate ainda não foi implementada nem validada.
 
@@ -20,10 +24,11 @@ Requer JDK 21 completo, não apenas JRE:
 
 ```sh
 ./gradlew build
-python3 scripts/verify_jar.py --version 0.1.1-dev
+python3 scripts/verify_jar.py --version 0.1.2-dev
+python3 scripts/run_traditional_probe.py
 ```
 
-Windows: `gradlew.bat build`. O JAR é `build/libs/Shirokai-Raids-0.1.1-dev-fabric-1.21.1.jar`, acompanhado de `SHA256SUMS` após a validação. Para o ambiente cloud, use `bash scripts/setup-cloud.sh`.
+Windows: `gradlew.bat build`. O JAR é `build/libs/Shirokai-Raids-0.1.2-dev-fabric-1.21.1.jar`, acompanhado de `SHA256SUMS` após a validação. Para o ambiente cloud, use `bash scripts/setup-cloud.sh`.
 
 ## Instalação e servidor de teste
 
