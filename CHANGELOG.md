@@ -1,5 +1,10 @@
 # Histórico de alterações
 
+## 0.1.8-dev
+
+- Contorno luminoso nativo do Minecraft ativado na entidade pública do boss ao aparecer, sem exigir mod adicional no cliente nem alterar equipes do scoreboard.
+- Aparência do contorno no modelo Cobblemon ainda depende da conferência com cliente real.
+
 ## 0.1.7-dev
 
 - Lobby em dimensão existente com posição/orientação configuradas, busca segura e cooldown; `/raid entrar` também conduz à arena quando necessário.

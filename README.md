@@ -2,9 +2,11 @@
 
 Mod **somente servidor** para Minecraft 1.21.1, Fabric e Cobblemon 1.8.3.
 
-**0.1.7-dev: lobby, arena, agendamento e recompensas preparados para o teste final. Não é uma Release estável.**
+**0.1.8-dev: contorno luminoso do boss e controles preparados para o teste final. Não é uma Release estável.**
 
 O fluxo implementado é `/raid` → enviar seu Pokémon → apontar para o boss e pressionar **R** (ou a tecla configurada no Cobblemon) → escolher os movimentos na interface normal. Cada jogador tem uma batalha real independente, com sua equipe, movimentos e PP; o dano aplicado reduz o HP global do evento. O jogo aguarda a escolha do jogador. Não há `/raid atacar` nem loop de ataques automáticos.
+
+O boss público aparece com contorno luminoso nativo (Glowing), sem mod adicional no cliente. O mod não altera equipes do scoreboard para definir cores. O estado foi conferido no servidor; a aparência no modelo Cobblemon precisa da observação com cliente real.
 
 Não exige Shirokai Raids no cliente nem o JAR do Raid Dens no servidor. Não registra cristais, itens, blocos, receitas ou dimensões do Raid Dens. O [escopo vigente](docs/ESCOPO_WORLD_BOSS.md) continua válido; as demais etapas de World Boss/recompensas ainda não estão concluídas.
 
@@ -77,10 +79,10 @@ Requer JDK 21 completo, Node e Python:
 bash gradlew --no-daemon build
 python3 scripts/run_showdown_audit.py
 python3 scripts/run_traditional_probe.py
-python3 scripts/verify_jar.py --version 0.1.7-dev
+python3 scripts/verify_jar.py --version 0.1.8-dev
 ```
 
-Windows: `gradlew.bat build`. O artefato é `build/libs/Shirokai-Raids-0.1.7-dev-fabric-1.21.1.jar`; o verificador gera `SHA256SUMS`. O workflow mantém builds e Artifacts de desenvolvimento em Linux e Windows.
+Windows: `gradlew.bat build`. O artefato é `build/libs/Shirokai-Raids-0.1.8-dev-fabric-1.21.1.jar`; o verificador gera `SHA256SUMS`. O workflow mantém builds e Artifacts de desenvolvimento em Linux e Windows.
 
 No ambiente cloud, `scripts/setup-cloud.sh` prepara o JDK e a compilação. Com servidor preparado por `scripts/prepare-test-server.sh` e EULA aceita para os testes:
 

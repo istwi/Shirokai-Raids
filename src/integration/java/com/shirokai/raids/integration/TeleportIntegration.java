@@ -52,6 +52,7 @@ public final class TeleportIntegration implements ModInitializer {
         require(command(server,"raidadmin iniciar rayquaza")==1,"spawn falhou");
         var bosses=server.overworld().getEntitiesOfClass(PokemonEntity.class,new AABB(-48,180,-48,48,240,48),e->e.getTags().contains("shirokai_raids_boss"));
         require(bosses.size()==1,"boss único não encontrado");
+        require(bosses.getFirst().hasGlowingTag() && bosses.getFirst().isCurrentlyGlowing(), "Contorno nativo do boss não está ativo");
         player.setPos(1000,200,1000);
         var body=AABB.ofSize(new Vec3(10.5,200+player.getBbHeight()/2.0,0.5),player.getBbWidth(),player.getBbHeight(),player.getBbWidth());
         System.out.println("TELEPORT_DIAGNOSTIC boss="+bosses.getFirst().getBoundingBox()+" body="+body

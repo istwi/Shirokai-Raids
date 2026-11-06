@@ -1,6 +1,6 @@
 # Preparar o servidor para o teste final
 
-Use a pré-release `0.1.7-dev` num servidor de testes com backup. Ela reúne o combate tradicional, drops, histórico/rankings e os controles operacionais; não é uma versão estável nem comprovação de 100 jogadores.
+Use a pré-release `0.1.8-dev` num servidor de testes com backup. Ela reúne o combate tradicional, drops, histórico/rankings e os controles operacionais; não é uma versão estável nem comprovação de 100 jogadores.
 
 ## Instalação
 

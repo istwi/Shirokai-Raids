@@ -430,6 +430,7 @@ public final class ShirokaiRaids implements ModInitializer {
         entity.getPokemon().setScaleModifier(definition.scale);
         entity.setCustomName(Component.literal(definition.name));
         entity.setPersistenceRequired(); entity.setInvulnerable(true);
+        entity.setGlowingTag(true);
         entity.getEntityData().set(PokemonEntity.getUNBATTLEABLE(),false);
         entity.setNoAi(true);
         entity.addTag("shirokai_raids_boss");
