@@ -10,6 +10,8 @@ A entidade pública do boss recebe `setGlowingTag(true)` antes de entrar no mund
 
 Nenhum cliente real participou. O estado luminoso foi confirmado no servidor, mas a aparência do contorno no modelo Cobblemon ainda precisa ser observada no jogo. Os demais limites de compatibilidade, persistência e capacidade da 0.1.7-dev permanecem. Não houve alteração de configuração cloud nem publicação de Release estável.
 
+Posteriormente, foram concluídos os [testes reais de reinício](VALIDACAO_REINICIO.md): quatro JVMs no mesmo mundo, incluindo um `SIGKILL`, com preservação de configuração/ponto de spawn e recuperação de recibos sem duplicar itens. Não foi necessário modificar o JAR 0.1.8-dev.
+
 ## Artefato
 
 `build/libs/Shirokai-Raids-0.1.8-dev-fabric-1.21.1.jar`

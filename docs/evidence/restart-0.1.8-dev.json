@@ -1,0 +1,58 @@
+{
+  "passed": true,
+  "jvmBoots": 4,
+  "actualSigkill": true,
+  "realClients": 0,
+  "version": "0.1.8-dev",
+  "phases": [
+    {
+      "configHashes": {
+        "bosses/rayquaza.json": "8d015c733c65f304e4d271ae2198ea5a377e7a60224c658b124c750246ef4bf9",
+        "config.json": "aa307a2f4987534be234ba809fad17b4fd8ef63034fcfe153d02b60ec55ca18f",
+        "rewards/default.json": "3c9e67a68aaac4ffb401c6198b0d3af337a1f42cee648f7a05f5b64bd529d6ac",
+        "rewards/restart.json": "50306e021f2a9e86ee4326d42183e6a4b56daba80acd07895d7c810b0150e0a3"
+      },
+      "message": "Normal shutdown requested with active raid",
+      "passed": true,
+      "phase": "prepare",
+      "realClients": 0
+    },
+    {
+      "message": "Ready for external SIGKILL with persisted boss and unacknowledged receipt",
+      "configHashes": {
+        "bosses/rayquaza.json": "229d8712e18e5433c5693069a361585b4b2105dabcc2116ff348f66bb87df220",
+        "config.json": "c475be2e272a08e28f7389c4221721f16594b93079dae13ef51801fa064364f5",
+        "rewards/default.json": "3c9e67a68aaac4ffb401c6198b0d3af337a1f42cee648f7a05f5b64bd529d6ac",
+        "rewards/restart.json": "50306e021f2a9e86ee4326d42183e6a4b56daba80acd07895d7c810b0150e0a3"
+      },
+      "realClients": 0,
+      "phase": "normal-and-crash",
+      "passed": true,
+      "actualSigkill": true
+    },
+    {
+      "realClients": 0,
+      "phase": "recover",
+      "passed": true,
+      "message": "Crash recovery, orphan cleanup, original spawn and exactly-once receipt recovery verified",
+      "configHashes": {
+        "bosses/rayquaza.json": "229d8712e18e5433c5693069a361585b4b2105dabcc2116ff348f66bb87df220",
+        "config.json": "c475be2e272a08e28f7389c4221721f16594b93079dae13ef51801fa064364f5",
+        "rewards/default.json": "3c9e67a68aaac4ffb401c6198b0d3af337a1f42cee648f7a05f5b64bd529d6ac",
+        "rewards/restart.json": "50306e021f2a9e86ee4326d42183e6a4b56daba80acd07895d7c810b0150e0a3"
+      }
+    },
+    {
+      "phase": "verify-again",
+      "realClients": 0,
+      "configHashes": {
+        "bosses/rayquaza.json": "229d8712e18e5433c5693069a361585b4b2105dabcc2116ff348f66bb87df220",
+        "config.json": "c475be2e272a08e28f7389c4221721f16594b93079dae13ef51801fa064364f5",
+        "rewards/default.json": "3c9e67a68aaac4ffb401c6198b0d3af337a1f42cee648f7a05f5b64bd529d6ac",
+        "rewards/restart.json": "50306e021f2a9e86ee4326d42183e6a4b56daba80acd07895d7c810b0150e0a3"
+      },
+      "message": "Fourth JVM boot did not duplicate history, rewards, bosses or alter saved settings",
+      "passed": true
+    }
+  ]
+}

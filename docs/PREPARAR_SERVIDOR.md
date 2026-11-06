@@ -72,6 +72,8 @@ O teste final deve incluir limpeza automática/manual com SkiesClear instalado e
 
 Novas entregas usam recibos salvos com o inventário; veja `ENTREGA_RECOMPENSAS.md`. Erro de persistência suspende raids/entregas; corrija o armazenamento antes de reiniciar. Não apague `state.json` para contornar o erro.
 
+Os [testes de reinício real](VALIDACAO_REINICIO.md) cobriram parada normal, `SIGKILL`, preservação dos JSONs e recuperação de recibos em quatro processos. A raid ativa é cancelada/interrompida; o ponto salvo permanece para a próxima raid. O boss antigo não continua com o mesmo HP após reiniciar.
+
 Reservas antigas em `uncertain` não têm prova automática de recebimento. Confira inventário, logs e backup antes de decidir:
 
 ```text
