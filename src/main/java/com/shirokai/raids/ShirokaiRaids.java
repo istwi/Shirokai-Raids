@@ -50,6 +50,7 @@ public final class ShirokaiRaids implements ModInitializer {
     private boolean healthy;
     private long tick;
     private final Map<UUID,Long> claimCooldown = new HashMap<>();
+    private final Map<UUID,Long> teleportCooldown = new HashMap<>();
     private final Set<Integer> warned = new HashSet<>();
     private final Random random = new Random();
 
@@ -97,7 +98,7 @@ public final class ShirokaiRaids implements ModInitializer {
             }
         });
         CommandRegistrationCallback.EVENT.register((dispatcher, registries, environment) -> {
-            var raid = Commands.literal("raid").requires(s -> RaidPermissions.check(s,"shirokai.raids.use",true)).executes(c -> info(c.getSource()));
+            var raid = Commands.literal("raid").requires(s -> RaidPermissions.check(s,"shirokai.raids.use",true)).executes(c -> raidCommand(c.getSource()));
             raid.then(Commands.literal("entrar").requires(s -> RaidPermissions.check(s,"shirokai.raids.join",true)).executes(c -> join(c.getSource())));
             raid.then(Commands.literal("atacar").requires(s -> RaidPermissions.check(s,"shirokai.raids.attack",true)).executes(c -> attack(c.getSource())));
             raid.then(Commands.literal("sair").executes(c -> leave(c.getSource())));
@@ -167,6 +168,61 @@ public final class ShirokaiRaids implements ModInitializer {
         if (!healthy) return reply(source,"Raids indisponíveis: verifique os logs de persistência.");
         return reply(source,active == null ? "Próxima raid em " + Math.max(0,(state.nextRaid-System.currentTimeMillis())/1000) + " segundos."
             : active.definition.name + ": " + active.health.current() + "/" + active.health.maximum() + " HP. Restam " + Math.max(0,(active.ends-System.currentTimeMillis())/1000) + "s.");
+    }
+    private int raidCommand(CommandSourceStack source) {
+        if (!healthy || active == null) return info(source);
+        if (!source.isPlayer()) return info(source);
+        if (!RaidPermissions.check(source,"shirokai.raids.join",true)) {
+            source.sendFailure(Component.literal("Você não tem permissão para entrar na arena.")); return 0;
+        }
+        var player=source.getPlayer();
+        if (!player.isAlive() || player.isSpectator() || player.isPassenger()
+            || com.cobblemon.mod.common.battles.BattleRegistry.getBattleByParticipatingPlayer(player) != null) {
+            source.sendFailure(Component.literal("Encerre sua batalha e saia de veículos antes de usar /raid.")); return 0;
+        }
+        if (tick < teleportCooldown.getOrDefault(player.getUUID(),0L)) {
+            source.sendFailure(Component.literal("Aguarde cinco segundos entre teleportes.")); return 0;
+        }
+        teleportCooldown.put(player.getUUID(),tick+100);
+        var raid=active;
+        if (raid.boss.isRemoved() || !raid.boss.isAlive() || server.getLevel(raid.world.dimension()) != raid.world) {
+            source.sendFailure(Component.literal("A arena não está disponível.")); return 0;
+        }
+        var spot=SafeTeleportSearch.find(raid.boss.getX(),raid.center.y,raid.boss.getZ(),config.arenaRadius,
+            player.getUUID().hashCode(),candidate -> safeSpot(raid,player,candidate));
+        if (spot.isEmpty()) {
+            source.sendFailure(Component.literal("Não há um local seguro e carregado próximo ao boss. Avise a administração.")); return 0;
+        }
+        var target=spot.get();
+        double x=target.x()+.5,z=target.z()+.5;
+        float yaw=(float)(Math.toDegrees(Math.atan2(raid.boss.getZ()-z,raid.boss.getX()-x))-90);
+        player.teleportTo(raid.world,x,target.feetY(),z,Set.of(),yaw,0);
+        player.fallDistance=0;
+        raid.bar.addPlayer(player);
+        return reply(source,"Você chegou à arena. O combate tradicional multiplayer ainda está em avaliação; esta build preserva o sistema legado.");
+    }
+    private boolean safeSpot(Active raid,ServerPlayer player,SafeTeleportSearch.Spot spot) {
+        var world=raid.world;
+        var feet=new net.minecraft.core.BlockPos(spot.x(),spot.feetY(),spot.z());
+        if (new Vec3(spot.x()+.5,spot.feetY(),spot.z()+.5).distanceToSqr(raid.center) > config.arenaRadius*config.arenaRadius
+            || spot.feetY() <= world.getMinBuildHeight() || spot.feetY()+player.getBbHeight() >= world.getMaxBuildHeight()
+            || !world.hasChunkAt(feet) || !world.getWorldBorder().isWithinBounds(feet)) return false;
+        var floor=feet.below();
+        if (!world.getBlockState(floor).isFaceSturdy(world,floor,net.minecraft.core.Direction.UP)) return false;
+        for(var pos:List.of(floor,feet,feet.above())) {
+            var state=world.getBlockState(pos);
+            if(!state.getFluidState().isEmpty() || state.is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK)
+                || state.is(net.minecraft.world.level.block.Blocks.CACTUS) || state.is(net.minecraft.world.level.block.Blocks.CAMPFIRE)
+                || state.is(net.minecraft.world.level.block.Blocks.SOUL_CAMPFIRE) || state.is(net.minecraft.world.level.block.Blocks.FIRE)
+                || state.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE) || state.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
+                || state.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE) || state.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)) return false;
+        }
+        var body=net.minecraft.world.phys.AABB.ofSize(new Vec3(spot.x()+.5,spot.feetY()+player.getBbHeight()/2.0,spot.z()+.5),
+            player.getBbWidth(),player.getBbHeight(),player.getBbWidth());
+        return body.minX >= world.getWorldBorder().getMinX() && body.maxX <= world.getWorldBorder().getMaxX()
+            && body.minZ >= world.getWorldBorder().getMinZ() && body.maxZ <= world.getWorldBorder().getMaxZ()
+            && world.noCollision(player,body) && !raid.boss.getBoundingBox().inflate(2).intersects(body)
+            && world.getEntities(player,body,entity -> entity.isAlive() && entity.isPickable()).isEmpty();
     }
     private int setSpawn(CommandSourceStack source) {
         if (active != null) return reply(source,"Encerre a raid antes de alterar a arena.");

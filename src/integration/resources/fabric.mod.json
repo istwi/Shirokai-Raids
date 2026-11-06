@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "shirokai_raids_integration",
+  "version": "${version}",
+  "name": "Shirokai Raids — fixture de teste dedicada",
+  "environment": "server",
+  "entrypoints": { "main": ["com.shirokai.raids.integration.TeleportIntegration"] },
+  "depends": { "shirokai_raids": "${version}", "fabric-api": "*", "cobblemon": "1.8.3+1.21.1" }
+}

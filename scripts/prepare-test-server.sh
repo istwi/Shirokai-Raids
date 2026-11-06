@@ -15,7 +15,7 @@ PY
 read -r -a raids_jvm_options <<< "${GRADLE_OPTS:-}"
 (cd "$root" && java "${raids_jvm_options[@]}" -jar fabric-installer.jar server -mcversion 1.21.1 -loader 0.17.2)
 python3 - <<'PY'
-import hashlib, json, os, shutil
+import hashlib, json, os, shutil, zipfile
 from pathlib import Path
 root=Path('/workspace/shared/raids-test-server')
 cache=Path(os.environ.get('GRADLE_USER_HOME',str(Path.home()/'.gradle')))/'caches'
@@ -31,7 +31,18 @@ for group,artifact,version in [('com.cobblemon','fabric','1.8.3+1.21.1'),('net.f
     shutil.copy2(jars[0],mods/jars[0].name)
 version=next(line.split('=',1)[1] for line in Path('gradle.properties').read_text().splitlines() if line.startswith('mod_version='))
 jar=Path(f'build/libs/Shirokai-Raids-{version}-fabric-1.21.1.jar')
-assert not [p for p in mods.glob('Shirokai-Raids-*.jar') if p.name!=jar.name], 'Mova a versão anterior do mod para fora de mods antes de atualizar'
+for previous in mods.glob('Shirokai-Raids-*.jar'):
+    if previous.name == jar.name:
+        continue
+    with zipfile.ZipFile(previous) as z:
+        assert json.loads(z.read('fabric.mod.json'))['id'] == 'shirokai_raids', 'JAR desconhecido; preservado sem alteração'
+    digest = hashlib.sha256(previous.read_bytes()).hexdigest()
+    backup = root/'previous-mods'/f'{previous.stem}-{digest}.jar'
+    backup.parent.mkdir(exist_ok=True)
+    if not backup.exists():
+        shutil.copy2(previous,backup)
+    assert hashlib.sha256(backup.read_bytes()).hexdigest() == digest, 'Backup divergente; JAR anterior preservado'
+    previous.unlink()
 shutil.copy2(jar,mods/jar.name)
 print('Servidor preparado. EULA e configuração existentes foram preservadas.')
 PY

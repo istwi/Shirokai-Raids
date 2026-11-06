@@ -13,5 +13,6 @@ fi
 source scripts/cloud-env.sh
 javac -version
 bash ./gradlew --no-daemon build
+python3 scripts/run_showdown_audit.py
 version=$(sed -n 's/^mod_version=//p' gradle.properties)
 python3 scripts/verify_jar.py --version "$version"

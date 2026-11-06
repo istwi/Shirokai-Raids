@@ -35,6 +35,9 @@ jobs:
           assert acceptance['approved'] is True
           assert acceptance['three_player_dedicated_server_test'] is True
           assert acceptance['cobblemon'] == '1.8.3'
+          assert acceptance['combat_mode'] == 'TRADITIONAL_MULTIPLAYER'
+          for check in ['normal_battle_key', 'traditional_move_ui', 'late_join', 'global_hp', 'all_sessions_closed']:
+              assert acceptance[check] is True, f'Teste obrigatório pendente: {check}'
           assert acceptance['evidence'].strip(), 'Registre evidência do teste real'
           notes = Path(f'release/{tag}.md').read_text()
           for section in ['Novas funcionalidades', 'Bugs corrigidos', 'Configurações', 'Compatibilidade', 'Atualização']:

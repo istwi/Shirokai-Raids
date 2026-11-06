@@ -87,3 +87,7 @@ Servidor de produção com Minecraft 1.21.1, Loader 0.17.2, Fabric API 0.116.6+1
 Isso NÃO valida o combate com múltiplos clientes, captura real por Pokébola, compatibilidade com telas de batalha ou entrega real de recompensas. Esses testes permanecem obrigatórios. A ausência de clientes e os destinos de autenticação bloqueados impedem aceitar o critério principal agora.
 
 O modo dev remapeado `gradlew runServer` ainda falha em reflexão Kotlin do Cobblemon procurando `net.minecraft.class_2960`. Habilitar o plugin Kotlin não resolveu e foi revertido. O JAR remapeado de distribuição funcionou no servidor de produção; use esse fluxo para integração enquanto a limitação do modo dev é investigada.
+
+## Pedido posterior: batalhas tradicionais multiplayer
+
+O requisito de combate em tempo real foi substituído pelo pedido de interface tradicional Cobblemon com entrada contínua e HP global. A auditoria específica está em [docs/COBBLEMON_MULTIPLAYER_AUDIT.md](docs/COBBLEMON_MULTIPLAYER_AUDIT.md), incluindo oito verificações executáveis no simulador oficial da tag exata. As restrições de UNBATTLEABLE e battleId descritas acima explicam o legado, não uma implementação pronta do novo modelo. Nenhuma batalha tradicional multiplayer foi validada.

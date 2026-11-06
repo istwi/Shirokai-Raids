@@ -30,3 +30,27 @@ tasks.withType(AbstractArchiveTask).configureEach {
     preserveFileTimestamps = false
     reproducibleFileOrder = true
 }
+
+// This fixture is never included in the distributable mod.
+sourceSets {
+    integration {
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += output + compileClasspath
+    }
+}
+processIntegrationResources {
+    inputs.property 'version', project.version
+    filesMatching('fabric.mod.json') { expand version: project.version }
+}
+tasks.register('integrationJar', Jar) {
+    from sourceSets.integration.output
+    archiveClassifier = 'integration-unmapped'
+    destinationDirectory = layout.buildDirectory.dir('integration')
+}
+tasks.register('remapIntegrationJar', net.fabricmc.loom.task.RemapJarTask) {
+    dependsOn tasks.integrationJar
+    inputFile = tasks.integrationJar.archiveFile
+    archiveFileName = 'shirokai-raids-integration.jar'
+    destinationDirectory = layout.buildDirectory.dir('integration')
+}
+build.dependsOn tasks.remapIntegrationJar
