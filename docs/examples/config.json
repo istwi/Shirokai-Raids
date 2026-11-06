@@ -7,11 +7,6 @@
   "z": 0,
   "spawnConfigured": false,
   "arenaRadius": 48.0,
-  "attackRange": 32.0,
-  "attackCooldownTicks": 40,
-  "maximumParticipants": 32,
-  "bossAttackSeconds": 5,
-  "bossDamage": 10,
   "restartPolicy": "SKIP_MISSED",
   "menuTimeZone": "America/Sao_Paulo",
   "warningsSeconds": [
@@ -19,25 +14,17 @@
     300,
     60
   ],
-  "supportedMoves": [
-    "tackle",
-    "scratch",
-    "pound",
-    "quickattack",
-    "dragonclaw",
-    "dragonpulse",
-    "airslash",
-    "flamethrower",
-    "watergun",
-    "thunderbolt",
-    "icebeam",
-    "psychic",
-    "shadowball",
-    "energyball",
-    "earthpower",
-    "rockslide",
-    "ironhead",
-    "moonblast",
-    "aerialace"
-  ]
+  "automaticRaids": true,
+  "maxConcurrentPlayers": 100,
+  "spawnYaw": 0,
+  "spawnPitch": 0,
+  "lobby": {
+    "configured": false,
+    "dimension": "minecraft:overworld",
+    "x": 0,
+    "y": 80,
+    "z": 0,
+    "yaw": 0,
+    "pitch": 0
+  }
 }

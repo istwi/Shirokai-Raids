@@ -139,6 +139,7 @@ final class RaidMenu extends ChestMenu {
             else if (slot == 21) navigate(true, RaidArchive.Metric.DAMAGE, 0);
             else if (slot == 22) navigate(global, metric, page);
             else if (slot == 23) navigate(true, RaidArchive.Metric.VICTORIES, 0);
+            else if (slot == 24) { ShirokaiRaids.openPendingMenu(viewer); return; }
         }
         broadcastFullState();
     }

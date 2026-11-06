@@ -8,4 +8,11 @@ public final class RaidSchedule {
         return Math.addExact(now, Math.multiplyExact(intervalSeconds, 1000));
     }
     public static boolean due(long now, long scheduled, boolean active) { return !active && now >= scheduled; }
+    /** Pick only the nearest relevant threshold after a pause/restart, rather than a burst of stale warnings. */
+    public static java.util.OptionalInt warning(long remainingMillis, java.util.List<Integer> thresholds, java.util.Set<Integer> warned) {
+        if (remainingMillis <= 0) return java.util.OptionalInt.empty();
+        var next = thresholds.stream().filter(t -> remainingMillis <= t * 1000L && !warned.contains(t)).mapToInt(Integer::intValue).min();
+        if (next.isPresent()) thresholds.stream().filter(t -> t >= next.getAsInt()).forEach(warned::add);
+        return next;
+    }
 }

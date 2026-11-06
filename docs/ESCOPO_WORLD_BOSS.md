@@ -18,3 +18,5 @@ Este documento registra o pedido atual e prevalece sobre os requisitos históric
 - Releases oficiais apenas após validação funcional e de capacidade. Compilação e testes de unidade não comprovam o aceite final.
 
 A versão 0.1.3-dev substitui os loops automáticos pelo caminho de desafio padrão e batalhas reais. Isso ainda é uma integração de desenvolvimento; a validação com clientes reais e dos demais critérios continua pendente. O escopo não considera o projeto concluído apenas por compilar ou passar em testes controlados.
+
+Na 0.1.7-dev, a base também inclui entrega automática, menus de histórico/ranking/pendências, lobby em dimensão existente, tickets temporários de arena, controles de agendamento e conferência administrativa de reservas antigas. O procedimento de instalação e as limitações estão em `PREPARAR_SERVIDOR.md`. O aceite com clientes reais, a compatibilidade com versões instaladas de outros mods e os ensaios progressivos de capacidade continuam pendentes; não é uma Release estável.

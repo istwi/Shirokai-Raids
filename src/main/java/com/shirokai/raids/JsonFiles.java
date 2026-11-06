@@ -9,6 +9,7 @@ import java.nio.file.*;
 
 final class JsonFiles {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    static <T> T copy(T value, Class<T> type) { return GSON.fromJson(GSON.toJson(value), type); }
     static <T> T read(Path path, Class<T> type) throws IOException {
         if (!Files.isRegularFile(path)) throw new IOException("Arquivo ausente ou inválido: " + path);
         try {

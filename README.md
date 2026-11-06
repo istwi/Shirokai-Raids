@@ -2,11 +2,13 @@
 
 Mod **somente servidor** para Minecraft 1.21.1, Fabric e Cobblemon 1.8.3.
 
-**0.1.6-dev: histórico pessoal e ranking global em menus vanilla. Não é uma Release estável.**
+**0.1.7-dev: lobby, arena, agendamento e recompensas preparados para o teste final. Não é uma Release estável.**
 
 O fluxo implementado é `/raid` → enviar seu Pokémon → apontar para o boss e pressionar **R** (ou a tecla configurada no Cobblemon) → escolher os movimentos na interface normal. Cada jogador tem uma batalha real independente, com sua equipe, movimentos e PP; o dano aplicado reduz o HP global do evento. O jogo aguarda a escolha do jogador. Não há `/raid atacar` nem loop de ataques automáticos.
 
 Não exige Shirokai Raids no cliente nem o JAR do Raid Dens no servidor. Não registra cristais, itens, blocos, receitas ou dimensões do Raid Dens. O [escopo vigente](docs/ESCOPO_WORLD_BOSS.md) continua válido; as demais etapas de World Boss/recompensas ainda não estão concluídas.
+
+Para preparar a instalação e o teste final, siga [o guia do servidor](docs/PREPARAR_SERVIDOR.md). Ele reúne arena/lobby, comandos, campos ativos, LuckPerms, SkiesClear, backups e conferência de reservas antigas. O mod mantém a arena carregada apenas durante o evento e libera seu próprio ticket ao encerrar, sem apagar construções nem alterar `/forceload` externo.
 
 ## Combate e limites
 
@@ -41,21 +43,25 @@ Sair encerra somente sua sessão e libera a vaga. Seu dano permanece no ranking 
 | --- | --- |
 | `/raid` | Teleporte seguro se houver raid; senão, próxima ocorrência |
 | `/raid entrar` | Orientações para participar pela batalha normal |
+| `/raid lobby` | Teleporte seguro ao lobby configurado, fora de batalhas e com cooldown |
 | `/raid tempo` | Estado/tempo, sem teleporte |
 | `/raid dano`, `/raid top` | Dano efetivo e ranking |
 | `/raid menu`, `/raid historico` | Menu com suas 20 últimas raids, resultado, contribuição, posição e drops |
 | `/raid ranking` | Ranking global público: participações, dano acumulado e vitórias |
 | `/raid sair` | Encerrar a própria batalha e preservar contribuição |
-| `/raid recompensas` | Tentar novamente a entrega das pendências, com limite por tentativa |
-| `/raidadmin iniciar <boss>`, `parar`, `setspawn`, `reload`, `status`, `listar` | Administração |
+| `/raid recompensas`, `/raid pendentes` | Menu de pendências com botão de entrega, atualização e paginação |
+| `/raid resgatar` | Tentar entrega pelo comando, com o mesmo journal e cooldown do botão |
+| `/raidadmin iniciar <boss>`, `parar`, `setspawn`, `setlobby`, `reload`, `status`, `info`, `listar` | Administração |
+| `/raidadmin intervalo <segundos>`, `duracao <segundos>`, `limite <1–100>`, `automatico <true/false>` | Configuração persistente fora de raids ativas |
+| `/raidadmin reservas [confirmar/devolver "<id>" <motivo>]` | Conferência auditada de reservas antigas; exige permissão específica |
 
 Participação é permitida por padrão; administração exige OP 2 ou `shirokai.raids.admin`. LuckPerms, quando instalado, respeita negações explícitas. `shirokai.raids.attack` e os campos de cooldown/dano do combate antigo não controlam mais golpes. O limite efetivo usa `maxConcurrentPlayers`.
 
-Novas tabelas padrão usam duas etapas: raridade conforme a faixa de contribuição, depois item ponderado dentro da raridade. Arquivos antigos continuam usando seus itens e regras anteriores; não são sobrescritos. Não há Raid Pouch. O menu de histórico exibe drops e saldo pendente por evento; resgate manual continua em `/raid recompensas`.
+Novas tabelas padrão usam duas etapas: raridade conforme a faixa de contribuição, depois item ponderado dentro da raridade. Arquivos antigos continuam usando seus itens e regras anteriores; não são sobrescritos. Não há Raid Pouch. O menu de histórico exibe drops e saldo pendente por evento; o botão do menu `/raid recompensas` e o comando `/raid resgatar` usam a mesma entrega persistente.
 
-Os menus funcionam com o cliente Cobblemon normal, usando uma janela de baú somente para consulta. Abra `/raid historico` para ver boss, data, resultado, duração, dano efetivo, contribuição sobre o HP inicial, posição no evento, quantidade de participantes e drops sorteados. As setas mudam a página; os botões inferiores levam ao ranking global por participações, dano ou vitórias. Clique em **Seus totais** para atualizar a página. Ícones não podem ser retirados nem usados como itens.
+Os menus funcionam com o cliente Cobblemon normal, usando uma janela de baú. Abra `/raid historico` para ver boss, data, resultado, duração, dano efetivo, contribuição sobre o HP inicial, posição no evento, quantidade de participantes e drops sorteados. As setas mudam a página; os botões inferiores levam ao ranking global por participações, dano ou vitórias e ao menu de pendências. Clique em **Seus totais** para atualizar a página. Ícones não podem ser retirados nem usados como itens; somente o botão de entrega do menu de pendências aciona resgate.
 
-O histórico guarda os 20 últimos eventos encerrados de cada jogador. Os totais globais continuam acumulando além desse limite e incluem jogadores offline. Participar significa iniciar uma batalha aceita pelo servidor: sair e retornar conta uma vez, inclusive se não causou dano. Vitórias são eventos vencidos nos quais participou; o dano acumulado inclui eventos cancelados/expirados. O registro começa nesta versão, sem inventar raids antigas. Em queda abrupta, o histórico usa o último snapshot e marca o evento como interrompido. Veja [detalhes e validação](docs/VALIDACAO_0.1.6-dev.md).
+O histórico guarda os 20 últimos eventos encerrados de cada jogador. Os totais globais continuam acumulando além desse limite e incluem jogadores offline. Participar significa iniciar uma batalha aceita pelo servidor: sair e retornar conta uma vez, inclusive se não causou dano. Vitórias são eventos vencidos nos quais participou; o dano acumulado inclui eventos cancelados/expirados. O registro começou na 0.1.6-dev, sem inventar raids antigas. Em queda abrupta, o histórico usa o último snapshot e marca o evento como interrompido. Veja [detalhes e validação](docs/VALIDACAO_0.1.6-dev.md).
 
 Todos podem consultar os rankings por padrão. LuckPerms pode restringir `shirokai.raids.history` e `shirokai.raids.ranking`, além de `shirokai.raids.use`. O fuso do menu é `menuTimeZone` em `config.json`, padrão `America/Sao_Paulo`; valores inválidos são rejeitados no reload. O histórico pessoal não permite consultar o de outro jogador.
 
@@ -71,10 +77,10 @@ Requer JDK 21 completo, Node e Python:
 bash gradlew --no-daemon build
 python3 scripts/run_showdown_audit.py
 python3 scripts/run_traditional_probe.py
-python3 scripts/verify_jar.py --version 0.1.6-dev
+python3 scripts/verify_jar.py --version 0.1.7-dev
 ```
 
-Windows: `gradlew.bat build`. O artefato é `build/libs/Shirokai-Raids-0.1.6-dev-fabric-1.21.1.jar`; o verificador gera `SHA256SUMS`. O workflow mantém builds e Artifacts de desenvolvimento em Linux e Windows.
+Windows: `gradlew.bat build`. O artefato é `build/libs/Shirokai-Raids-0.1.7-dev-fabric-1.21.1.jar`; o verificador gera `SHA256SUMS`. O workflow mantém builds e Artifacts de desenvolvimento em Linux e Windows.
 
 No ambiente cloud, `scripts/setup-cloud.sh` prepara o JDK e a compilação. Com servidor preparado por `scripts/prepare-test-server.sh` e EULA aceita para os testes:
 

@@ -14,11 +14,27 @@ public final class RaidConfig {
     public int bossAttackSeconds = 5, bossDamage = 10;
     public String restartPolicy = "SKIP_MISSED";
     public String menuTimeZone = "America/Sao_Paulo";
+    public boolean automaticRaids = true;
+    public float spawnYaw, spawnPitch;
+    public Lobby lobby = new Lobby();
+    public static final class Lobby {
+        public boolean configured;
+        public String dimension = "minecraft:overworld";
+        public double x, y = 80, z;
+        public float yaw, pitch;
+    }
     public List<Integer> warningsSeconds = List.of(900,300,60);
     public List<String> supportedMoves = List.of("tackle", "scratch", "pound", "quickattack", "dragonclaw", "dragonpulse", "airslash", "flamethrower", "watergun", "thunderbolt", "icebeam", "psychic", "shadowball", "energyball", "earthpower", "rockslide", "ironhead", "moonblast", "aerialace");
     public void validate() {
         if (menuTimeZone == null) throw new IllegalArgumentException("Fuso horário do menu ausente");
         java.time.ZoneId.of(menuTimeZone);
+        if (dimension == null || !dimension.matches("[a-z0-9_.-]+:[a-z0-9_./-]+") || lobby == null
+            || lobby.dimension == null || !lobby.dimension.matches("[a-z0-9_.-]+:[a-z0-9_./-]+")
+            || !Double.isFinite(lobby.x + lobby.y + lobby.z) || Math.abs(x) > 29_999_984 || Math.abs(z) > 29_999_984
+            || Math.abs(lobby.x) > 29_999_984 || Math.abs(lobby.z) > 29_999_984
+            || !Float.isFinite(spawnYaw) || !Float.isFinite(spawnPitch) || Math.abs(spawnPitch) > 90
+            || !Float.isFinite(lobby.yaw) || !Float.isFinite(lobby.pitch) || Math.abs(lobby.pitch) > 90)
+            throw new IllegalArgumentException("Dimensão, posição ou orientação inválida");
         com.shirokai.raids.core.RaidSchedule.next(0, intervalSeconds);
         if (durationSeconds < 30 || durationSeconds > 7200 || !Double.isFinite(x+y+z)
             || !Double.isFinite(arenaRadius) || arenaRadius < 8 || arenaRadius > 128
@@ -27,7 +43,7 @@ public final class RaidConfig {
             || maxConcurrentPlayers < 1 || maxConcurrentPlayers > 100
             || bossAttackSeconds < 1 || bossAttackSeconds > 120 || bossDamage < 1 || bossDamage > 1000
             || !List.of("SKIP_MISSED", "START_ONCE").contains(restartPolicy) || supportedMoves == null || supportedMoves.isEmpty()
-            || warningsSeconds == null || warningsSeconds.stream().anyMatch(s -> s == null || s < 1 || s > intervalSeconds))
+            || warningsSeconds == null || warningsSeconds.stream().anyMatch(s -> s == null || s < 1 || s > 31_536_000))
             throw new IllegalArgumentException("config.json: valores fora dos limites de segurança");
     }
     public static final class Boss {

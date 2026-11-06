@@ -255,6 +255,7 @@ public final class ChallengeIntegration implements ModInitializer {
             normal.stop(); wild.discard();
             com.shirokai.raids.RewardRecoveryIntegration.verify(server);
             com.shirokai.raids.RaidMenuIntegration.verify(server);
+            com.shirokai.raids.OperationsIntegration.verify(server);
             complete(true,"Desafio padrão, UI, movimentos, PP, troca, contribuição acumulada, configuração por boss, reload inválido, entrega automática/parcial/offline/login, recibos no playerdata, repetição sem duplicação e batalha normal verificados. FakePlayers; nenhum cliente real.");
         }
         if(ticks==600) require(switched,"A troca de Pokémon não terminou em 30 segundos");

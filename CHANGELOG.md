@@ -1,5 +1,15 @@
 # Histórico de alterações
 
+## 0.1.7-dev
+
+- Lobby em dimensão existente com posição/orientação configuradas, busca segura e cooldown; `/raid entrar` também conduz à arena quando necessário.
+- Ticket temporário da arena, liberado em término, cancelamento e falhas, sem alterar `/forceload` de outros sistemas. Limpeza de bosses órfãos e cancelamento de boss removido/deslocado.
+- Menu de pendências com botão de entrega usando o mesmo journal e cooldown do comando `/raid resgatar`.
+- Conferência administrativa auditada de reservas antigas, sem repetição de devolução e sem atribuição automática a proprietário desconhecido.
+- Controles persistentes de intervalo, duração, limite e agendamento; alterações isoladas até validar/salvar. Dimensões inválidas no reload preservam a configuração anterior.
+- Avisos sem rajada após pausas; intervalos curtos preservam avisos maiores como inativos. Status inclui MSPT médio e heap para os ensaios finais.
+- Guia de instalação, permissões, SkiesClear e roteiro de teste final. Clientes reais, capacidade e compatibilidade com outros mods continuam sem aceite.
+
 ## 0.1.6-dev
 
 - Menu vanilla de histórico pessoal com 20 eventos: boss, data, resultado, duração, dano, contribuição, posição, participantes e drops sorteados/pendentes.

@@ -51,6 +51,9 @@ if mode=='challenge':
     menu=json.loads((root/'raid-menu-result.json').read_text())
     assert menu['passed'] is True and menu['clickChecks']==105 and menu['realClients']==0,menu
     print(json.dumps(menu,ensure_ascii=False))
+    operations=json.loads((root/'operations-result.json').read_text())
+    assert operations['passed'] is True and operations['pendingClickChecks']==105 and operations['realClients']==0,operations
+    print(json.dumps(operations,ensure_ascii=False))
 print(json.dumps(result,ensure_ascii=False))
 print(f'Resultado e logs preservados em {root}')
 PY

@@ -31,6 +31,7 @@ with zipfile.ZipFile(jar) as z:
         assert not name.startswith('com/shirokai/raids/integration/'), 'Fixture vazou para produção'
         assert not name.startswith('com/shirokai/raids/RewardRecoveryIntegration'), 'Fixture de recuperação vazou para produção'
         assert not name.startswith('com/shirokai/raids/RaidMenuIntegration'), 'Fixture de menu vazou para produção'
+        assert not name.startswith('com/shirokai/raids/OperationsIntegration'), 'Fixture operacional vazou para produção'
     classes = [n for n in z.namelist() if n.startswith('com/shirokai/raids/') and n.endswith('.class')]
     assert 'com/shirokai/raids/ShirokaiRaids.class' in classes
     for name in classes:

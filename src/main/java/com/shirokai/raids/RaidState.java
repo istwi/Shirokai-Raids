@@ -14,6 +14,7 @@ final class RaidState {
     // New reservations can be reconciled using receipts stored with the player's inventory.
     Map<String, Delivery> deliveries = new HashMap<>();
     RaidArchive archive = new RaidArchive();
+    Map<String, LegacyReservationReview.Review> reviews = new HashMap<>();
     static final class Delivery {
         String player;
         Pending reward;
@@ -29,6 +30,10 @@ final class RaidState {
     void validate() {
         if (archive == null) throw new IllegalArgumentException("Histórico persistente inválido");
         archive.validate();
+        if (reviews == null) throw new IllegalArgumentException("Conferências persistentes inválidas");
+        for (var review : reviews.entrySet())
+            if (review.getValue() == null || !review.getKey().equals(review.getValue().reservation()))
+                throw new IllegalArgumentException("ID de conferência inválido");
         if (nextRaid < 0 || pending == null || completed == null || uncertain == null || damage == null || deliveries == null)
             throw new IllegalArgumentException("Estado persistente inválido; restaure um backup");
         var ids = new HashSet<String>();
