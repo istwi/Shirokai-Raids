@@ -3,8 +3,8 @@ package com.shirokai.raids.core;
 import java.util.*;
 
 /**
- * In-memory authoritative ledger for a future traditional-battle adapter.
- * Not wired to the legacy runtime. Callbacks and disk IO must occur outside this monitor.
+ * In-memory authoritative ledger used by the traditional-battle adapter.
+ * Callbacks and disk IO must occur outside this monitor.
  * The adapter must deliver private damage events in order, with a sequence generated
  * by the server (never a client or a hash of the message text).
  */

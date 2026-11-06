@@ -1,5 +1,13 @@
 # Histórico de alterações
 
+## 0.1.4-dev
+
+- Multiplicador de dano por boss, preservando proteções nativas e isolamento entre sessões.
+- Sorteio em duas etapas com faixas de contribuição, probabilidades de raridade e pools ponderados; compatibilidade com tabelas antigas.
+- Validação dos itens configurados e rejeição de reload inválido sem perder a configuração válida anterior.
+- Persistência imediata ao usar `/raid sair` e teste de retorno ao mesmo evento com contribuição acumulada.
+- Testes de vida, tamanho, dano e drops configurados em servidor descartável com três jogadores simulados.
+
 ## 0.1.3-dev
 
 - Integração somente servidor ao desafio padrão do Cobblemon, usado pela tecla R.

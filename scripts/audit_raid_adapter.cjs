@@ -10,14 +10,14 @@ const install=vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../src/mai
 let count=0;
 function test(name,body){body();count++;console.log(`PASS ${name}`);}
 function pokemon(species,uuid,move){const pp=Dex.moves.get(move).pp;return {species,uuid,level:100,moves:[move],movesInfo:[{pp,maxPp:pp}]};}
-function fixture(move='dragonclaw',health=2000,species='Garchomp',seed=[1,2,3,4],bossMove='splash') {
+function fixture(move='dragonclaw',health=2000,species='Garchomp',seed=[1,2,3,4],bossMove='splash',multiplier=1,bench=false) {
   const battle=new Battle({formatid:'gen9customgame',seed});
-  battle.setPlayer('p1',{name:'Player',team:[pokemon(species,'player',move)]});
+  battle.setPlayer('p1',{name:'Player',team:[pokemon(species,'player',move),...(bench?[pokemon('Mewtwo','bench','splash')]:[])]});
   battle.setPlayer('p2',{name:'Boss',team:[pokemon('Rayquaza','boss',bossMove)]});
   if(battle.requestState==='teampreview')battle.makeChoices('team 1','team 1');
   const events=[];
   const bridge={remaining(){return health;},damage(id,sequence,requested){const applied=Math.min(health,requested);health-=applied;events.push({sequence,requested,applied});return applied;}};
-  install(battle,'raid-session',bridge);
+  install(battle,'raid-session',bridge,multiplier);
   return {battle,events,health:()=>health,player:battle.sides[0].active[0],boss:battle.sides[1].active[0]};
 }
 test('Sem escolha de movimento não há dano nem consumo de PP',()=>{
@@ -75,5 +75,35 @@ test('Política atual bloqueia cura do boss, preservando o pool',()=>{
   const f=fixture();f.boss.hp=1;
   f.battle.heal(50,f.boss,f.boss,f.battle.dex.moves.get('recover'));
   assert.equal(f.boss.hp,1);assert.equal(f.health(),2000);
+});
+test('Multiplicador altera só dano dos golpes do boss e isola sessões',()=>{
+  const a=fixture('splash',2000,'Garchomp',[1,2,3,4],'tackle',1);
+  const b=fixture('splash',2000,'Garchomp',[1,2,3,4],'tackle',2);
+  const c=fixture('splash',2000,'Garchomp',[1,2,3,4],'tackle',0);
+  for(const f of [a,b,c])f.battle.makeChoices('move 1','move 1');
+  const damage=a.player.maxhp-a.player.hp;
+  assert.ok(damage>0);assert.equal(b.player.maxhp-b.player.hp,2*damage);assert.equal(c.player.hp,c.player.maxhp);
+});
+test('Dano fixo de Seismic Toss segue o multiplicador',()=>{
+  const f=fixture('splash',2000,'Garchomp',[1,2,3,4],'seismictoss',2);
+  f.battle.makeChoices('move 1','move 1');assert.equal(f.player.maxhp-f.player.hp,200);
+});
+test('Focus Sash continua protegendo contra dano multiplicado letal',()=>{
+  const f=fixture('splash',2000,'Garchomp',[1,2,3,4],'dragonclaw',100);
+  f.player.setItem('focussash');f.battle.makeChoices('move 1','move 1');
+  assert.equal(f.player.hp,1);assert.equal(f.player.fainted,false);
+});
+test('Multiplicador continua funcionando após trocar Pokémon',()=>{
+  const a=fixture('splash',2000,'Garchomp',[1,2,3,4],'tackle',1,true);
+  const b=fixture('splash',2000,'Garchomp',[1,2,3,4],'tackle',2,true);
+  for(const f of [a,b])f.battle.makeChoices('switch 2','move 1');
+  const pa=a.battle.sides[0].active[0],pb=b.battle.sides[0].active[0];
+  assert.equal(pa.uuid,'bench');assert.ok(pa.hp<pa.maxhp);assert.equal(pb.maxhp-pb.hp,2*(pa.maxhp-pa.hp));
+});
+test('Dano residual de queimadura não é multiplicado',()=>{
+  const a=fixture('splash',2000,'Garchomp',[1,2,3,4],'splash',1);
+  const b=fixture('splash',2000,'Garchomp',[1,2,3,4],'splash',4);
+  for(const f of [a,b]) {f.player.setStatus('brn',f.boss);f.battle.makeChoices('move 1','move 1');}
+  assert.ok(a.player.hp<a.player.maxhp);assert.equal(a.player.hp,b.player.hp);
 });
 console.log(`${count} verificações do adaptador embarcado passaram; bridge Java mockada, nenhum cliente Minecraft.`);

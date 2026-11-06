@@ -2,7 +2,7 @@
 
 Mod **somente servidor** para Minecraft 1.21.1, Fabric e Cobblemon 1.8.3.
 
-**0.1.3-dev: integração inicial do combate tradicional. Não é uma Release estável.**
+**0.1.4-dev: integração inicial do combate tradicional. Não é uma Release estável.**
 
 O fluxo implementado é `/raid` → enviar seu Pokémon → apontar para o boss e pressionar **R** (ou a tecla configurada no Cobblemon) → escolher os movimentos na interface normal. Cada jogador tem uma batalha real independente, com sua equipe, movimentos e PP; o dano aplicado reduz o HP global do evento. O jogo aguarda a escolha do jogador. Não há `/raid atacar` nem loop de ataques automáticos.
 
@@ -14,7 +14,7 @@ A implementação intercepta o pacote padrão de desafio do Cobblemon somente qu
 
 `maxConcurrentPlayers` tem padrão 100 e aceita de 1 até 100. Ao lotar, o servidor recusa novas batalhas até haver vaga. **A capacidade de 100 combatentes não está comprovada.** Os ensaios realizados até agora incluem três sessões controladas em servidor real; não incluem clientes Minecraft reais nem medição de capacidade para 100 pessoas.
 
-O adaptador exige o serviço Graal padrão do Cobblemon 1.8.3. Cura do boss está desabilitada; Perish Song e sacrifícios do próprio boss têm restrições para impedir vitórias locais. Captura e entrega de Pokémon não fazem parte do evento. Animações/representação visual em clientes e compatibilidade com outros mods ainda precisam de validação. Veja [validação e limitações](docs/VALIDACAO_0.1.3-dev.md) e [auditoria](docs/COBBLEMON_MULTIPLAYER_AUDIT.md).
+O adaptador exige o serviço Graal padrão do Cobblemon 1.8.3. Cura do boss está desabilitada; Perish Song e sacrifícios do próprio boss têm restrições para impedir vitórias locais. Captura e entrega de Pokémon não fazem parte do evento. Animações/representação visual em clientes e compatibilidade com outros mods ainda precisam de validação. Veja [validação e limitações](docs/VALIDACAO_0.1.4-dev.md) e [auditoria](docs/COBBLEMON_MULTIPLAYER_AUDIT.md).
 
 ## Testar o fluxo no jogo
 
@@ -26,6 +26,14 @@ O adaptador exige o serviço Graal padrão do Cobblemon 1.8.3. Cura do boss est�
 6. Repita com três jogadores e confira BossBar, `/raid top` e `/raid dano`. Verifique PP, saída, entrada tardia e encerramento conjunto.
 
 O HP padrão é 10.000.000. Para um teste curto, configure um valor menor em `config/shirokai-raids/bosses/rayquaza.json` e use `/raidadmin reload` fora de uma raid ativa. Arquivos personalizados não são sobrescritos. Não use a fixture de integração em mundo de produção.
+
+## Configurar o boss e os drops
+
+Em `config/shirokai-raids/bosses/<id>.json`, `hp` define a vida compartilhada (1 a 1 trilhão), `scale` o tamanho (0,5 a 5), `damageMultiplier` o multiplicador dos golpes do boss (0 a 100; padrão 1) e `rewards` o nome da tabela de drops. O multiplicador atua no dano direto de movimentos, inclusive dano fixo, antes de proteções como Focus Sash; status e recoil mantêm as regras nativas. Recarregue fora de uma raid ativa com `/raidadmin reload`.
+
+Veja os exemplos de [boss](docs/examples/bosses/rayquaza.json) e [drops](docs/examples/rewards/default.json). Na tabela nova, `rollsPerPlayer` vale para todas as faixas, `minimumContribution` usa frações do HP total e as chances de raridade de cada faixa devem somar 100. A maior faixa atingida define as chances; o peso do item define o segundo sorteio. `maximumItems` limita a quantidade total por jogador. Para migrar uma tabela antiga, adapte explicitamente o exemplo; mantenha uma cópia da configuração anterior.
+
+Sair encerra somente sua sessão e libera a vaga. Seu dano permanece no ranking e conta para recompensas; voltar ao mesmo evento soma à contribuição anterior. `/raid sair` também salva esse acumulado em disco. A queda do servidor continua sujeita ao intervalo de persistência para os demais golpes.
 
 ## Comandos
 
@@ -41,7 +49,7 @@ O HP padrão é 10.000.000. Para um teste curto, configure um valor menor em `co
 
 Participação é permitida por padrão; administração exige OP 2 ou `shirokai.raids.admin`. LuckPerms, quando instalado, respeita negações explícitas. `shirokai.raids.attack` e os campos de cooldown/dano do combate antigo não controlam mais golpes. O limite efetivo usa `maxConcurrentPlayers`.
 
-O sistema de recompensas existente foi preservado nesta etapa. O novo sorteio por raridade, entrega automática e menu de pendências ainda estão pendentes. Não há Raid Pouch. Inventário cheio preserva pendências; reservas interrompidas exigem conferência administrativa conforme a arquitetura existente.
+Novas tabelas padrão usam duas etapas: raridade conforme a faixa de contribuição, depois item ponderado dentro da raridade. Arquivos antigos continuam usando seus itens e regras anteriores; não são sobrescritos. Entrega automática e menu de pendências ainda estão pendentes. Não há Raid Pouch. Inventário cheio preserva pendências; reservas interrompidas exigem conferência administrativa conforme a arquitetura existente.
 
 ## Compilar e validar
 
@@ -51,10 +59,10 @@ Requer JDK 21 completo, Node e Python:
 bash gradlew --no-daemon build
 python3 scripts/run_showdown_audit.py
 python3 scripts/run_traditional_probe.py
-python3 scripts/verify_jar.py --version 0.1.3-dev
+python3 scripts/verify_jar.py --version 0.1.4-dev
 ```
 
-Windows: `gradlew.bat build`. O artefato é `build/libs/Shirokai-Raids-0.1.3-dev-fabric-1.21.1.jar`; o verificador gera `SHA256SUMS`. O workflow mantém builds e Artifacts de desenvolvimento em Linux e Windows.
+Windows: `gradlew.bat build`. O artefato é `build/libs/Shirokai-Raids-0.1.4-dev-fabric-1.21.1.jar`; o verificador gera `SHA256SUMS`. O workflow mantém builds e Artifacts de desenvolvimento em Linux e Windows.
 
 No ambiente cloud, `scripts/setup-cloud.sh` prepara o JDK e a compilação. Com servidor preparado por `scripts/prepare-test-server.sh` e EULA aceita para os testes:
 

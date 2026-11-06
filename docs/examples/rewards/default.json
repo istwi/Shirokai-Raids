@@ -1,12 +1,81 @@
 {
   "minimumContribution": 0.01,
   "maximumItems": 64,
-  "items": [
+  "rollsPerPlayer": 1,
+  "tiers": [
     {
-      "item": "minecraft:diamond",
-      "minimum": 1,
-      "maximum": 3,
-      "weight": 1
+      "id": "bronze",
+      "minimumContribution": 0.01,
+      "rarityChances": {
+        "common": 70,
+        "rare": 25,
+        "epic": 4,
+        "legendary": 1
+      }
+    },
+    {
+      "id": "silver",
+      "minimumContribution": 0.1,
+      "rarityChances": {
+        "common": 55,
+        "rare": 33,
+        "epic": 10,
+        "legendary": 2
+      }
+    },
+    {
+      "id": "gold",
+      "minimumContribution": 0.25,
+      "rarityChances": {
+        "common": 40,
+        "rare": 40,
+        "epic": 16,
+        "legendary": 4
+      }
+    },
+    {
+      "id": "diamond",
+      "minimumContribution": 0.5,
+      "rarityChances": {
+        "common": 20,
+        "rare": 45,
+        "epic": 25,
+        "legendary": 10
+      }
     }
-  ]
+  ],
+  "itemPools": {
+    "common": [
+      {
+        "item": "minecraft:iron_ingot",
+        "minimum": 2,
+        "maximum": 8,
+        "weight": 100
+      }
+    ],
+    "rare": [
+      {
+        "item": "minecraft:diamond",
+        "minimum": 1,
+        "maximum": 3,
+        "weight": 100
+      }
+    ],
+    "epic": [
+      {
+        "item": "minecraft:netherite_scrap",
+        "minimum": 1,
+        "maximum": 2,
+        "weight": 100
+      }
+    ],
+    "legendary": [
+      {
+        "item": "minecraft:netherite_ingot",
+        "minimum": 1,
+        "maximum": 1,
+        "weight": 100
+      }
+    ]
+  }
 }

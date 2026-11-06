@@ -121,7 +121,7 @@ public final class ShirokaiRaids implements ModInitializer {
     private void loadConfig() throws IOException {
         JsonFiles.defaultFile(configDir.resolve("config.json"), new RaidConfig());
         JsonFiles.defaultFile(configDir.resolve("bosses/rayquaza.json"), new RaidConfig.Boss());
-        JsonFiles.defaultFile(configDir.resolve("rewards/default.json"), new RaidConfig.Rewards());
+        JsonFiles.defaultFile(configDir.resolve("rewards/default.json"), RaidConfig.Rewards.defaults());
         var next = JsonFiles.read(configDir.resolve("config.json"), RaidConfig.class); next.validate();
         var bossMap = new TreeMap<String,RaidConfig.Boss>();
         try (var paths = Files.list(configDir.resolve("bosses"))) {
@@ -136,7 +136,13 @@ public final class ShirokaiRaids implements ModInitializer {
             var table = JsonFiles.read(configDir.resolve("rewards/" + boss.rewards + ".json"),RaidConfig.Rewards.class); table.validate();
             rewardMap.put(boss.rewards,table);
         }
+        if(server!=null) validateRewardItems(rewardMap);
         config = next; bosses = bossMap; rewards = rewardMap;
+    }
+    private void validateRewardItems(Map<String,RaidConfig.Rewards> tables) {
+        for(var table:tables.entrySet()) for(var drop:table.getValue().configuredItems())
+            if(!BuiltInRegistries.ITEM.containsKey(ResourceLocation.parse(drop.item)))
+                throw new IllegalArgumentException("Item inexistente na tabela "+table.getKey()+": "+drop.item);
     }
     private void started(MinecraftServer server) {
         this.server = server;
@@ -256,6 +262,7 @@ public final class ShirokaiRaids implements ModInitializer {
         if (!config.spawnConfigured) throw new IllegalStateException("Use /raidadmin setspawn primeiro");
         var definition = bosses.get(id);
         if (definition == null) throw new IllegalArgumentException("Boss desconhecido");
+        validateRewardItems(Map.of(definition.rewards,rewards.get(definition.rewards)));
         var world = server.getLevel(ResourceKey.create(Registries.DIMENSION,ResourceLocation.parse(config.dimension)));
         if (world == null) throw new IllegalArgumentException("Dimensão inexistente");
         if (!world.hasChunkAt(net.minecraft.core.BlockPos.containing(config.x,config.y,config.z))) throw new IllegalStateException("O chunk da arena deve estar carregado");
@@ -273,7 +280,7 @@ public final class ShirokaiRaids implements ModInitializer {
         entity.addTag("shirokai_raid_boss");
         entity.moveTo(config.x,config.y,config.z,0,0);
         var candidate = new Active(definition,entity,world,new Vec3(config.x,config.y,config.z),System.currentTimeMillis()+config.durationSeconds*1000L,config.maxConcurrentPlayers);
-        candidate.battles=new TraditionalRaidBattles(entity,candidate.health,hit ->
+        candidate.battles=new TraditionalRaidBattles(entity,candidate.health,definition.damageMultiplier,hit ->
             candidate.damage.record(hit.player(),hit.name(),hit.pokemon(),hit.applied(),System.currentTimeMillis()));
         active = candidate; // entity load callback must recognize it before insertion
         if (!world.addFreshEntity(entity)) { active = null; throw new IllegalStateException("Spawn recusado"); }
@@ -294,7 +301,7 @@ public final class ShirokaiRaids implements ModInitializer {
         } catch (Exception e) { return reply(source,"Comando disponível para jogadores na arena."); }
     }
     private int leave(CommandSourceStack source) {
-        try { var p=source.getPlayerOrException(); if(active != null) { active.battles.leave(p.getUUID()); active.bar.removePlayer(p); } }
+        try { var p=source.getPlayerOrException(); if(active != null) { active.battles.leave(p.getUUID()); active.bar.removePlayer(p); snapshot(); } }
         catch (Exception ignored) { return reply(source,"Comando disponível para jogadores."); }
         return reply(source,"Participação encerrada. Sua contribuição foi preservada.");
     }
@@ -351,13 +358,8 @@ public final class ShirokaiRaids implements ModInitializer {
                 for(var entry:raid.damage.ranking()) {
                     double contribution=raid.damage.contribution(entry.player(),raid.health.maximum());
                     if(contribution<table.minimumContribution) continue;
-                    int rolls=RaidRewardManager.rolls(contribution,table.minimumContribution);
-                    int remaining=table.maximumItems;
-                    for(int r=0;r<rolls && remaining>0;r++) {
-                        RaidConfig.Reward item=table.items.get(RaidRewardManager.select(table.items.stream().map(i->i.weight).toList(),random));
-                        int count=Math.min(remaining,random.nextInt(item.maximum-item.minimum+1)+item.minimum); remaining-=count;
-                        state.pending.computeIfAbsent(entry.player().toString(),k->new ArrayList<>()).add(new RaidState.Pending(raid.id,item.item,count));
-                    }
+                    for(var drop:RaidLootRoller.roll(table,contribution,random))
+                        state.pending.computeIfAbsent(entry.player().toString(),k->new ArrayList<>()).add(new RaidState.Pending(raid.id,drop.item(),drop.count()));
                 }
                 state.completed.add(raid.id);
             }

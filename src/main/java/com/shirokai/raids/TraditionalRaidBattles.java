@@ -78,11 +78,14 @@ public final class TraditionalRaidBattles {
     private final PokemonEntity anchor;
     private final RaidCombatCoordinator health;
     private final Consumer<Hit> onHit;
+    private final double damageMultiplier;
     private final Map<UUID,Session> sessions=new LinkedHashMap<>();
     private long lastHealth=-1;
 
-    public TraditionalRaidBattles(PokemonEntity anchor,RaidCombatCoordinator health,Consumer<Hit> onHit) {
+    public TraditionalRaidBattles(PokemonEntity anchor,RaidCombatCoordinator health,double damageMultiplier,Consumer<Hit> onHit) {
         this.anchor=anchor; this.health=health; this.onHit=onHit;
+        if(!Double.isFinite(damageMultiplier) || damageMultiplier<0 || damageMultiplier>100) throw new IllegalArgumentException("Multiplicador inválido");
+        this.damageMultiplier=damageMultiplier;
     }
     public static boolean isBossActor(BattleActor actor) { return actor instanceof BossActor; }
     public static void register() {
@@ -122,7 +125,7 @@ public final class TraditionalRaidBattles {
                 // Reserve the effective damage at the native application point, after normal
                 // accuracy/type/ability processing. Returning it preserves native drain/recoil.
                 // Only this session's boss instance has its HP reduction replaced by the ledger.
-                battle.writeShowdownAction(">eval "+INSTALL_SCRIPT+"(battle,'"+battle.getBattleId()+"',shirokaiRaidBridge);");
+                battle.writeShowdownAction(">eval "+INSTALL_SCRIPT+"(battle,'"+battle.getBattleId()+"',shirokaiRaidBridge,"+damageMultiplier+");");
                 sync();
                 return Unit.INSTANCE;
             });

@@ -7,5 +7,6 @@
   "hp": 10000000,
   "shiny": false,
   "scale": 2.0,
-  "rewards": "default"
+  "rewards": "default",
+  "damageMultiplier": 1.0
 }

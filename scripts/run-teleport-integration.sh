@@ -27,7 +27,10 @@ if sys.argv[2]=='challenge':
     import json
     bosses=root/'config/shirokai-raids/bosses'
     bosses.mkdir(parents=True)
-    (bosses/'rayquaza.json').write_text(json.dumps({'id':'rayquaza','species':'rayquaza','hp':2000}))
+    rewards=root/'config/shirokai-raids/rewards'
+    rewards.mkdir(parents=True)
+    (rewards/'testdrops.json').write_text(json.dumps({'rollsPerPlayer':2,'tiers':[{'id':'all','minimumContribution':0.01,'rarityChances':{'custom':100}}],'itemPools':{'custom':[{'item':'minecraft:apple','minimum':2,'maximum':2,'weight':1}]}}))
+    (bosses/'rayquaza.json').write_text(json.dumps({'id':'rayquaza','species':'rayquaza','hp':3000,'scale':2.5,'damageMultiplier':1.5,'rewards':'testdrops'}))
 print(f'Mundo descartável: {root}')
 PY
 read -r -a raids_jvm_options <<< "${GRADLE_OPTS:-}"

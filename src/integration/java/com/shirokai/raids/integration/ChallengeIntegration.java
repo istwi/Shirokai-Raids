@@ -27,6 +27,7 @@ import java.util.*;
 
 /** Standard challenge handler + ordinary action responses on a disposable server. No real clients. */
 public final class ChallengeIntegration implements ModInitializer {
+    private static final long RAID_HP=3000;
     private final List<FakePlayer> players=new ArrayList<>();
     private final List<Pokemon> leads=new ArrayList<>();
     private final List<Pokemon> benches=new ArrayList<>();
@@ -34,8 +35,10 @@ public final class ChallengeIntegration implements ModInitializer {
     private Map<UUID,ServerPlayer> lookup;
     private PokemonEntity boss;
     private MinecraftServer server;
-    private int ticks, raidEndedTick=-1;
-    private boolean late,finished,swapRequested,switched,departed;
+    private int ticks, raidEndedTick=-1,leaveTick;
+    private long damageBeforeReturn;
+    private int ppBeforeReturn;
+    private boolean late,finished,swapRequested,switched,departed,returned,secondExit;
     private long hpBeforeChoices;
 
     @Override public void onInitialize() {
@@ -88,6 +91,9 @@ public final class ChallengeIntegration implements ModInitializer {
         var dto=new BattleInitializePacket(battle,battle.getSide1());
         require(dto.getSide2().getActors().getFirst().getActivePokemon().getFirst()!=null,"DTO não inclui boss na UI padrão");
         require(boss.getBattleId()==null,"Entidade pública ganhou battleId");
+        var graal=(com.cobblemon.mod.common.battles.runner.graal.GraalShowdownService)com.cobblemon.mod.common.battles.runner.ShowdownService.Companion.getService();
+        double multiplier=graal.getContext().eval("js","battleMap.get('"+battle.getBattleId()+"').battle.__shirokaiDamageMultiplier").asDouble();
+        require(multiplier==1.5,"Multiplicador configurado não chegou ao motor real");
     }
     private com.google.gson.JsonObject state() throws Exception {
         return com.google.gson.JsonParser.parseString(Files.readString(Path.of("world/data/shirokai-raids/state.json"))).getAsJsonObject();
@@ -99,10 +105,16 @@ public final class ChallengeIntegration implements ModInitializer {
             for(int x=-25;x<=25;x++) for(int z=-25;z<=25;z++) server.overworld().setBlock(new BlockPos(x,199,z),Blocks.STONE.defaultBlockState(),3);
             attachFakePlayers();
             players.getFirst().setPos(0,200,0);
-            require(command("raidadmin setspawn")==1 && command("raidadmin iniciar rayquaza")==1,"Raid não iniciou");
+            var lootFile=Path.of("config/shirokai-raids/rewards/testdrops.json");
+            String validLoot=Files.readString(lootFile);
+            Files.writeString(lootFile,validLoot.replace("minecraft:apple","missing_mod:missing_item"));
+            command("raidadmin reload"); // Must reject unknown registry IDs, retaining previous valid settings.
+            Files.writeString(lootFile,validLoot);
+            require(command("raidadmin setspawn")==1 && command("raidadmin iniciar rayquaza")==1,"Raid não iniciou após reload inválido");
             players.getFirst().setPos(5,200,0);
             var bosses=server.overworld().getEntitiesOfClass(PokemonEntity.class,new AABB(-48,150,-48,48,250,48),e -> e.getTags().contains("shirokai_raids_boss"));
             require(bosses.size()==1,"Boss público não é único"); boss=bosses.getFirst();
+            require(boss.getPokemon().getScaleModifier()==2.5f,"Escala configurada não aplicada");
             boss.getPokemon().getMoveSet().clear();
             boss.getPokemon().getMoveSet().setMove(0,Objects.requireNonNull(Moves.INSTANCE.getByName("splash")).create());
             require(server.getCommands().getDispatcher().getRoot().getChild("raid").getChild("atacar")==null,"Ataque automático ainda registrado");
@@ -112,17 +124,35 @@ public final class ChallengeIntegration implements ModInitializer {
         if(ticks==220) require(state().get("hp").getAsLong()==hpBeforeChoices,"Dano sem escolher movimento");
         require(boss.getBattleId()==null,"Conflito de battleId no boss público");
         if(!late && ticks>=350 && !boss.isRemoved()) { challenge(2); late=true; }
-        if(late && switched && !departed && ticks>=450 && !boss.isRemoved()) {
+        if(late && switched && !departed && ticks>=370 && !boss.isRemoved()) {
             var leaving=BattleRegistry.getBattleByParticipatingPlayer(players.get(1));
             if(leaving!=null && pp(leads.get(1),"dragonclaw")<beforePP.get(leads.get(1).getUuid())) {
+                server.getCommands().getDispatcher().execute("raid sair",players.get(1).createCommandSourceStack());
+                require(BattleRegistry.getBattleByParticipatingPlayer(players.get(1))==null,"Comando sair não encerrou a própria batalha");
+                damageBeforeReturn=state().getAsJsonObject("damage").get(players.get(1).getUUID().toString()).getAsLong();
+                require(damageBeforeReturn>0,"Sair perdeu contribuição");
+                departed=true;leaveTick=ticks;
+            }
+        }
+        if(departed && !returned && ticks>=leaveTick+60 && !boss.isRemoved()) {
+            ppBeforeReturn=pp(leads.get(1),"dragonclaw");
+            challenge(1);returned=true;
+            require(state().getAsJsonObject("damage").get(players.get(1).getUUID().toString()).getAsLong()==damageBeforeReturn,"Retorno zerou contribuição");
+        }
+        if(returned && !secondExit && !boss.isRemoved()) {
+            var battle=BattleRegistry.getBattleByParticipatingPlayer(players.get(1));
+            if(battle!=null && pp(leads.get(1),"dragonclaw")<ppBeforeReturn) {
                 BattleRegistry.INSTANCE.onPlayerDisconnect(players.get(1));
-                require(BattleRegistry.getBattleByParticipatingPlayer(players.get(1))==null,"Saída não encerrou a própria batalha");
-                departed=true;
+                server.getCommands().getDispatcher().execute("raid sair",players.get(1).createCommandSourceStack());
+                require(state().getAsJsonObject("damage").get(players.get(1).getUUID().toString()).getAsLong()>damageBeforeReturn,"Dano novo não acumulou ao anterior");
+                secondExit=true;
             }
         }
         if(ticks>220 && ticks%20==0 && !boss.isRemoved()) for(int i=0;i<players.size();i++) {
             var battle=BattleRegistry.getBattleByParticipatingPlayer(players.get(i));
             if(battle==null || battle.getEnded()) continue;
+            if(departed && !returned) continue;
+            if(returned && !secondExit && i!=1) continue;
             if(i!=0 && swapRequested && !switched && ticks>240) continue;
             var actor=(PlayerBattleActor)battle.getSide1().getActors()[0];
             if(actor.getMustChoose() && actor.getRequest()!=null && actor.getRequest().getActive()!=null) {
@@ -141,13 +171,22 @@ public final class ChallengeIntegration implements ModInitializer {
         if(boss.isRemoved() && raidEndedTick<0) {
             var state=state();
             require(state.get("hp").getAsLong()==0,"Boss removido sem derrota global");
-            require(late && switched && departed,"Entrada tardia, troca ou saída não executada");
+            require(late && switched && departed && returned && secondExit,"Entrada tardia, troca ou saída não executada");
             long total=0; for(var entry:state.getAsJsonObject("damage").entrySet()) total+=entry.getValue().getAsLong();
-            require(total==2000 && state.getAsJsonObject("damage").size()==3,"Contribuição global incorreta");
+            require(total==RAID_HP && state.getAsJsonObject("damage").size()==3,"Contribuição global incorreta");
             for(int i=0;i<3;i++) {
                 require(BattleRegistry.getBattleByParticipatingPlayer(players.get(i))==null,"Batalha permaneceu ativa");
                 var used=i==0?benches.get(i):leads.get(i);
                 require(pp(used,i==0?"psychic":"dragonclaw")<beforePP.get(used.getUuid()),"Movimento escolhido não consumiu PP para jogador "+i);
+            }
+            var pending=state.getAsJsonObject("pending");
+            for(var player:players) {
+                int count=0;
+                for(var entry:pending.getAsJsonArray(player.getUUID().toString())) {
+                    var item=entry.getAsJsonObject();require(item.get("item").getAsString().equals("minecraft:apple"),"Tabela de drops do boss ignorada");
+                    count+=item.get("count").getAsInt();
+                }
+                require(count==4,"Número de sorteios/quantidades configuradas não aplicado");
             }
             raidEndedTick=ticks;
         }
@@ -163,7 +202,7 @@ public final class ChallengeIntegration implements ModInitializer {
             require(normal!=null,"Desafio de Pokémon normal foi quebrado");
             require(normal.getSide2().getActors()[0].getPokemonList().getFirst().getUuid().equals(wild.getPokemon().getUuid()),"Desafio normal entrou no adaptador de raid");
             normal.stop(); wild.discard();
-            complete(true,"Desafio padrão, pacote de UI, escolha manual, troca, PP, entrada tardia, 3 contribuições, saída isolada, término global e batalha selvagem normal verificados. FakePlayers; nenhum cliente real.");
+            complete(true,"Desafio padrão, UI, movimentos, PP, troca, saída/retorno com dano acumulado, dano/tamanho/HP/drops por boss, reload inválido e batalha normal verificados. FakePlayers; nenhum cliente real.");
         }
         if(ticks==600) require(switched,"A troca de Pokémon não terminou em 30 segundos");
         require(ticks<2200,"Timeout do desafio padrão");
