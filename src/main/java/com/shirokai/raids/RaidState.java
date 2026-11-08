@@ -3,6 +3,15 @@ package com.shirokai.raids;
 import java.util.*;
 
 final class RaidState {
+    Map<String, ReturnPosition> returns = new HashMap<>();
+    static final class ReturnPosition {
+        String dimension;
+        double x, y, z;
+        float yaw, pitch;
+        ReturnPosition(String dimension, double x, double y, double z, float yaw, float pitch) {
+            this.dimension=dimension; this.x=x; this.y=y; this.z=z; this.yaw=yaw; this.pitch=pitch;
+        }
+    }
     long nextRaid;
     String activeRaid, bossEntity;
     long hp;
@@ -28,6 +37,14 @@ final class RaidState {
         }
     }
     void validate() {
+        if (returns == null) throw new IllegalArgumentException("Posições de retorno ausentes");
+        for (var entry : returns.entrySet()) {
+            UUID.fromString(entry.getKey());
+            var pos = entry.getValue();
+            if (pos == null || pos.dimension == null || !pos.dimension.matches("[a-z0-9_.-]+:[a-z0-9_./-]+")
+                || !Double.isFinite(pos.x + pos.y + pos.z) || !Float.isFinite(pos.yaw) || !Float.isFinite(pos.pitch))
+                throw new IllegalArgumentException("Posição de retorno inválida");
+        }
         if (archive == null) throw new IllegalArgumentException("Histórico persistente inválido");
         archive.validate();
         if (reviews == null) throw new IllegalArgumentException("Conferências persistentes inválidas");

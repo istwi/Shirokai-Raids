@@ -78,11 +78,17 @@ public final class TraditionalRaidBattles {
     private final PokemonEntity anchor;
     private final RaidCombatCoordinator health;
     private final Consumer<Hit> onHit;
+    private final java.util.function.Predicate<ServerPlayer> eligible;
     private final double damageMultiplier;
     private final Map<UUID,Session> sessions=new LinkedHashMap<>();
     private long lastHealth=-1;
 
     public TraditionalRaidBattles(PokemonEntity anchor,RaidCombatCoordinator health,double damageMultiplier,Consumer<Hit> onHit) {
+        this(anchor, health, damageMultiplier, onHit, player -> true);
+    }
+    public TraditionalRaidBattles(PokemonEntity anchor,RaidCombatCoordinator health,double damageMultiplier,Consumer<Hit> onHit,
+                                  java.util.function.Predicate<ServerPlayer> eligible) {
+        this.eligible=eligible;
         this.anchor=anchor; this.health=health; this.onHit=onHit;
         if(!Double.isFinite(damageMultiplier) || damageMultiplier<0 || damageMultiplier>100) throw new IllegalArgumentException("Multiplicador inválido");
         this.damageMultiplier=damageMultiplier;
@@ -138,7 +144,7 @@ public final class TraditionalRaidBattles {
     }
     private long damage(PokemonBattle battle,long sequence,long requested) {
         var session=sessions.get(battle.getBattleId());
-        if(session==null) return 0;
+        if(session==null || !eligible.test(session.player())) return 0;
         var result=health.applyDamage(session.token(),sequence,requested);
         if(result.applied()>0) {
             var active=battle.getSide1().getActivePokemon().getFirst().getBattlePokemon();
@@ -148,7 +154,7 @@ public final class TraditionalRaidBattles {
     }
     public void tick() {
         for(var session:new ArrayList<>(sessions.values())) {
-            if(session.battle().getEnded() || session.player().hasDisconnected() || session.player().level()!=anchor.level())
+            if(!eligible.test(session.player()) || session.battle().getEnded() || session.player().hasDisconnected() || session.player().level()!=anchor.level())
                 remove(session.battle().getBattleId(),true);
         }
         if(health.current()!=lastHealth) sync();

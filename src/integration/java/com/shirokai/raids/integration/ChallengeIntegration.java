@@ -87,8 +87,13 @@ public final class ChallengeIntegration implements ModInitializer {
     private int command(String command) throws Exception {
         return server.getCommands().getDispatcher().execute(command,players.getFirst().createCommandSourceStack().withPermission(4));
     }
-    private void challenge(int index) {
+    private void challenge(int index) throws Exception {
         var player=players.get(index);
+        if (!state().getAsJsonObject("returns").has(player.getUUID().toString())) {
+            var position = player.position();
+            require(server.getCommands().getDispatcher().execute("raid entrar",player.createCommandSourceStack())==1,"Entrada não aceita");
+            player.setPos(position.x,position.y,position.z);
+        }
         player.lookAt(net.minecraft.commands.arguments.EntityAnchorArgument.Anchor.EYES,boss.getBoundingBox().getCenter());
         require(boss.canBattle(player),"Cliente padrão recusaria canBattle do boss público");
         require(com.cobblemon.mod.common.util.PlayerExtensionsKt.canInteractWith(player,boss,Cobblemon.config.getBattleWildMaxDistance()),"Desafio fora da distância padrão: "+index);

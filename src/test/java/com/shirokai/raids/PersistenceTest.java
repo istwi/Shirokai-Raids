@@ -8,6 +8,37 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class PersistenceTest {
     @TempDir Path dir;
+    @Test void commandLockAllowsOnlyExitAndRaidMenu() {
+        for (String command : List.of("raid", "raid sair", "raid menu", "  raid sair  "))
+            assertTrue(RaidCommands.allowedDuringRaid(command), command);
+        for (String command : List.of("spawn", "home", "tp 0 64 0", "raid entrar", "raid lobby", "raid ranking",
+                "raidadmin parar", "execute run raid sair", "minecraft:tp 0 64 0", "raid sair extra", "say teste", "msg player teste"))
+            assertFalse(RaidCommands.allowedDuringRaid(command), command);
+    }
+    @Test void returnPositionSurvivesRestartWithDimensionAndOrientation() throws Exception {
+        var state = new RaidState();
+        String player = UUID.randomUUID().toString();
+        state.returns.put(player, new RaidState.ReturnPosition("minecraft:the_nether", 12.25, 65, -42.5, 90, -20));
+        var path = dir.resolve("return-state.json");
+        JsonFiles.write(path, state);
+        var restored = JsonFiles.read(path, RaidState.class);
+        restored.validate();
+        var origin = restored.returns.get(player);
+        assertEquals("minecraft:the_nether", origin.dimension);
+        assertEquals(12.25, origin.x); assertEquals(65, origin.y); assertEquals(-42.5, origin.z);
+        assertEquals(90, origin.yaw); assertEquals(-20, origin.pitch);
+    }
+    @Test void rejectsInvalidReturnCoordinates() {
+        var state = new RaidState();
+        state.returns.put(UUID.randomUUID().toString(), new RaidState.ReturnPosition("minecraft:overworld", Double.NaN, 64, 0, 0, 0));
+        assertThrows(IllegalArgumentException.class, state::validate);
+    }
+    @Test void displaysMinutesWithoutRoundingShortCountdownsToZero() {
+        assertEquals("1,00 min", RaidTime.minutes(60));
+        assertEquals("1,50 min", RaidTime.minutes(90));
+        assertEquals("0,02 min", RaidTime.minutes(1));
+        assertEquals("0,00 min", RaidTime.minutes(-1));
+    }
     @Test void concurrentCombatConfigurationDefaultsToOneHundredAndRejectsHigherLimits() {
         var config=new RaidConfig();
         assertEquals(100,config.maxConcurrentPlayers);

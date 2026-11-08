@@ -2,9 +2,9 @@
 
 Mod **somente servidor** para Minecraft 1.21.1, Fabric e Cobblemon 1.8.3.
 
-**0.1.8-dev: contorno luminoso do boss e controles preparados para o teste final. Não é uma Release estável.**
+**0.1.9-dev: menu de entrada e saída, retorno à origem e bloqueio de comandos durante a participação. Não é uma Release estável.**
 
-O fluxo implementado é `/raid` → enviar seu Pokémon → apontar para o boss e pressionar **R** (ou a tecla configurada no Cobblemon) → escolher os movimentos na interface normal. Cada jogador tem uma batalha real independente, com sua equipe, movimentos e PP; o dano aplicado reduz o HP global do evento. O jogo aguarda a escolha do jogador. Não há `/raid atacar` nem loop de ataques automáticos.
+O fluxo implementado é `/raid` → menu de informações → **Entrar na raid** → enviar seu Pokémon → apontar para o boss e pressionar **R** (ou a tecla configurada no Cobblemon) → escolher os movimentos na interface normal. Cada jogador tem uma batalha real independente, com sua equipe, movimentos e PP; o dano aplicado reduz o HP global do evento. O jogo aguarda a escolha do jogador. Não há `/raid atacar` nem loop de ataques automáticos.
 
 O boss público aparece com contorno luminoso nativo (Glowing), sem mod adicional no cliente. O mod não altera equipes do scoreboard para definir cores. O estado foi conferido no servidor; a aparência no modelo Cobblemon precisa da observação com cliente real.
 
@@ -31,6 +31,10 @@ O adaptador exige o serviço Graal padrão do Cobblemon 1.8.3. Cura do boss est�
 
 O HP padrão é 10.000.000. Para um teste curto, configure um valor menor em `config/shirokai-raids/bosses/rayquaza.json` e use `/raidadmin reload` fora de uma raid ativa. Arquivos personalizados não são sobrescritos. Não use a fixture de integração em mundo de produção.
 
+O menu `/raid` mostra boss, HP, tempo restante e combatentes. Use **Entrar na raid** ou `/raid entrar`; o destino fica na arena definida por `/raidadmin setspawn`, dentro de `arenaRadius`. Só quem entrou e está dentro da área pode desafiar o boss. Sair da área encerra a batalha, mas a posição de retorno permanece salva até usar `/raid sair` ou **Sair da raid** no menu. Enquanto estiver na raid, todos os outros comandos ficam bloqueados; somente `/raid`, `/raid menu` e `/raid sair` são permitidos. Fechar o menu não sai da raid. A posição anterior, dimensão e orientação são persistidas, inclusive após desconexão ou reinício. Ao terminar o evento, o retorno continua disponível pelo comando ou menu.
+
+Os contadores de evento, BossBar, avisos e histórico aparecem em minutos (por exemplo, `1,50 min`). Os campos JSON e argumentos administrativos de intervalo/duração continuam em segundos para preservar compatibilidade.
+
 ## Configurar o boss e os drops
 
 Em `config/shirokai-raids/bosses/<id>.json`, `hp` define a vida compartilhada (1 a 1 trilhão), `scale` o tamanho (0,5 a 5), `damageMultiplier` o multiplicador dos golpes do boss (0 a 100; padrão 1) e `rewards` o nome da tabela de drops. O multiplicador atua no dano direto de movimentos, inclusive dano fixo, antes de proteções como Focus Sash; status e recoil mantêm as regras nativas. Recarregue fora de uma raid ativa com `/raidadmin reload`.
@@ -43,14 +47,14 @@ Sair encerra somente sua sessão e libera a vaga. Seu dano permanece no ranking 
 
 | Comando | Função |
 | --- | --- |
-| `/raid` | Teleporte seguro se houver raid; senão, próxima ocorrência |
-| `/raid entrar` | Orientações para participar pela batalha normal |
+| `/raid`, `/raid menu` | Menu de informações, entrada e saída da raid |
+| `/raid entrar` | Salva o local anterior e teleporta com segurança para a arena |
 | `/raid lobby` | Teleporte seguro ao lobby configurado, fora de batalhas e com cooldown |
 | `/raid tempo` | Estado/tempo, sem teleporte |
 | `/raid dano`, `/raid top` | Dano efetivo e ranking |
-| `/raid menu`, `/raid historico` | Menu com suas 20 últimas raids, resultado, contribuição, posição e drops |
+| `/raid historico` | Menu com suas 20 últimas raids, resultado, contribuição, posição e drops |
 | `/raid ranking` | Ranking global público: participações, dano acumulado e vitórias |
-| `/raid sair` | Encerrar a própria batalha e preservar contribuição |
+| `/raid sair` | Encerra a batalha e retorna ao local anterior à entrada, preservando contribuição |
 | `/raid recompensas`, `/raid pendentes` | Menu de pendências com botão de entrega, atualização e paginação |
 | `/raid resgatar` | Tentar entrega pelo comando, com o mesmo journal e cooldown do botão |
 | `/raidadmin iniciar <boss>`, `parar`, `setspawn`, `setlobby`, `reload`, `status`, `info`, `listar` | Administração |
@@ -79,10 +83,10 @@ Requer JDK 21 completo, Node e Python:
 bash gradlew --no-daemon build
 python3 scripts/run_showdown_audit.py
 python3 scripts/run_traditional_probe.py
-python3 scripts/verify_jar.py --version 0.1.8-dev
+python3 scripts/verify_jar.py --version 0.1.9-dev
 ```
 
-Windows: `gradlew.bat build`. O artefato é `build/libs/Shirokai-Raids-0.1.8-dev-fabric-1.21.1.jar`; o verificador gera `SHA256SUMS`. O workflow mantém builds e Artifacts de desenvolvimento em Linux e Windows.
+Windows: `gradlew.bat build`. O artefato é `build/libs/Shirokai-Raids-0.1.9-dev-fabric-1.21.1.jar`; o verificador gera `SHA256SUMS`. O workflow mantém builds e Artifacts de desenvolvimento em Linux e Windows.
 
 No ambiente cloud, `scripts/setup-cloud.sh` prepara o JDK e a compilação. Com servidor preparado por `scripts/prepare-test-server.sh` e EULA aceita para os testes:
 

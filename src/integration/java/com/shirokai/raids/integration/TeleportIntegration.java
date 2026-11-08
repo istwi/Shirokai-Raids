@@ -64,22 +64,27 @@ public final class TeleportIntegration implements ModInitializer {
             +" loaded="+server.overworld().hasChunkAt(new BlockPos(10,200,0))
             +" collisionFree="+server.overworld().noCollision(player,body)
             +" entities="+server.overworld().getEntities(player,body,e->e.isAlive()&&e.isPickable()).size());
-        require(command(server,"raid")==1,"/raid não teleportou");
+        require(command(server,"raid entrar")==1,"/raid entrar não teleportou");
         require(player.position().distanceToSqr(new Vec3(0,200,0))<48*48,"destino fora da arena");
         require(server.overworld().noCollision(player,player.getBoundingBox()),"jogador dentro de blocos");
         require(!bosses.getFirst().getBoundingBox().inflate(2).intersects(player.getBoundingBox()),"jogador dentro do boss");
         var arrived=player.position();
         command(server,"raid tempo");
         require(arrived.equals(player.position()),"/raid tempo teleportou indevidamente");
-        require(command(server,"raid")==0,"cooldown de teleporte não aplicado");
+        require(command(server,"raid entrar")==0,"cooldown de teleporte não aplicado");
+        require(com.shirokai.raids.ShirokaiRaids.blockCommand(player.createCommandSourceStack(), "spawn"), "Comando externo não foi bloqueado");
+        require(!com.shirokai.raids.ShirokaiRaids.blockCommand(player.createCommandSourceStack(), "raid sair"), "Saída bloqueada");
+        require(command(server,"raid sair")==1,"Saída falhou");
+        require(player.position().equals(new Vec3(1000,200,1000)),"Saída não retornou à origem exata");
+        require(!com.shirokai.raids.ShirokaiRaids.blockCommand(player.createCommandSourceStack(), "spawn"), "Bloqueio permaneceu após saída");
         platform(server,false);
         player.setPos(1000,200,1000);failedOrigin=player.position();
     }
     private void second(MinecraftServer server) throws Exception {
-        require(command(server,"raid")==0,"arena sem piso aceitou teleporte");
+        require(command(server,"raid entrar")==0,"arena sem piso aceitou teleporte");
         require(failedOrigin.equals(player.position()),"falha de busca moveu o jogador");
         command(server,"raidadmin parar");
-        require(command(server,"raid")==1,"/raid sem raid não informou agendamento");
+        require(command(server,"raid entrar")==1,"/raid entrar sem raid não informou agendamento");
         require(failedOrigin.equals(player.position()),"/raid sem raid teleportou");
         complete(server,true,"Spawn real, teleporte seguro, distância do boss, cooldown, falha sem piso, /raid tempo e ausência de raid verificados. FakePlayer não é um cliente real.");
     }

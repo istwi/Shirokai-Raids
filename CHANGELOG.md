@@ -1,5 +1,14 @@
 # Histórico de alterações
 
+## 0.1.9-dev
+
+- `/raid` e `/raid menu` abrem informações do evento com botões de entrada, saída e atualização.
+- Entrada salva dimensão, posição e orientação em disco antes do teleporte; saída pelo menu ou `/raid sair` retorna à origem, inclusive após desconexão, reinício ou término do evento.
+- Somente participantes dentro da área podem desafiar o boss e aplicar dano; sair da área encerra a batalha sem apagar a posição de retorno.
+- Enquanto a posição de retorno estiver registrada, comandos ficam bloqueados, exceto `/raid`, `/raid menu` e `/raid sair`.
+- Contadores do evento, BossBar, avisos e histórico exibidos em minutos; configuração e argumentos administrativos mantêm segundos.
+- Compilação, 67 testes automatizados e estrutura do JAR validados em Linux. Validação com clientes Minecraft reais permanece pendente.
+
 ## 0.1.8-dev
 
 - Contorno luminoso nativo do Minecraft ativado na entidade pública do boss ao aparecer, sem exigir mod adicional no cliente nem alterar equipes do scoreboard.

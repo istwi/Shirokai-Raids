@@ -106,7 +106,7 @@ public final class ShirokaiRaids implements ModInitializer {
             raid.then(Commands.literal("tempo").executes(c -> info(c.getSource())));
             raid.then(Commands.literal("dano").executes(c -> damage(c.getSource())));
             raid.then(Commands.literal("top").executes(c -> ranking(c.getSource())));
-            raid.then(Commands.literal("menu").executes(c -> openRaidMenu(c.getSource(), false)));
+            raid.then(Commands.literal("menu").executes(c -> raidCommand(c.getSource())));
             raid.then(Commands.literal("historico").executes(c -> openRaidMenu(c.getSource(), false)));
             raid.then(Commands.literal("ranking").executes(c -> openRaidMenu(c.getSource(), true)));
             raid.then(Commands.literal("recompensas").requires(s -> RaidPermissions.check(s,"shirokai.raids.rewards",true)).executes(c -> pendingMenu(c.getSource())));
@@ -212,7 +212,7 @@ public final class ShirokaiRaids implements ModInitializer {
         var mod=instance;
         if(mod==null || mod.active==null || player.level().getEntity(packet.getTargetedEntityId())!=mod.active.boss) return false;
         try {
-            if(!mod.healthy || !mod.inArena(player) || mod.active.health.current()==0 || !mod.active.boss.canBattle(player))
+            if(!mod.healthy || !mod.state.returns.containsKey(player.getUUID().toString()) || !mod.inArena(player) || mod.active.health.current()==0 || !mod.active.boss.canBattle(player))
                 throw new IllegalStateException("A raid não está disponível para você neste momento.");
             if(!RaidPermissions.check(player.createCommandSourceStack(),"shirokai.raids.use",true)
                 || !RaidPermissions.check(player.createCommandSourceStack(),"shirokai.raids.join",true))
@@ -232,16 +232,47 @@ public final class ShirokaiRaids implements ModInitializer {
         }
         return true;
     }
+    public static boolean blockCommand(CommandSourceStack source, String command) {
+        var mod = instance;
+        if (mod == null || mod.state == null || !source.isPlayer()
+            || !mod.state.returns.containsKey(source.getPlayer().getUUID().toString())
+            || RaidCommands.allowedDuringRaid(command)) return false;
+        source.sendFailure(Component.literal("Saia da raid com /raid sair ou pelo menu /raid para usar outros comandos."));
+        return true;
+    }
     private boolean isBoss(UUID uuid) { return active != null && active.boss.getUUID().equals(uuid); }
     private int reply(CommandSourceStack source, String text) { source.sendSuccess(() -> Component.literal(text),false); return 1; }
     private void broadcast(String text) { server.getPlayerList().broadcastSystemMessage(Component.literal("[Raids] " + text),false); }
     private int info(CommandSourceStack source) {
         if (!healthy) return reply(source,"Raids indisponíveis: verifique os logs de persistência.");
         if (active == null && !config.automaticRaids) return reply(source, "Raids automáticas desativadas; aguarde um evento manual.");
-        return reply(source,active == null ? "Próxima raid em " + Math.max(0,(state.nextRaid-System.currentTimeMillis())/1000) + " segundos."
-            : active.definition.name + ": " + active.health.current() + "/" + active.health.maximum() + " HP. Restam " + Math.max(0,(active.ends-System.currentTimeMillis())/1000) + "s.");
+        return reply(source,active == null ? "Próxima raid em " + RaidTime.minutes(Math.max(0,(state.nextRaid-System.currentTimeMillis())/1000)) + "."
+            : active.definition.name + ": " + active.health.current() + "/" + active.health.maximum() + " HP. Restam " + RaidTime.minutes(Math.max(0,(active.ends-System.currentTimeMillis())/1000)) + ".");
     }
     private int raidCommand(CommandSourceStack source) {
+        if (!source.isPlayer()) return info(source);
+        var player = source.getPlayer();
+        RaidOverviewMenu.open(player, this::overview, () -> join(player.createCommandSourceStack()),
+            () -> leave(player.createCommandSourceStack()), () -> raidCommand(player.createCommandSourceStack()));
+        return 1;
+    }
+    private List<String> overview() {
+        var lines = new ArrayList<String>();
+        if (!healthy) lines.add("Raids temporariamente indisponíveis.");
+        else if (active == null) lines.add(config.automaticRaids
+            ? "Próxima raid em " + RaidTime.minutes(Math.max(0, (state.nextRaid-System.currentTimeMillis())/1000))
+            : "Aguardando evento manual.");
+        else {
+            lines.add("Boss: " + active.definition.name);
+            lines.add("Vida: " + active.health.current() + "/" + active.health.maximum() + " HP");
+            lines.add("Tempo restante: " + RaidTime.minutes(Math.max(0,(active.ends-System.currentTimeMillis())/1000)));
+            lines.add("Combatentes: " + active.health.snapshot().activeSessions() + "/" + config.maxConcurrentPlayers);
+        }
+        lines.add("Entre para enfrentar o boss dentro da arena.");
+        lines.add("Sair devolve você ao local anterior à entrada.");
+        return lines;
+    }
+    private int teleportToArena(CommandSourceStack source) {
         if (!healthy || active == null) return info(source);
         if (!source.isPlayer()) return info(source);
         if (!RaidPermissions.check(source,"shirokai.raids.join",true)) {
@@ -268,6 +299,11 @@ public final class ShirokaiRaids implements ModInitializer {
         var target=spot.get();
         double x=target.x()+.5,z=target.z()+.5;
         float yaw=(float)(Math.toDegrees(Math.atan2(raid.boss.getZ()-z,raid.boss.getX()-x))-90);
+        String key = player.getUUID().toString();
+        if (state.returns.containsKey(key)) return reply(source,"Você já entrou. Use /raid sair antes de entrar novamente.");
+        state.returns.put(key, new RaidState.ReturnPosition(player.serverLevel().dimension().location().toString(),
+            player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot()));
+        save(); // Persist the origin before moving the player.
         player.teleportTo(raid.world,x,target.feetY(),z,Set.of(),yaw,0);
         player.fallDistance=0;
         raid.bar.addPlayer(player);
@@ -306,6 +342,7 @@ public final class ShirokaiRaids implements ModInitializer {
         if (!config.lobby.configured) return reply(source, "O lobby ainda não foi configurado pela administração.");
         try {
             var player = source.getPlayerOrException();
+            if (state.returns.containsKey(player.getUUID().toString())) return reply(source,"Use /raid sair para voltar ao local anterior antes de ir ao lobby.");
             if (!player.isAlive() || player.isSpectator() || player.isPassenger()
                 || com.cobblemon.mod.common.battles.BattleRegistry.getBattleByParticipatingPlayer(player) != null) {
                 source.sendFailure(Component.literal("Encerre sua batalha e saia de veículos antes de ir ao lobby.")); return 0;
@@ -374,7 +411,7 @@ public final class ShirokaiRaids implements ModInitializer {
     }
     private int status(CommandSourceStack source) {
         reply(source, "Persistência: " + (healthy ? "disponível" : "indisponível") + "; automático: " + config.automaticRaids
-            + "; intervalo: " + config.intervalSeconds + "s; duração: " + config.durationSeconds + "s; limite: " + config.maxConcurrentPlayers);
+            + "; intervalo: " + RaidTime.minutes(config.intervalSeconds) + "; duração: " + RaidTime.minutes(config.durationSeconds) + "; limite: " + config.maxConcurrentPlayers);
         reply(source, "Arena: " + (config.spawnConfigured ? config.dimension + " " + config.x + ", " + config.y + ", " + config.z : "use /raidadmin setspawn")
             + "; lobby: " + (config.lobby.configured ? config.lobby.dimension : "use /raidadmin setlobby"));
         if (active != null) reply(source, "Evento: " + active.id + "; sessões: " + active.health.snapshot().activeSessions()
@@ -439,7 +476,8 @@ public final class ShirokaiRaids implements ModInitializer {
         var candidate = new Active(definition,entity,world,new Vec3(config.x,config.y,config.z),System.currentTimeMillis()+config.durationSeconds*1000L,config.maxConcurrentPlayers);
         candidate.chunks = lease;
         candidate.battles=new TraditionalRaidBattles(entity,candidate.health,definition.damageMultiplier,hit ->
-            candidate.damage.record(hit.player(),hit.name(),hit.pokemon(),hit.applied(),System.currentTimeMillis()));
+            candidate.damage.record(hit.player(),hit.name(),hit.pokemon(),hit.applied(),System.currentTimeMillis()),
+            player -> inArena(player) && state.returns.containsKey(player.getUUID().toString()));
         active = candidate; // entity load callback must recognize it before insertion
         if (!world.addFreshEntity(entity)) { active = null; throw new IllegalStateException("Spawn recusado"); }
         state.activeRaid = candidate.id; state.bossEntity = entity.getUUID().toString(); state.hp = definition.hp; state.damage.clear();
@@ -457,17 +495,27 @@ public final class ShirokaiRaids implements ModInitializer {
         return active != null && player.isAlive() && !player.isSpectator() && player.serverLevel() == active.world && player.position().distanceToSqr(active.center) <= config.arenaRadius*config.arenaRadius;
     }
     private int join(CommandSourceStack source) {
-        try {
-            var player = source.getPlayerOrException();
-            if (!inArena(player)) return raidCommand(source);
-            active.bar.addPlayer(player);
-            return reply(source,"Envie seu Pokémon e desafie o boss com R. Escolha os movimentos na batalha normal do Cobblemon.");
-        } catch (Exception e) { return reply(source,"Comando disponível para jogadores na arena."); }
+        return teleportToArena(source);
     }
     private int leave(CommandSourceStack source) {
-        try { var p=source.getPlayerOrException(); if(active != null) { active.battles.leave(p.getUUID()); active.bar.removePlayer(p); snapshot(); } }
-        catch (Exception ignored) { return reply(source,"Comando disponível para jogadores."); }
-        return reply(source,"Participação encerrada. Sua contribuição foi preservada.");
+        if (!source.isPlayer()) return reply(source,"Comando disponível para jogadores.");
+        if (!healthy) return reply(source,"Saída indisponível: confira a persistência.");
+        var player = source.getPlayer();
+        String key = player.getUUID().toString();
+        var origin = state.returns.get(key);
+        if (origin == null) return reply(source,"Você não entrou na raid. Use /raid entrar.");
+        var world = server.getLevel(ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(origin.dimension)));
+        if (world == null) return reply(source,"A dimensão de retorno está indisponível. Sua posição foi preservada; avise a administração.");
+        if (!player.isAlive() || player.isPassenger()) return reply(source,"Você precisa estar vivo e fora de veículos para sair.");
+        if (active != null) { active.battles.leave(player.getUUID()); active.bar.removePlayer(player); }
+        if (com.cobblemon.mod.common.battles.BattleRegistry.getBattleByParticipatingPlayer(player) != null)
+            return reply(source,"Encerre sua batalha atual antes de retornar.");
+        player.closeContainer();
+        player.teleportTo(world,origin.x,origin.y,origin.z,Set.of(),origin.yaw,origin.pitch);
+        player.fallDistance=0;
+        state.returns.remove(key);
+        if (active != null) snapshot(); else save();
+        return reply(source,"Você voltou ao local anterior. Sua contribuição foi preservada.");
     }
     private int damage(CommandSourceStack source) {
         try { var p=source.getPlayerOrException(); return reply(source,active == null ? "Nenhuma raid ativa." : "Dano aplicado: " + active.damage.damage(p.getUUID()) + String.format(Locale.ROOT," (%.2f%%)",100*active.damage.contribution(p.getUUID(),active.health.maximum()))); }
@@ -495,9 +543,10 @@ public final class ShirokaiRaids implements ModInitializer {
                 if (active.boss.position().distanceToSqr(active.center) > config.arenaRadius*config.arenaRadius)
                     active.boss.teleportTo(active.center.x,active.center.y,active.center.z);
                 active.bar.setProgress((float) active.health.fraction());
-                active.bar.setName(Component.literal(active.definition.name + " | " + active.health.current() + "/" + active.health.maximum() + " HP | " + (active.ends-now)/1000 + "s"));
+                active.bar.setName(Component.literal(active.definition.name + " | " + active.health.current() + "/" + active.health.maximum() + " HP | " + RaidTime.minutes(Math.max(0,(active.ends-now)/1000))));
                 for (var player : server.getPlayerList().getPlayers()) {
-                    if (inArena(player)) active.bar.addPlayer(player); else active.bar.removePlayer(player);
+                    if (inArena(player) && state.returns.containsKey(player.getUUID().toString())) active.bar.addPlayer(player);
+                    else { active.bar.removePlayer(player); active.battles.leave(player.getUUID()); }
                 }
                 if (tick % 200 == 0) snapshot();
             } else if (config.spawnConfigured && config.automaticRaids) {
@@ -505,7 +554,7 @@ public final class ShirokaiRaids implements ModInitializer {
                     try { var ids = new ArrayList<>(bosses.keySet()); begin(ids.get(random.nextInt(ids.size()))); }
                     catch (Exception e) { LOG.warn("Raid automática adiada",e); state.nextRaid=RaidSchedule.next(now,config.intervalSeconds); save(); }
                 } else RaidSchedule.warning(state.nextRaid - now, config.warningsSeconds.stream().filter(w -> w <= config.intervalSeconds).toList(), warned)
-                    .ifPresent(warning -> broadcast("Faltam até " + warning + " segundos para a próxima raid."));
+                    .ifPresent(warning -> broadcast("Faltam até " + RaidTime.minutes(warning) + " para a próxima raid."));
             }
         } catch (Exception e) { LOG.error("Raid suspensa após falha; verifique o estado persistente",e); healthy=false; if(active!=null) cleanup(active); }
     }
