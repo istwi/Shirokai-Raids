@@ -246,8 +246,8 @@ public final class ShirokaiRaids implements ModInitializer {
     private int info(CommandSourceStack source) {
         if (!healthy) return reply(source,"Raids indisponíveis: verifique os logs de persistência.");
         if (active == null && !config.automaticRaids) return reply(source, "Raids automáticas desativadas; aguarde um evento manual.");
-        return reply(source,active == null ? "Próxima raid em " + RaidTime.minutes(Math.max(0,(state.nextRaid-System.currentTimeMillis())/1000)) + "."
-            : active.definition.name + ": " + active.health.current() + "/" + active.health.maximum() + " HP. Restam " + RaidTime.minutes(Math.max(0,(active.ends-System.currentTimeMillis())/1000)) + ".");
+        return reply(source,active == null ? "Próxima raid em " + RaidTime.format(Math.max(0,(state.nextRaid-System.currentTimeMillis())/1000)) + "."
+            : active.definition.name + ": " + active.health.current() + "/" + active.health.maximum() + " HP. Restam " + RaidTime.format(Math.max(0,(active.ends-System.currentTimeMillis())/1000)) + ".");
     }
     private int raidCommand(CommandSourceStack source) {
         if (!source.isPlayer()) return info(source);
@@ -260,12 +260,12 @@ public final class ShirokaiRaids implements ModInitializer {
         var lines = new ArrayList<String>();
         if (!healthy) lines.add("Raids temporariamente indisponíveis.");
         else if (active == null) lines.add(config.automaticRaids
-            ? "Próxima raid em " + RaidTime.minutes(Math.max(0, (state.nextRaid-System.currentTimeMillis())/1000))
+            ? "Próxima raid em " + RaidTime.format(Math.max(0, (state.nextRaid-System.currentTimeMillis())/1000))
             : "Aguardando evento manual.");
         else {
             lines.add("Boss: " + active.definition.name);
             lines.add("Vida: " + active.health.current() + "/" + active.health.maximum() + " HP");
-            lines.add("Tempo restante: " + RaidTime.minutes(Math.max(0,(active.ends-System.currentTimeMillis())/1000)));
+            lines.add("Tempo restante: " + RaidTime.format(Math.max(0,(active.ends-System.currentTimeMillis())/1000)));
             lines.add("Combatentes: " + active.health.snapshot().activeSessions() + "/" + config.maxConcurrentPlayers);
         }
         lines.add("Entre para enfrentar o boss dentro da arena.");
@@ -411,7 +411,7 @@ public final class ShirokaiRaids implements ModInitializer {
     }
     private int status(CommandSourceStack source) {
         reply(source, "Persistência: " + (healthy ? "disponível" : "indisponível") + "; automático: " + config.automaticRaids
-            + "; intervalo: " + RaidTime.minutes(config.intervalSeconds) + "; duração: " + RaidTime.minutes(config.durationSeconds) + "; limite: " + config.maxConcurrentPlayers);
+            + "; intervalo: " + RaidTime.format(config.intervalSeconds) + "; duração: " + RaidTime.format(config.durationSeconds) + "; limite: " + config.maxConcurrentPlayers);
         reply(source, "Arena: " + (config.spawnConfigured ? config.dimension + " " + config.x + ", " + config.y + ", " + config.z : "use /raidadmin setspawn")
             + "; lobby: " + (config.lobby.configured ? config.lobby.dimension : "use /raidadmin setlobby"));
         if (active != null) reply(source, "Evento: " + active.id + "; sessões: " + active.health.snapshot().activeSessions()
@@ -543,7 +543,7 @@ public final class ShirokaiRaids implements ModInitializer {
                 if (active.boss.position().distanceToSqr(active.center) > config.arenaRadius*config.arenaRadius)
                     active.boss.teleportTo(active.center.x,active.center.y,active.center.z);
                 active.bar.setProgress((float) active.health.fraction());
-                active.bar.setName(Component.literal(active.definition.name + " | " + active.health.current() + "/" + active.health.maximum() + " HP | " + RaidTime.minutes(Math.max(0,(active.ends-now)/1000))));
+                active.bar.setName(Component.literal(active.definition.name + " | " + active.health.current() + "/" + active.health.maximum() + " HP | " + RaidTime.format(Math.max(0,(active.ends-now)/1000))));
                 for (var player : server.getPlayerList().getPlayers()) {
                     if (inArena(player) && state.returns.containsKey(player.getUUID().toString())) active.bar.addPlayer(player);
                     else { active.bar.removePlayer(player); active.battles.leave(player.getUUID()); }
@@ -554,7 +554,7 @@ public final class ShirokaiRaids implements ModInitializer {
                     try { var ids = new ArrayList<>(bosses.keySet()); begin(ids.get(random.nextInt(ids.size()))); }
                     catch (Exception e) { LOG.warn("Raid automática adiada",e); state.nextRaid=RaidSchedule.next(now,config.intervalSeconds); save(); }
                 } else RaidSchedule.warning(state.nextRaid - now, config.warningsSeconds.stream().filter(w -> w <= config.intervalSeconds).toList(), warned)
-                    .ifPresent(warning -> broadcast("Faltam até " + RaidTime.minutes(warning) + " para a próxima raid."));
+                    .ifPresent(warning -> broadcast("Faltam até " + RaidTime.format(warning) + " para a próxima raid."));
             }
         } catch (Exception e) { LOG.error("Raid suspensa após falha; verifique o estado persistente",e); healthy=false; if(active!=null) cleanup(active); }
     }

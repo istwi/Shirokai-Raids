@@ -2,7 +2,7 @@
 
 Mod **somente servidor** para Minecraft 1.21.1, Fabric e Cobblemon 1.8.3.
 
-**0.1.9-dev: menu de entrada e saída, retorno à origem e bloqueio de comandos durante a participação. Não é uma Release estável.**
+**0.1.10-dev: menu de entrada e saída, retorno à origem e bloqueio de comandos durante a participação. Não é uma Release estável.**
 
 O fluxo implementado é `/raid` → menu de informações → **Entrar na raid** → enviar seu Pokémon → apontar para o boss e pressionar **R** (ou a tecla configurada no Cobblemon) → escolher os movimentos na interface normal. Cada jogador tem uma batalha real independente, com sua equipe, movimentos e PP; o dano aplicado reduz o HP global do evento. O jogo aguarda a escolha do jogador. Não há `/raid atacar` nem loop de ataques automáticos.
 
@@ -33,7 +33,7 @@ O HP padrão é 10.000.000. Para um teste curto, configure um valor menor em `co
 
 O menu `/raid` mostra boss, HP, tempo restante e combatentes. Use **Entrar na raid** ou `/raid entrar`; o destino fica na arena definida por `/raidadmin setspawn`, dentro de `arenaRadius`. Só quem entrou e está dentro da área pode desafiar o boss. Sair da área encerra a batalha, mas a posição de retorno permanece salva até usar `/raid sair` ou **Sair da raid** no menu. Enquanto estiver na raid, todos os outros comandos ficam bloqueados; somente `/raid`, `/raid menu` e `/raid sair` são permitidos. Fechar o menu não sai da raid. A posição anterior, dimensão e orientação são persistidas, inclusive após desconexão ou reinício. Ao terminar o evento, o retorno continua disponível pelo comando ou menu.
 
-Os contadores de evento, BossBar, avisos e histórico aparecem em minutos (por exemplo, `1,50 min`). Os campos JSON e argumentos administrativos de intervalo/duração continuam em segundos para preservar compatibilidade.
+Os contadores de evento, BossBar, avisos e histórico aparecem em horas, minutos e segundos (por exemplo, `1h 05min 30s`). Os campos JSON e argumentos administrativos de intervalo/duração continuam em segundos para preservar compatibilidade.
 
 ## Configurar o boss e os drops
 
@@ -83,10 +83,10 @@ Requer JDK 21 completo, Node e Python:
 bash gradlew --no-daemon build
 python3 scripts/run_showdown_audit.py
 python3 scripts/run_traditional_probe.py
-python3 scripts/verify_jar.py --version 0.1.9-dev
+python3 scripts/verify_jar.py --version 0.1.10-dev
 ```
 
-Windows: `gradlew.bat build`. O artefato é `build/libs/Shirokai-Raids-0.1.9-dev-fabric-1.21.1.jar`; o verificador gera `SHA256SUMS`. O workflow mantém builds e Artifacts de desenvolvimento em Linux e Windows.
+Windows: `gradlew.bat build`. O artefato é `build/libs/Shirokai-Raids-0.1.10-dev-fabric-1.21.1.jar`; o verificador gera `SHA256SUMS`. O workflow mantém builds e Artifacts de desenvolvimento em Linux e Windows.
 
 No ambiente cloud, `scripts/setup-cloud.sh` prepara o JDK e a compilação. Com servidor preparado por `scripts/prepare-test-server.sh` e EULA aceita para os testes:
 

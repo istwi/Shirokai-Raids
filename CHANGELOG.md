@@ -1,5 +1,11 @@
 # Histórico de alterações
 
+## 0.1.10-dev
+
+- Contadores de evento, menu, BossBar, avisos, status e histórico agora usam horas, minutos e segundos, por exemplo `1h 05min 30s`.
+- Testes cobrem segundos, transições de minuto/hora, valores negativos e durações acima de 24 horas.
+- Configuração e argumentos administrativos continuam em segundos.
+
 ## 0.1.9-dev
 
 - `/raid` e `/raid menu` abrem informações do evento com botões de entrada, saída e atualização.

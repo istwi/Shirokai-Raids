@@ -33,11 +33,16 @@ class PersistenceTest {
         state.returns.put(UUID.randomUUID().toString(), new RaidState.ReturnPosition("minecraft:overworld", Double.NaN, 64, 0, 0, 0));
         assertThrows(IllegalArgumentException.class, state::validate);
     }
-    @Test void displaysMinutesWithoutRoundingShortCountdownsToZero() {
-        assertEquals("1,00 min", RaidTime.minutes(60));
-        assertEquals("1,50 min", RaidTime.minutes(90));
-        assertEquals("0,02 min", RaidTime.minutes(1));
-        assertEquals("0,00 min", RaidTime.minutes(-1));
+    @Test void displaysHoursMinutesAndSecondsAtBoundaries() {
+        assertEquals("0h 01min 00s", RaidTime.format(60));
+        assertEquals("0h 01min 30s", RaidTime.format(90));
+        assertEquals("0h 00min 01s", RaidTime.format(1));
+        assertEquals("0h 00min 00s", RaidTime.format(-1));
+        assertEquals("0h 00min 00s", RaidTime.format(0));
+        assertEquals("0h 59min 59s", RaidTime.format(3599));
+        assertEquals("1h 00min 00s", RaidTime.format(3600));
+        assertEquals("1h 05min 30s", RaidTime.format(3930));
+        assertEquals("25h 01min 01s", RaidTime.format(90061));
     }
     @Test void concurrentCombatConfigurationDefaultsToOneHundredAndRejectsHigherLimits() {
         var config=new RaidConfig();

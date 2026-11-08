@@ -69,7 +69,7 @@ final class RaidMenu extends ChestMenu {
                 lore.add(text("Data: " + format.format(Instant.ofEpochMilli(entry.ended()))));
                 lore.add(text("Fuso: " + zone));
                 lore.add(text("Resultado: " + outcome(entry.outcome())));
-                lore.add(text("Duração: " + RaidTime.minutes((entry.ended() - entry.started()) / 1000)));
+                lore.add(text("Duração: " + RaidTime.format((entry.ended() - entry.started()) / 1000)));
                 lore.add(text("Seu dano: " + number(entry.damage()) + " / " + number(entry.maximum()) + " HP"));
                 lore.add(text(String.format(Locale.ROOT, "Contribuição: %.2f%%", entry.contribution())));
                 lore.add(text("Sua posição: " + (entry.rank() == 0 ? "sem dano" : "#" + entry.rank()) + " | Participantes: " + entry.participants()));
