@@ -1,5 +1,7 @@
 package com.shirokai.raids;
 
+import static com.shirokai.raids.RaidMessages.msg;
+
 import com.cobblemon.mod.common.api.battles.model.PokemonBattle;
 import com.cobblemon.mod.common.api.battles.model.actor.*;
 import com.cobblemon.mod.common.api.events.CobblemonEvents;
@@ -35,7 +37,7 @@ public final class TraditionalRaidBattles {
     private static String installScript() {
         try(var stream=Objects.requireNonNull(TraditionalRaidBattles.class.getResourceAsStream("/shirokai/raid-battle.js"))) {
             return new String(stream.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8).replace('\n',' ').replace('\r',' ');
-        } catch(java.io.IOException error) { throw new IllegalStateException("Adaptador Showdown ausente",error); }
+        } catch(java.io.IOException error) { throw new IllegalStateException(msg("textos.adaptador_showdown_ausente"),error); }
     }
     public static final class EngineCallbacks {
         @HostAccess.Export public long remaining(String id) {
@@ -90,7 +92,7 @@ public final class TraditionalRaidBattles {
                                   java.util.function.Predicate<ServerPlayer> eligible) {
         this.eligible=eligible;
         this.anchor=anchor; this.health=health; this.onHit=onHit;
-        if(!Double.isFinite(damageMultiplier) || damageMultiplier<0 || damageMultiplier>100) throw new IllegalArgumentException("Multiplicador inválido");
+        if(!Double.isFinite(damageMultiplier) || damageMultiplier<0 || damageMultiplier>100) throw new IllegalArgumentException(msg("textos.multiplicador_invalido"));
         this.damageMultiplier=damageMultiplier;
     }
     public static boolean isBossActor(BattleActor actor) { return actor instanceof BossActor; }
@@ -104,18 +106,18 @@ public final class TraditionalRaidBattles {
     }
     public void challenge(ServerPlayer player,UUID selected) {
         if(BattleRegistry.getBattleByParticipatingPlayer(player)!=null || PlayerExtensionsKt.isPartyBusy(player))
-            throw new IllegalStateException("Encerre sua batalha atual primeiro.");
+            throw new IllegalStateException(msg("textos.encerre_sua_batalha_atual_primeiro"));
         var party=PlayerExtensionsKt.party(player);
         var lead=party.get(selected);
-        if(lead==null || lead.getCurrentHealth()<=0) throw new IllegalStateException("Selecione um Pokémon saudável da sua equipe.");
+        if(lead==null || lead.getCurrentHealth()<=0) throw new IllegalStateException(msg("textos.selecione_um_pokemon_saudavel_da_sua_equipe"));
         var team=party.toBattleTeam(false,false,selected).stream().filter(p -> p.getHealth()>0).toList();
         if(team.isEmpty() || team.stream().anyMatch(p -> p.getEntity()!=null && p.getEntity().isBusy()))
-            throw new IllegalStateException("Sua equipe está ocupada ou indisponível.");
-        var token=health.join(player.getUUID()).orElseThrow(() -> new IllegalStateException("Raid lotada, encerrada ou você já está participando."));
+            throw new IllegalStateException(msg("textos.sua_equipe_esta_ocupada_ou_indisponivel"));
+        var token=health.join(player.getUUID()).orElseThrow(() -> new IllegalStateException(msg("textos.raid_lotada_encerrada_ou_voce_ja_esta_participando")));
         boolean[] started={false};
         try {
             if(!(ShowdownService.Companion.getService() instanceof GraalShowdownService graal))
-                throw new IllegalStateException("Esta build requer o simulador Graal padrão do Cobblemon 1.8.3.");
+                throw new IllegalStateException(msg("textos.esta_build_requer_o_simulador_graal_padrao_do_cobblemon_1_8_3"));
             graal.getContext().getBindings("js").putMember("shirokaiRaidBridge",ENGINE_CALLBACKS);
             var copy=anchor.getPokemon().clone(true,player.server.registryAccess());
             copy.setState(new InactivePokemonState());
@@ -135,7 +137,7 @@ public final class TraditionalRaidBattles {
                 sync();
                 return Unit.INSTANCE;
             });
-            if(!started[0]) throw new IllegalStateException("O Cobblemon recusou a batalha.");
+            if(!started[0]) throw new IllegalStateException(msg("textos.o_cobblemon_recusou_a_batalha"));
         } catch(RuntimeException error) {
             if(!started[0]) health.leave(token);
             else leave(player.getUUID());

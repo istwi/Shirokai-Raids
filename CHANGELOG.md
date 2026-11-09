@@ -1,5 +1,15 @@
 # Histórico de alterações
 
+## 0.1.11-dev
+
+- Mensagens do chat, menus e BossBar editáveis em `config/shirokai-raids/messages.json`, com variáveis e reload; textos personalizados são preservados e chaves omitidas usam o padrão.
+- Menu `/raid` com fundo cinza e três estrelas centrais: entrar, informações/atualizar e sair.
+- BossBar alterna roxo/vermelho a cada 10 ticks com 20% de vida ou menos.
+- Avisos naturais, como `Faltam 5min para a próxima raid.`, sem unidades zeradas.
+- Cadastro de bosses por arquivos JSON documentado com exemplo de Mewtwo; sorteio uniforme dos bosses cadastrados no agendamento automático, cujo intervalo padrão é de duas horas.
+- Carregamento da lista testado contra IDs duplicados, valores inválidos e lista vazia; catálogo validado antes de substituir mensagens em uso.
+- Compilação e 73 testes JUnit passaram localmente. Validação visual com clientes reais permanece pendente.
+
 ## 0.1.10-dev
 
 - Contadores de evento, menu, BossBar, avisos, status e histórico agora usam horas, minutos e segundos, por exemplo `1h 05min 30s`.

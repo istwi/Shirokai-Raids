@@ -24,6 +24,10 @@ with zipfile.ZipFile(jar) as z:
     mixins=json.loads(z.read('shirokai-raids.mixins.json'))
     assert {'ChallengeHandlerMixin','InitializeInstructionMixin','SwitchInstructionMixin','PlayerListAccessor'} <= set(mixins['server'])
     assert z.read('shirokai/raid-battle.js'), 'Adaptador do combate ausente'
+    messages = json.loads(z.read('shirokai/messages.json'))
+    assert {'comandos.bloqueados', 'raid.retorno', 'raid.spawn', 'raid.aviso', 'bossbar.titulo'} <= messages.keys(), 'Catálogo de mensagens incompleto'
+    assert all(isinstance(value, str) for value in messages.values()), 'Catálogo contém valores que não são textos'
+    assert 'RaidCommandGuardMixin' in mixins['server'], 'Bloqueio de comandos não está conectado'
     assert 'cobblemonraiddens' not in meta['depends'], 'Raid Dens não pode ser dependência de produção'
     for name in z.namelist():
         assert not name.startswith(('com/necro/raid/dens/', 'assets/cobblemonraiddens/',

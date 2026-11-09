@@ -1,5 +1,7 @@
 package com.shirokai.raids;
 
+import static com.shirokai.raids.RaidMessages.msg;
+
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -39,7 +41,7 @@ final class RaidMenu extends ChestMenu {
         int size = global ? state.archive.totals.size() : state.archive.recent(player.getUUID().toString()).size();
         int pages = Math.max(1, (size + PAGE_SIZE - 1) / PAGE_SIZE);
         int page = Math.max(0, Math.min(requestedPage, pages - 1));
-        String title = (global ? "Ranking: " + label(metric) : "Suas últimas raids") + " | " + (page + 1) + "/" + pages;
+        String title = (global ? msg("textos.ranking") + label(metric) : msg("textos.suas_ultimas_raids")) + " | " + (page + 1) + "/" + pages;
         player.openMenu(new SimpleMenuProvider((id, inventory, p) ->
             new RaidMenu(id, player, state, zone, global, metric, page, pages, available), Component.literal(title)));
     }
@@ -59,22 +61,22 @@ final class RaidMenu extends ChestMenu {
                 var row = entries.get(page * PAGE_SIZE + i);
                 container.setItem(i, icon(Items.PLAYER_HEAD, "#" + row.rank() + " — " + row.totals().name(), totalsLore(row.totals())));
             }
-            if (entries.isEmpty()) container.setItem(4, icon(Items.PAPER, "Ranking ainda vazio", List.of(text("Os totais aparecem após encerrar uma raid."))));
+            if (entries.isEmpty()) container.setItem(4, icon(Items.PAPER, msg("textos.ranking_ainda_vazio"), List.of(text(msg("textos.os_totais_aparecem_apos_encerrar_uma_raid")))));
         } else {
             var entries = state.archive.recent(viewer.getUUID().toString());
             for (int i = 0; i < PAGE_SIZE && page * PAGE_SIZE + i < entries.size(); i++) {
                 var entry = entries.get(page * PAGE_SIZE + i);
                 var lore = new ArrayList<Component>();
                 var format = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(zone);
-                lore.add(text("Data: " + format.format(Instant.ofEpochMilli(entry.ended()))));
-                lore.add(text("Fuso: " + zone));
-                lore.add(text("Resultado: " + outcome(entry.outcome())));
-                lore.add(text("Duração: " + RaidTime.format((entry.ended() - entry.started()) / 1000)));
-                lore.add(text("Seu dano: " + number(entry.damage()) + " / " + number(entry.maximum()) + " HP"));
-                lore.add(text(String.format(Locale.ROOT, "Contribuição: %.2f%%", entry.contribution())));
-                lore.add(text("Sua posição: " + (entry.rank() == 0 ? "sem dano" : "#" + entry.rank()) + " | Participantes: " + entry.participants()));
-                lore.add(text("Drops sorteados:"));
-                if (entry.drops().isEmpty()) lore.add(text("Nenhum drop neste evento."));
+                lore.add(text(msg("textos.data") + format.format(Instant.ofEpochMilli(entry.ended()))));
+                lore.add(text(msg("textos.fuso") + zone));
+                lore.add(text(msg("textos.resultado") + outcome(entry.outcome())));
+                lore.add(text(msg("textos.duracao_2") + RaidTime.format((entry.ended() - entry.started()) / 1000)));
+                lore.add(text(msg("textos.seu_dano") + number(entry.damage()) + " / " + number(entry.maximum()) + " HP"));
+                lore.add(text(msg("historico.contribuicao", "porcentagem", String.format(Locale.ROOT,"%.2f",entry.contribution()))));
+                lore.add(text(msg("textos.sua_posicao") + (entry.rank() == 0 ? msg("textos.sem_dano") : "#" + entry.rank()) + msg("textos.participantes") + entry.participants()));
+                lore.add(text(msg("textos.drops_sorteados")));
+                if (entry.drops().isEmpty()) lore.add(text(msg("textos.nenhum_drop_neste_evento")));
                 for (var drop : new TreeMap<>(entry.drops()).entrySet()) {
                     var location = ResourceLocation.tryParse(drop.getKey());
                     Component name = location != null && BuiltInRegistries.ITEM.containsKey(location)
@@ -84,35 +86,35 @@ final class RaidMenu extends ChestMenu {
                 String owner = viewer.getUUID().toString();
                 int pending = state.pending.getOrDefault(owner, List.of()).stream().filter(p -> p.raid.equals(entry.raid())).mapToInt(p -> p.count).sum()
                     + state.deliveries.values().stream().filter(d -> d.player.equals(owner) && d.reward.raid.equals(entry.raid())).mapToInt(d -> d.reward.count).sum();
-                lore.add(text("Itens pendentes de entrega: " + pending));
-                lore.add(text("Lista informativa; não entrega itens ao clicar."));
+                lore.add(text(msg("textos.itens_pendentes_de_entrega") + pending));
+                lore.add(text(msg("textos.lista_informativa_nao_entrega_itens_ao_clicar")));
                 container.setItem(i, icon(entry.outcome() == RaidArchive.Outcome.VICTORY ? Items.NETHER_STAR : Items.CLOCK, entry.boss(), lore));
             }
-            if (entries.isEmpty()) container.setItem(4, icon(Items.BOOK, "Seu histórico está vazio", List.of(text("Participe de uma batalha de raid."), text("O registro aparece quando o evento termina."))));
+            if (entries.isEmpty()) container.setItem(4, icon(Items.BOOK, msg("textos.seu_historico_esta_vazio"), List.of(text(msg("textos.participe_de_uma_batalha_de_raid")), text(msg("textos.o_registro_aparece_quando_o_evento_termina")))));
         }
-        if (page > 0) container.setItem(18, icon(Items.ARROW, "Página anterior", List.of()));
-        container.setItem(19, icon(Items.BOOK, "Suas últimas raids", List.of(text("Até 20 eventos por jogador."))));
-        container.setItem(20, icon(Items.CLOCK, "Global: participações", List.of(text("Uma participação por evento, mesmo ao sair e voltar."))));
-        container.setItem(21, icon(Items.IRON_SWORD, "Global: dano acumulado", List.of(text("Dano efetivo, incluindo eventos cancelados."))));
+        if (page > 0) container.setItem(18, icon(Items.ARROW, msg("textos.pagina_anterior"), List.of()));
+        container.setItem(19, icon(Items.BOOK, msg("textos.suas_ultimas_raids"), List.of(text(msg("textos.ate_20_eventos_por_jogador")))));
+        container.setItem(20, icon(Items.CLOCK, msg("textos.global_participacoes"), List.of(text(msg("textos.uma_participacao_por_evento_mesmo_ao_sair_e_voltar")))));
+        container.setItem(21, icon(Items.IRON_SWORD, msg("textos.global_dano_acumulado"), List.of(text(msg("textos.dano_efetivo_incluindo_eventos_cancelados")))));
         var own = state.archive.totals.get(viewer.getUUID().toString());
-        var ownLore = new ArrayList<Component>(own == null ? List.of(text("Nenhum evento encerrado ainda.")) : totalsLore(own));
-        ownLore.add(text("Clique para atualizar esta página."));
-        container.setItem(22, icon(Items.PAPER, "Seus totais", ownLore));
-        container.setItem(23, icon(Items.GOLD_INGOT, "Global: vitórias", List.of(text("Eventos vencidos em que você participou."))));
-        container.setItem(24, icon(Items.CHEST, "Sobre os drops", List.of(text("Entrega automática no inventário."), text("Para tentar pendências: /raid recompensas"), text("Reservas antigas incertas exigem administração."))));
-        container.setItem(25, icon(Items.BARRIER, "Fechar", List.of()));
-        if (page + 1 < pages) container.setItem(26, icon(Items.ARROW, "Próxima página", List.of()));
+        var ownLore = new ArrayList<Component>(own == null ? List.of(text(msg("textos.nenhum_evento_encerrado_ainda"))) : totalsLore(own));
+        ownLore.add(text(msg("textos.clique_para_atualizar_esta_pagina")));
+        container.setItem(22, icon(Items.PAPER, msg("textos.seus_totais"), ownLore));
+        container.setItem(23, icon(Items.GOLD_INGOT, msg("textos.global_vitorias"), List.of(text(msg("textos.eventos_vencidos_em_que_voce_participou")))));
+        container.setItem(24, icon(Items.CHEST, msg("textos.sobre_os_drops"), List.of(text(msg("textos.entrega_automatica_no_inventario")), text(msg("textos.para_tentar_pendencias_raid_recompensas")), text(msg("textos.reservas_antigas_incertas_exigem_administracao")))));
+        container.setItem(25, icon(Items.BARRIER, msg("textos.fechar"), List.of()));
+        if (page + 1 < pages) container.setItem(26, icon(Items.ARROW, msg("textos.proxima_pagina"), List.of()));
     }
     private static String label(RaidArchive.Metric metric) {
-        return switch (metric) { case PARTICIPATIONS -> "participações"; case DAMAGE -> "dano"; case VICTORIES -> "vitórias"; };
+        return switch (metric) { case PARTICIPATIONS -> msg("textos.participacoes"); case DAMAGE -> msg("textos.dano"); case VICTORIES -> msg("textos.vitorias"); };
     }
     private static String outcome(RaidArchive.Outcome outcome) {
-        return switch (outcome) { case VICTORY -> "Boss derrotado"; case TIMEOUT -> "Tempo esgotado";
-            case CANCELLED -> "Cancelada"; case INTERRUPTED -> "Interrompida por reinício"; };
+        return switch (outcome) { case VICTORY -> msg("textos.boss_derrotado"); case TIMEOUT -> msg("textos.tempo_esgotado");
+            case CANCELLED -> msg("textos.cancelada"); case INTERRUPTED -> msg("textos.interrompida_por_reinicio"); };
     }
     private static String number(long number) { return String.format(Locale.forLanguageTag("pt-BR"), "%,d", number); }
     private static List<Component> totalsLore(RaidArchive.Totals totals) {
-        return List.of(text("Participações: " + number(totals.participations())), text("Dano acumulado: " + number(totals.damage())), text("Vitórias: " + number(totals.victories())));
+        return List.of(text(msg("textos.participacoes_2") + number(totals.participations())), text(msg("textos.dano_acumulado") + number(totals.damage())), text(msg("textos.vitorias_2") + number(totals.victories())));
     }
     private static Component text(String text) { return Component.literal(text).withStyle(ChatFormatting.GRAY); }
     private static ItemStack icon(Item item, String name, List<Component> lore) {

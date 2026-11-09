@@ -8,6 +8,16 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class PersistenceTest {
     @TempDir Path dir;
+    @Test void nextRaidWarningsUseNaturalCompactTimes() {
+        assertEquals("Faltam 5min para a próxima raid.", RaidTime.nextRaidWarning(300));
+        assertEquals("Faltam 15min para a próxima raid.", RaidTime.nextRaidWarning(900));
+        assertEquals("Falta 1min para a próxima raid.", RaidTime.nextRaidWarning(60));
+        assertEquals("Falta 1h para a próxima raid.", RaidTime.nextRaidWarning(3600));
+        assertEquals("Faltam 1h 5min 30s para a próxima raid.", RaidTime.nextRaidWarning(3930));
+        assertEquals("Faltam 30s para a próxima raid.", RaidTime.nextRaidWarning(30));
+        assertEquals("Falta 1s para a próxima raid.", RaidTime.nextRaidWarning(1));
+        assertEquals("Faltam 0s para a próxima raid.", RaidTime.nextRaidWarning(0));
+    }
     @Test void commandLockAllowsOnlyExitAndRaidMenu() {
         for (String command : List.of("raid", "raid sair", "raid menu", "  raid sair  "))
             assertTrue(RaidCommands.allowedDuringRaid(command), command);

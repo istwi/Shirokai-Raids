@@ -1,5 +1,7 @@
 package com.shirokai.raids;
 
+import static com.shirokai.raids.RaidMessages.msg;
+
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -35,7 +37,7 @@ final class PendingRewardMenu extends ChestMenu {
         int page = Math.max(0, Math.min(pages - 1, requestedPage));
         player.openMenu(new SimpleMenuProvider((id, inventory, p) ->
             new PendingRewardMenu(id, player, state, zone, page, pages, available, attempt, entries),
-            Component.literal("Recompensas pendentes | " + (page+1) + "/" + pages)));
+            Component.literal(msg("textos.recompensas_pendentes") + (page+1) + "/" + pages)));
     }
     private PendingRewardMenu(int id, ServerPlayer player, RaidState state, ZoneId zone, int page, int pages,
                               BooleanSupplier available, Runnable attempt, List<RaidState.Pending> entries) {
@@ -49,20 +51,20 @@ final class PendingRewardMenu extends ChestMenu {
             var item = key != null && BuiltInRegistries.ITEM.containsKey(key) ? BuiltInRegistries.ITEM.get(key) : Items.BARRIER;
             if (item == Items.AIR) item = Items.BARRIER;
             var stack = new ItemStack(item);
-            stack.set(DataComponents.LORE, new ItemLore(List.of(Component.literal("Quantidade pendente: " + entry.count),
-                Component.literal("Evento: " + entry.raid), Component.literal("Item: " + entry.item),
-                Component.literal("Use o botão de entrega; este ícone é informativo."))));
+            stack.set(DataComponents.LORE, new ItemLore(List.of(Component.literal(msg("textos.quantidade_pendente") + entry.count),
+                Component.literal(msg("textos.evento") + entry.raid), Component.literal(msg("textos.item") + entry.item),
+                Component.literal(msg("textos.use_o_botao_de_entrega_este_icone_e_informativo")))));
             container.setItem(i, stack);
         }
-        if (entries.isEmpty()) container.setItem(4, icon(Items.PAPER,"Nenhuma recompensa pendente"));
-        if (page > 0) container.setItem(18, icon(Items.ARROW,"Página anterior"));
-        container.setItem(19, icon(Items.BOOK,"Histórico pessoal"));
-        container.setItem(20, icon(Items.GOLD_INGOT,"Ranking global"));
-        container.setItem(22, icon(Items.LIME_DYE,"Tentar entregar no inventário"));
-        container.setItem(23, icon(Items.CLOCK,"Atualizar pendências"));
-        container.setItem(24, icon(Items.PAPER,"Sem espaço: saldo preservado. Aguarde 5s entre tentativas."));
-        container.setItem(25, icon(Items.BARRIER,"Fechar"));
-        if (page+1 < pages) container.setItem(26, icon(Items.ARROW,"Próxima página"));
+        if (entries.isEmpty()) container.setItem(4, icon(Items.PAPER,msg("textos.nenhuma_recompensa_pendente")));
+        if (page > 0) container.setItem(18, icon(Items.ARROW,msg("textos.pagina_anterior")));
+        container.setItem(19, icon(Items.BOOK,msg("textos.historico_pessoal")));
+        container.setItem(20, icon(Items.GOLD_INGOT,msg("textos.ranking_global")));
+        container.setItem(22, icon(Items.LIME_DYE,msg("textos.tentar_entregar_no_inventario")));
+        container.setItem(23, icon(Items.CLOCK,msg("textos.atualizar_pendencias")));
+        container.setItem(24, icon(Items.PAPER,msg("textos.sem_espaco_saldo_preservado_aguarde_5s_entre_tentativas")));
+        container.setItem(25, icon(Items.BARRIER,msg("textos.fechar")));
+        if (page+1 < pages) container.setItem(26, icon(Items.ARROW,msg("textos.proxima_pagina")));
     }
     private static ItemStack icon(Item item, String name) {
         var stack = new ItemStack(item); stack.set(DataComponents.CUSTOM_NAME, Component.literal(name)); return stack;

@@ -1,0 +1,12 @@
+{
+  "id": "mewtwo",
+  "species": "mewtwo",
+  "form": "",
+  "name": "Mewtwo — World Boss",
+  "level": 100,
+  "hp": 10000000,
+  "shiny": false,
+  "scale": 2.0,
+  "rewards": "default",
+  "damageMultiplier": 1.0
+}
