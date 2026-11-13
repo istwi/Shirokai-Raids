@@ -1,5 +1,15 @@
 # Histórico de alterações
 
+## 0.1.18-dev
+
+- `/raidadmin` agora abre uma prévia administrativa de recompensas; aliases `/raidadmin menu` e `/raidadmin recompensas [boss]`.
+- Filtros por dificuldade, categoria, boss/override, posição e contribuição. Consulta separa configuração atual e snapshot da raid ativa.
+- Chances iniciais por prêmio, tipo e raridade, com gate do TOP 3, pesos e elegibilidade; gerais usam sorteios independentes, itens antigos exibem chances por sorteio. Quantidades usam a mesma fórmula da entrega.
+- Mostra integração indisponível, políticas de duplicatas, limites, multiplicadores e chance de nenhum prêmio. Menu paginado, somente consulta, sem emitir itens ou sortear recompensas.
+- Permissão administrativa verificada ao abrir e a cada interação. [Uso e interpretação das porcentagens](docs/MENU_ADMIN_RECOMPENSAS.md).
+
+- Build com 120 testes JUnit e 206 verificações nativas da prévia aprovado, além da regressão de combate/recompensas/menus. [Validação local](docs/VALIDACAO_0.1.18-dev.md).
+
 ## 0.1.17-dev
 
 - IV de Speed fixado em 15 para todos os bosses de combate, incluindo eventos manuais; os demais IVs continuam seguindo a dificuldade.

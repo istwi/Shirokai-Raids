@@ -118,6 +118,10 @@ public final class RaidRewardSettings {
     static BigDecimal amount(Reward reward,double contribution,double multiplier,long cap,java.util.random.RandomGenerator random) {
         if(reward.cosmetic())return BigDecimal.ONE;
         long base=random.nextLong(reward.minimum,reward.maximum+1);
+        return scaledAmount(reward,base,contribution,multiplier,cap);
+    }
+    static BigDecimal scaledAmount(Reward reward,long base,double contribution,double multiplier,long cap) {
+        if(reward.cosmetic())return BigDecimal.ONE;
         double n=base*(reward.baseMultiplier+contribution*reward.damageMultiplier)*multiplier;
         return BigDecimal.valueOf(Math.max(1,Math.min(reward.type.equals("fragment")?Math.min(64,cap):cap,(long)Math.floor(n))));
     }

@@ -144,7 +144,11 @@ public final class ShirokaiRaids implements ModInitializer {
             raid.then(Commands.literal("pendentes").requires(s -> RaidPermissions.check(s,"shirokai.raids.rewards",true)).executes(c -> pendingMenu(c.getSource())));
             raid.then(Commands.literal("resgatar").requires(s -> RaidPermissions.check(s,"shirokai.raids.rewards",true)).executes(c -> claim(c.getSource())));
             dispatcher.register(raid);
-            var admin = Commands.literal("raidadmin").requires(s -> RaidPermissions.check(s,"shirokai.raids.admin",s.hasPermission(2)));
+            var admin = Commands.literal("raidadmin").requires(s -> RaidPermissions.check(s,"shirokai.raids.admin",s.hasPermission(2))).executes(c -> adminRewardMenu(c.getSource(),null));
+            admin.then(Commands.literal("menu").executes(c -> adminRewardMenu(c.getSource(),null)));
+            admin.then(Commands.literal("recompensas").executes(c -> adminRewardMenu(c.getSource(),null))
+                .then(Commands.argument("boss",StringArgumentType.word()).suggests((c,b) -> {adminRewardSource().contexts().stream().map(RaidAdminRewardMenu.Context::id).filter(id -> !id.isEmpty()&&!id.startsWith("@")).forEach(b::suggest);return b.buildFuture();})
+                .executes(c -> adminRewardMenu(c.getSource(),StringArgumentType.getString(c,"boss")))));
             admin.then(Commands.literal("iniciar").then(Commands.argument("boss", StringArgumentType.word())
                 .suggests((c,b) -> { bosses.keySet().forEach(b::suggest); return b.buildFuture(); })
                 .executes(c -> start(c.getSource(), StringArgumentType.getString(c,"boss")))));
@@ -288,7 +292,7 @@ public final class ShirokaiRaids implements ModInitializer {
         var mod = instance;
         if (mod == null || mod.state == null || !source.isPlayer()
             || (!mod.state.returns.containsKey(source.getPlayer().getUUID().toString()) && !RaidInventory.locked(source.getPlayer()))
-            || RaidCommands.allowedDuringRaid(command)) return false;
+            || RaidCommands.allowedDuringRaid(command) || (RaidAdminRewardMenu.allowedCommand(command) && RaidAdminRewardMenu.allowed(source.getPlayer()))) return false;
         source.sendFailure(RaidMessages.chat(msg("comandos.bloqueados")));
         return true;
     }
@@ -776,6 +780,33 @@ public final class ShirokaiRaids implements ModInitializer {
     }
     static String rewardName(String type,String reference) {
         return reference.equals("impactor:dollars")?"Dollars":reference.equals("impactor:tokens")?"Tokens":type.equals("fragment")?"Fragmentos de chave ("+reference+")":reference;
+    }
+    private int adminRewardMenu(CommandSourceStack source,String boss) {
+        try {
+            if(!healthy) return reply(source,"Prévia indisponível: confira a persistência do servidor.");
+            var player=source.getPlayerOrException();
+            RaidAdminRewardMenu.open(player,this::adminRewardSource,()->healthy,boss);return 1;
+        }catch(Exception error){return reply(source,"Não foi possível abrir a prévia: "+error.getMessage());}
+    }
+    private RaidAdminRewardMenu.Source adminRewardSource() {
+        var contexts=new ArrayList<RaidAdminRewardMenu.Context>();
+        contexts.add(new RaidAdminRewardMenu.Context("","Padrão da dificuldade",null,null,null,null,""));
+        if(active!=null)contexts.add(new RaidAdminRewardMenu.Context("@active","Raid em andamento: "+active.definition.name,active.definition.difficulty,active.definition.rewards,active.rewardSettings,active.legacyRewards,active.definition.id));
+        bosses.values().stream().sorted(Comparator.comparing(b->b.id)).forEach(b->contexts.add(new RaidAdminRewardMenu.Context(b.id,b.name,b.difficulty,b.rewards,null,null,b.id)));
+        Map<String,RaidAutomaticCatalog.Species> auto=new HashMap<>();
+        if(rewardSettings.bosses.values.keySet().stream().anyMatch(id->id.startsWith("auto_")))
+            for(var species:RaidCatalogPokemon.species(catalogSettings))auto.put("auto_"+species.id().substring(species.id().indexOf(':')+1).replaceAll("[^a-z0-9_-]","_"),species);
+        for(var id:new TreeSet<>(rewardSettings.bosses.values.keySet()))if(!bosses.containsKey(id)){
+            var species=auto.get(id);String difficulty=species==null?null:RaidAutomaticCatalog.difficulty(species);
+            String legacyTable=difficulty==null?null:catalogSettings.profiles.get(difficulty).rewards;
+            contexts.add(new RaidAdminRewardMenu.Context(id,species==null?"Override: "+id:species.name()+" (override)",difficulty,legacyTable,null,null,id));
+        }
+        var tables=new HashMap<String,String>();catalogSettings.profiles.forEach((difficulty,profile)->tables.put(difficulty,profile.rewards));
+        var handlers=modularRewards==null?Map.<String,RaidRewardHandler>of():modularRewards.handlers();
+        return new RaidAdminRewardMenu.Source(rewardSettings,Map.copyOf(rewards),Map.copyOf(tables),List.copyOf(contexts),(type,reference)->{
+            if(type.equals("item")){var key=ResourceLocation.tryParse(reference);return key!=null&&BuiltInRegistries.ITEM.containsKey(key);}
+            var handler=handlers.get(type);return handler!=null&&handler.available(reference);
+        });
     }
     private int rewardReload(CommandSourceStack source) {
         try {var next=RaidRewardSettings.load(configDir.resolve("rewards-v2"));rewardSettings=next;return reply(source,"Tabelas de recompensas recarregadas. Raids iniciadas preservam suas tabelas.");}

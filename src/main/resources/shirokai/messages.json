@@ -225,5 +225,6 @@
   "captura.inicio_recusado": "Não foi possível iniciar a batalha agora. Confira sua equipe e tente R novamente antes do prazo.",
   "vitoria.titulo": "&f&lSHIROKAI &8✦ &a&lVITÓRIA!",
   "vitoria.subtitulo": "&f{boss} &7foi derrotado!",
-  "recompensas.modular_entregue": "&a+{quantidade} &f{premio} &8(&e{categoria}&8)"
+  "recompensas.modular_entregue": "&a+{quantidade} &f{premio} &8(&e{categoria}&8)",
+  "admin.recompensas.titulo": "&f&lSHIROKAI &8┃ &cRecompensas da Raid"
 }

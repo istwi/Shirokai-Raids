@@ -56,3 +56,5 @@ Menus checam permissão na abertura e navegação e invalidam acesso revogado. O
 Os comandos `rewardreload`, `rewardstatus` e `rewardreview` ficam sob `/raidadmin` e exigem `shirokai.raids.admin`. Confira [Recompensas modulares](RECOMPENSAS_MODULARES.md).
 
 `/raidadmin catalogo` e `/raidadmin sortear` exigem `shirokai.raids.admin`. O sorteio administrativo inicia uma raid e consome a próxima posição do ciclo automático; consulta não consome.
+
+A prévia de recompensas (`/raidadmin`, `menu` e `recompensas [boss]`) exige `shirokai.raids.admin`, revalidada durante o uso. Administradores podem consultar esse menu dentro da raid; outros comandos administrativos continuam seguindo o bloqueio existente.

@@ -4,7 +4,7 @@ set -euo pipefail
 cd /workspace/Shirokai-Raids
 source scripts/cloud-env.sh
 raids_test_mode=${SHIROKAI_INTEGRATION_MODE:-teleport}
-case "$raids_test_mode" in teleport|combat|challenge|capture|rewards|catalog) ;; *) echo 'Modo de integração inválido' >&2; exit 1 ;; esac
+case "$raids_test_mode" in teleport|combat|challenge|capture|rewards|catalog|admin) ;; *) echo 'Modo de integração inválido' >&2; exit 1 ;; esac
 raids_test_root=$(mktemp -d "/workspace/shared/raids-${raids_test_mode}-test.XXXXXXXX")
 python3 - "$raids_test_root" "$raids_test_mode" <<'PY'
 from pathlib import Path
@@ -77,6 +77,9 @@ if mode=='challenge':
     menu=json.loads((root/'raid-menu-result.json').read_text())
     assert menu['passed'] is True and menu['clickChecks']==105 and menu['realClients']==0,menu
     print(json.dumps(menu,ensure_ascii=False))
+    admin=json.loads((root/'admin-rewards-menu-result.json').read_text())
+    assert admin['passed'] is True and admin['checks']>=175 and admin['realClients']==0,admin
+    print(json.dumps(admin,ensure_ascii=False))
     operations=json.loads((root/'operations-result.json').read_text())
     assert operations['passed'] is True and operations['pendingClickChecks']==105 and operations['realClients']==0,operations
     print(json.dumps(operations,ensure_ascii=False))

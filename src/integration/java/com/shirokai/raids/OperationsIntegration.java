@@ -106,6 +106,7 @@ public final class OperationsIntegration {
         require(state.reviews.containsKey(id), "Auditoria da conferência não persistiu");
         dispatcher.execute("raidadmin intervalo " + originalConfig.intervalSeconds, source);
         Files.writeString(configPath, original); dispatcher.execute("raidadmin reload", source);
+        AdminRewardMenuIntegration.verify(server);
         Files.writeString(Path.of("operations-result.json"), "{\"passed\":true,\"pendingClickChecks\":"+checks+",\"realClients\":0}");
         System.out.println("SHIROKAI_OPERATIONS: entry point, orientation, permissions, configuration, ticket release, orphan cleanup, pending menu and legacy review passed");
     }
