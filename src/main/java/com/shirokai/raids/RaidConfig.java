@@ -15,6 +15,23 @@ public final class RaidConfig {
     public String restartPolicy = "SKIP_MISSED";
     public String menuTimeZone = "America/Sao_Paulo";
     public boolean automaticRaids = true;
+    public Capture capture = new Capture();
+    public static final class Capture {
+        public boolean enabled = true;
+        public int firstPlaceBalls = 5, podiumBalls = 3, participantBalls = 1;
+        public int durationSeconds = 120;
+        public double chancePerThrow = 0.02;
+        public void validate() {
+            if (firstPlaceBalls < 1 || firstPlaceBalls > 64 || podiumBalls < 1 || podiumBalls > 64
+                || participantBalls < 1 || participantBalls > 64 || durationSeconds != 120
+                || !Double.isFinite(chancePerThrow) || chancePerThrow <= 0 || chancePerThrow > 1)
+                throw new IllegalArgumentException("Configuração da captura inválida");
+        }
+        public int ballsForRank(int rank) {
+            if (rank < 1) throw new IllegalArgumentException("Posição inválida");
+            return rank == 1 ? firstPlaceBalls : rank <= 3 ? podiumBalls : participantBalls;
+        }
+    }
     public float spawnYaw, spawnPitch;
     public Lobby lobby = new Lobby();
     public static final class Lobby {
@@ -26,6 +43,8 @@ public final class RaidConfig {
     public List<Integer> warningsSeconds = List.of(900,300,60);
     public List<String> supportedMoves = List.of("tackle", "scratch", "pound", "quickattack", "dragonclaw", "dragonpulse", "airslash", "flamethrower", "watergun", "thunderbolt", "icebeam", "psychic", "shadowball", "energyball", "earthpower", "rockslide", "ironhead", "moonblast", "aerialace");
     public void validate() {
+        if (capture == null) throw new IllegalArgumentException("Captura ausente");
+        capture.validate();
         if (menuTimeZone == null) throw new IllegalArgumentException("Fuso horário do menu ausente");
         java.time.ZoneId.of(menuTimeZone);
         if (dimension == null || !dimension.matches("[a-z0-9_.-]+:[a-z0-9_./-]+") || lobby == null

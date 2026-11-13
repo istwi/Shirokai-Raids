@@ -54,6 +54,7 @@ public final class ShirokaiRaids implements ModInitializer {
     private boolean healthy;
     private long tick;
     private RewardDelivery rewardDelivery;
+    private RaidCapture captures;
     private final Set<UUID> rewardQueue = new LinkedHashSet<>();
     private final Map<UUID,Long> claimCooldown = new HashMap<>();
     private final Map<UUID,Long> teleportCooldown = new HashMap<>();
@@ -81,20 +82,39 @@ public final class ShirokaiRaids implements ModInitializer {
     @Override public void onInitialize() {
         instance=this;
         TraditionalRaidBattles.register();
+        RaidCapture.register();
         try { loadConfig(); } catch (Exception e) { throw new IllegalStateException(msg("textos.configuracao_shirokai_raids_invalida"), e); }
         ServerLifecycleEvents.SERVER_STARTED.register(this::started);
-        ServerLifecycleEvents.SERVER_STOPPING.register(s -> { countdownBar.removeAllPlayers(); if (active != null) finish(false, msg("textos.servidor_encerrando_raid_cancelada")); });
+        ServerLifecycleEvents.SERVER_STOPPING.register(s -> { if (captures != null) captures.shutdown(); countdownBar.removeAllPlayers(); if (active != null) finish(false, msg("textos.servidor_encerrando_raid_cancelada")); });
         ServerTickEvents.END_SERVER_TICK.register(s -> tick());
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, s) -> rewardQueue.add(handler.getPlayer().getUUID()));
-        ServerPlayConnectionEvents.DISCONNECT.register((handler, s) -> countdownBar.removePlayer(handler.getPlayer()));
-        ServerLivingEntityEvents.ALLOW_DAMAGE.register((entity, source, amount) -> !isBoss(entity.getUUID()));
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, s) -> {
+            try { RaidLegacyInventory.recover(handler.getPlayer()); } catch(Exception error) { LOG.error("Backup legado preservado",error); }
+            RaidInventory.removeRaidBalls(handler.getPlayer());
+            rewardQueue.add(handler.getPlayer().getUUID());
+        });
+        net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, player, alive) -> {
+            if (captures != null) captures.close(player,true);
+            try { RaidLegacyInventory.recover(player); } catch(Exception error) { LOG.error("Backup legado preservado",error); }
+            RaidInventory.removeRaidBalls(player);
+        });
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, s) -> {
+            countdownBar.removePlayer(handler.getPlayer());
+            if (active != null) active.battles.leave(handler.getPlayer().getUUID());
+            if (captures != null) captures.close(handler.getPlayer(),true);
+            RaidInventory.removeRaidBalls(handler.getPlayer());
+        });
+        ServerLivingEntityEvents.ALLOW_DAMAGE.register((entity, source, amount) -> !isBoss(entity.getUUID()) && !RaidCapture.protectedEntity(entity));
         ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
+            if (entity instanceof net.minecraft.world.entity.item.ItemEntity item && RaidCapture.isBall(item.getItem())) entity.discard();
+            if (RaidCapture.protectedEntity(entity) && (captures==null || !captures.knownTarget(entity))) entity.discard();
+            if (entity.getTags().contains(RaidCapture.BALL_TAG) && (captures==null || !captures.knownBall(entity))) entity.discard();
             if (entity instanceof PokemonEntity && (entity.getTags().contains("shirokai_raids_boss")
                 || entity.getTags().contains("shirokai_raid_boss"))
                 && (active == null || entity != active.boss || world != active.world)) entity.discard();
         });
         CobblemonEvents.THROWN_POKEBALL_HIT.subscribe(event -> { if (isBoss(event.getPokemon().getUUID())) event.cancel(); });
         CobblemonEvents.BATTLE_STARTED_PRE.subscribe(event -> {
+            if (captures!=null && !captures.allowsBattle(event.getBattle())) { event.cancel(); return; }
             if (active == null) return;
             for (var actor : event.getBattle().getActors()) for (var bp : actor.getPokemonList()) {
                 UUID id = bp.getEffectedPokemon().getUuid();
@@ -194,6 +214,7 @@ public final class ShirokaiRaids implements ModInitializer {
             validateRewardItems(rewards); validateDestinations(config);
             var loaded = Files.exists(statePath) ? JsonFiles.read(statePath,RaidState.class) : new RaidState(); loaded.validate();
             state = loaded;
+            state.captures.clear(); // Capture opportunities never survive a restart or reconnect.
             state.archive.complete(RaidArchive.Outcome.INTERRUPTED, System.currentTimeMillis(), Map.of());
             // Restart recovery cancels the active raid; no repeat rewards or accumulated raids.
             state.activeRaid = null; state.bossEntity = null;
@@ -201,6 +222,7 @@ public final class ShirokaiRaids implements ModInitializer {
                 state.nextRaid = RaidSchedule.next(System.currentTimeMillis(),config.intervalSeconds);
             healthy = true; save();
             rewardDelivery = new RewardDelivery(state, this::save);
+            captures = new RaidCapture(server,state,this::save);
             rewardQueue.clear();
         } catch (Exception e) { healthy = false; LOG.error("Raids desativadas: falha ao carregar estado; arquivo preservado",e); }
     }
@@ -213,7 +235,8 @@ public final class ShirokaiRaids implements ModInitializer {
         var mod=instance;
         if(mod==null || mod.active==null || player.level().getEntity(packet.getTargetedEntityId())!=mod.active.boss) return false;
         try {
-            if(!mod.healthy || !mod.state.returns.containsKey(player.getUUID().toString()) || !mod.inArena(player) || mod.active.health.current()==0 || !mod.active.boss.canBattle(player))
+            if (mod.captures!=null && mod.captures.active(player.getUUID())) throw new IllegalStateException(msg("captura.ja_ativa"));
+            if(!mod.healthy || !mod.joinedCurrentRaid(player) || !mod.inArena(player) || mod.active.health.current()==0 || !mod.active.boss.canBattle(player))
                 throw new IllegalStateException(msg("textos.a_raid_nao_esta_disponivel_para_voce_neste_momento"));
             if(!RaidPermissions.check(player.createCommandSourceStack(),"shirokai.raids.use",true)
                 || !RaidPermissions.check(player.createCommandSourceStack(),"shirokai.raids.join",true))
@@ -221,6 +244,7 @@ public final class ShirokaiRaids implements ModInitializer {
             if(!com.cobblemon.mod.common.util.PlayerExtensionsKt.canInteractWith(player,mod.active.boss,
                 com.cobblemon.mod.common.Cobblemon.config.getBattleWildMaxDistance()))
                 throw new IllegalStateException(msg("textos.aproxime_se_do_boss_para_desafia_lo"));
+            RaidInventory.requireEmpty(player);
             mod.active.battles.challenge(player,packet.getSelectedPokemonId());
             mod.state.archive.current.participants.put(player.getUUID().toString(), player.getGameProfile().getName());
             mod.snapshot();
@@ -236,7 +260,7 @@ public final class ShirokaiRaids implements ModInitializer {
     public static boolean blockCommand(CommandSourceStack source, String command) {
         var mod = instance;
         if (mod == null || mod.state == null || !source.isPlayer()
-            || !mod.state.returns.containsKey(source.getPlayer().getUUID().toString())
+            || (!mod.state.returns.containsKey(source.getPlayer().getUUID().toString()) && !RaidInventory.locked(source.getPlayer()))
             || RaidCommands.allowedDuringRaid(command)) return false;
         source.sendFailure(RaidMessages.component(msg("comandos.bloqueados")));
         return true;
@@ -301,10 +325,13 @@ public final class ShirokaiRaids implements ModInitializer {
         double x=target.x()+.5,z=target.z()+.5;
         float yaw=(float)(Math.toDegrees(Math.atan2(raid.boss.getZ()-z,raid.boss.getX()-x))-90);
         String key = player.getUUID().toString();
+        if (captures != null && captures.active(player.getUUID())) return reply(source,msg("captura.ja_ativa"));
         if (state.returns.containsKey(key)) return reply(source,msg("textos.voce_ja_entrou_use_raid_sair_antes_de_entrar_novamente"));
+        try { RaidInventory.requireEmpty(player); } catch(IllegalStateException error) { return reply(source,error.getMessage()); }
         state.returns.put(key, new RaidState.ReturnPosition(player.serverLevel().dimension().location().toString(),
             player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot()));
-        save(); // Persist the origin before moving the player.
+        state.returns.get(key).raid=raid.id;
+        save(); // Persist the origin before moving the player; never move or store personal items.
         player.teleportTo(raid.world,x,target.feetY(),z,Set.of(),yaw,0);
         player.fallDistance=0;
         raid.bar.addPlayer(player);
@@ -448,6 +475,7 @@ public final class ShirokaiRaids implements ModInitializer {
     }
     private void begin(String id) {
         if (!healthy || active != null) throw new IllegalStateException(msg("textos.raids_indisponiveis_ou_ja_existe_uma_raid_ativa"));
+        if (captures!=null && captures.anyActive()) throw new IllegalStateException(msg("captura.aguarde_fases"));
         if (!config.spawnConfigured) throw new IllegalStateException(msg("textos.use_raidadmin_setspawn_primeiro"));
         var definition = bosses.get(id);
         if (definition == null) throw new IllegalArgumentException(msg("textos.boss_desconhecido"));
@@ -478,7 +506,7 @@ public final class ShirokaiRaids implements ModInitializer {
         candidate.chunks = lease;
         candidate.battles=new TraditionalRaidBattles(entity,candidate.health,definition.damageMultiplier,hit ->
             candidate.damage.record(hit.player(),hit.name(),hit.pokemon(),hit.applied(),System.currentTimeMillis()),
-            player -> inArena(player) && state.returns.containsKey(player.getUUID().toString()));
+            player -> inArena(player) && joinedCurrentRaid(player));
         active = candidate; // entity load callback must recognize it before insertion
         if (!world.addFreshEntity(entity)) { active = null; throw new IllegalStateException(msg("textos.spawn_recusado")); }
         state.activeRaid = candidate.id; state.bossEntity = entity.getUUID().toString(); state.hp = definition.hp; state.damage.clear();
@@ -493,8 +521,32 @@ public final class ShirokaiRaids implements ModInitializer {
             throw error;
         } finally { if (!retained) lease.close(); }
     }
+    private boolean joinedCurrentRaid(ServerPlayer player) {
+        var origin=state.returns.get(player.getUUID().toString());
+        return active!=null && origin!=null && active.id.equals(origin.raid);
+    }
     private boolean inArena(ServerPlayer player) {
         return active != null && player.isAlive() && !player.isSpectator() && player.serverLevel() == active.world && player.position().distanceToSqr(active.center) <= config.arenaRadius*config.arenaRadius;
+    }
+    public static boolean participating(ServerPlayer player) {
+        return instance!=null && instance.state!=null && instance.state.returns.containsKey(player.getUUID().toString());
+    }
+    static void inventoryRestored(ServerPlayer player) {
+        if (instance!=null && instance.healthy && !RaidInventory.locked(player)) instance.rewardQueue.add(player.getUUID());
+    }
+    public static boolean isCaptureActor(com.cobblemon.mod.common.api.battles.model.actor.BattleActor actor) {
+        return instance!=null && instance.captures!=null && actor.getPokemonList().stream().anyMatch(p -> instance.captures.capturePokemon(p.getEffectedPokemon().getUuid()));
+    }
+    static RaidCapture captureManager() { return instance == null ? null : instance.captures; }
+    static void throwCaptureBall(ServerPlayer player, net.minecraft.world.InteractionHand hand) {
+        var mod=instance;
+        if (mod==null || !mod.healthy || mod.captures==null) return;
+        try { mod.captures.throwBall(player,hand); }
+        catch(Exception error) { LOG.error("Tentativa de captura suspensa",error); }
+    }
+    public static boolean readOnlyRaidMenu(ServerPlayer player) {
+        return player.containerMenu instanceof RaidOverviewMenu || player.containerMenu instanceof RaidMenu
+            || player.containerMenu instanceof PendingRewardMenu;
     }
     private int join(CommandSourceStack source) {
         return teleportToArena(source);
@@ -503,6 +555,7 @@ public final class ShirokaiRaids implements ModInitializer {
         if (!source.isPlayer()) return reply(source,msg("textos.comando_disponivel_para_jogadores"));
         if (!healthy) return reply(source,msg("textos.saida_indisponivel_confira_a_persistencia"));
         var player = source.getPlayer();
+        try { RaidLegacyInventory.recover(player); } catch(Exception error) { return reply(source,error.getMessage()); }
         String key = player.getUUID().toString();
         var origin = state.returns.get(key);
         if (origin == null) return reply(source,msg("textos.voce_nao_entrou_na_raid_use_raid_entrar"));
@@ -510,12 +563,16 @@ public final class ShirokaiRaids implements ModInitializer {
         if (world == null) return reply(source,msg("textos.a_dimensao_de_retorno_esta_indisponivel_sua_posicao_foi_preservada_avise_a_"));
         if (!player.isAlive() || player.isPassenger()) return reply(source,msg("textos.voce_precisa_estar_vivo_e_fora_de_veiculos_para_sair"));
         if (active != null) { active.battles.leave(player.getUUID()); active.bar.removePlayer(player); }
+        try { if (captures != null) captures.close(player,true); }
+        catch(Exception error) { return reply(source,error.getMessage()); }
         if (com.cobblemon.mod.common.battles.BattleRegistry.getBattleByParticipatingPlayer(player) != null)
             return reply(source,msg("textos.encerre_sua_batalha_atual_antes_de_retornar"));
         player.closeContainer();
         player.teleportTo(world,origin.x,origin.y,origin.z,Set.of(),origin.yaw,origin.pitch);
         player.fallDistance=0;
         state.returns.remove(key);
+        state.arenaExits.remove(key);
+        inventoryRestored(player);
         if (active != null) snapshot(); else save();
         return reply(source,msg("raid.retorno"));
     }
@@ -528,7 +585,7 @@ public final class ShirokaiRaids implements ModInitializer {
         active.damage.ranking().stream().limit(10).forEach(e -> reply(source,e.name() + ": " + e.damage() + " HP")); return 1;
     }
     private void updateCountdown(long now) {
-        if (!healthy || active != null || !config.spawnConfigured || !config.automaticRaids) {
+        if (!healthy || active != null || captures!=null && captures.anyActive() || !config.spawnConfigured || !config.automaticRaids) {
             countdownBar.removeAllPlayers();
             return;
         }
@@ -540,8 +597,9 @@ public final class ShirokaiRaids implements ModInitializer {
     private void tick() {
         tick++;
         if (server == null) return;
-        if (!healthy) { countdownBar.removeAllPlayers(); return; }
+        if (!healthy) { countdownBar.removeAllPlayers(); if (captures!=null) captures.shutdown(); return; }
         try {
+            if (captures != null) captures.tick();
             retryRewards();
             if(active!=null) {
                 active.battles.tick();
@@ -553,6 +611,7 @@ public final class ShirokaiRaids implements ModInitializer {
             }
             if (tick % 20 != 0) return;
             long now = System.currentTimeMillis();
+            returnExpiredPlayers(now);
             updateCountdown(now);
             if (active != null) {
                 if (now >= active.ends) { finish(RaidArchive.Outcome.TIMEOUT,msg("textos.raid_encerrada_por_tempo")); return; }
@@ -563,11 +622,11 @@ public final class ShirokaiRaids implements ModInitializer {
                 active.bar.setProgress((float) active.health.fraction());
                 active.bar.setName(RaidMessages.component(msg("bossbar.titulo", "boss", active.definition.name, "vida", active.health.current(), "vida_maxima", active.health.maximum(), "tempo", RaidTime.format(Math.max(0,(active.ends-now)/1000)))));
                 for (var player : server.getPlayerList().getPlayers()) {
-                    if (inArena(player) && state.returns.containsKey(player.getUUID().toString())) active.bar.addPlayer(player);
+                    if (inArena(player) && joinedCurrentRaid(player)) active.bar.addPlayer(player);
                     else { active.bar.removePlayer(player); active.battles.leave(player.getUUID()); }
                 }
                 if (tick % 200 == 0) snapshot();
-            } else if (config.spawnConfigured && config.automaticRaids) {
+            } else if (config.spawnConfigured && config.automaticRaids && (captures==null || !captures.anyActive())) {
                 if (RaidSchedule.due(now,state.nextRaid,false)) {
                     try { begin(RaidBossCatalog.randomId(bosses, random)); }
                     catch (Exception e) { LOG.warn("Raid automática adiada",e); state.nextRaid=RaidSchedule.next(now,config.intervalSeconds); save(); }
@@ -597,6 +656,10 @@ public final class ShirokaiRaids implements ModInitializer {
         if(active==null) return;
         var raid=active;
         boolean defeated = outcome == RaidArchive.Outcome.VICTORY;
+        long victoryTime=System.currentTimeMillis();
+        Set<UUID> present=new HashSet<>();
+        if (defeated) for (var player:server.getPlayerList().getPlayers())
+            if (inArena(player) && joinedCurrentRaid(player)) present.add(player.getUUID());
         try {
             capture(raid);
             var drops = new HashMap<String, Map<String, Integer>>();
@@ -610,6 +673,12 @@ public final class ShirokaiRaids implements ModInitializer {
                         drops.computeIfAbsent(entry.player().toString(), key -> new TreeMap<>()).merge(drop.item(), drop.count(), Integer::sum);
                     }
                 }
+                if (captures != null) captures.award(raid.id,raid.definition,config,raid.damage.ranking(),present,victoryTime);
+                for(var entry:state.returns.entrySet()) if(raid.id.equals(entry.getValue().raid)) {
+                    var exit=new RaidState.ArenaExit();exit.deadline=victoryTime+600_000L;
+                    exit.dimension=raid.world.dimension().location().toString();exit.x=raid.center.x;exit.y=raid.center.y;exit.z=raid.center.z;exit.radius=config.arenaRadius;
+                    state.arenaExits.put(entry.getKey(),exit);
+                }
                 state.completed.add(raid.id);
             }
             state.archive.complete(outcome, System.currentTimeMillis(), drops);
@@ -617,8 +686,23 @@ public final class ShirokaiRaids implements ModInitializer {
         } finally { cleanup(raid); }
         broadcast(message);
         if (defeated) {
-            // Includes contributors who left combat; offline players are retried on login.
-            for (var entry : raid.damage.ranking()) rewardQueue.add(entry.player());
+            for (var player:server.getPlayerList().getPlayers()) if(present.contains(player.getUUID()) && captures!=null && captures.hasGrant(player)) {
+                try { captures.start(player); }
+                catch(Exception error) { captures.close(player,true); state.captures.values().removeIf(g -> g.player.equals(player.getUUID().toString())); save(); LOG.warn("Captura não iniciada",error); }
+            }
+            for (var entry:raid.damage.ranking()) rewardQueue.add(entry.player());
+        }
+    }
+    private void returnExpiredPlayers(long now) {
+        for(var player:List.copyOf(server.getPlayerList().getPlayers())) {
+            var exit=state.arenaExits.get(player.getUUID().toString());
+            if(exit==null || !exit.due(now,player.serverLevel().dimension().location().toString(),player.getX(),player.getY(),player.getZ()) || !player.isAlive()) continue;
+            if(captures!=null) captures.close(player,true);
+            var battle=com.cobblemon.mod.common.battles.BattleRegistry.getBattleByParticipatingPlayer(player);
+            if(battle!=null) battle.stop();
+            player.stopRiding();
+            leave(player.createCommandSourceStack());
+            if(!state.returns.containsKey(player.getUUID().toString())) RaidCapture.tell(player,"raid.retorno_automatico");
         }
     }
     private int openRaidMenu(CommandSourceStack source, boolean global) {
@@ -656,6 +740,7 @@ public final class ShirokaiRaids implements ModInitializer {
         if (player != null) deliverRewards(player);
     }
     private int deliverRewards(ServerPlayer player) {
+        if (RaidInventory.locked(player)) return 0;
         try {
             int delivered = rewardDelivery.deliver(new PlayerRewardTarget(server, player), 4);
             if (delivered > 0) player.sendSystemMessage(RaidMessages.component(msg("recompensas.entregues", "quantidade", delivered)));

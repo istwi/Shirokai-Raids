@@ -5,11 +5,41 @@ import java.util.*;
 final class RaidState {
     Map<String, ReturnPosition> returns = new HashMap<>();
     static final class ReturnPosition {
+        String raid;
         String dimension;
         double x, y, z;
         float yaw, pitch;
         ReturnPosition(String dimension, double x, double y, double z, float yaw, float pitch) {
             this.dimension=dimension; this.x=x; this.y=y; this.z=z; this.yaw=yaw; this.pitch=pitch;
+        }
+    }
+    Map<String, CaptureGrant> captures = new LinkedHashMap<>();
+    static final class CaptureGrant {
+        String id, raid, player;
+        RaidConfig.Boss boss;
+        ReturnPosition arena;
+        int remaining, durationSeconds;
+        double chance, radius;
+        boolean resolved;
+        long expiresAt;
+        void validate() {
+            UUID.fromString(id); UUID.fromString(raid); UUID.fromString(player);
+            if (boss == null || arena == null || arena.dimension == null || !arena.dimension.matches("[a-z0-9_.-]+:[a-z0-9_./-]+")
+                || !Double.isFinite(arena.x + arena.y + arena.z) || !Float.isFinite(arena.yaw + arena.pitch)
+                || remaining < 0 || remaining > 64 || durationSeconds < 10 || durationSeconds > 600
+                || !Double.isFinite(chance) || chance <= 0 || chance > 1 || !Double.isFinite(radius) || radius < 8 || radius > 128)
+                throw new IllegalArgumentException("Direito de captura inválido");
+            boss.validate();
+        }
+    }
+    Map<String, ArenaExit> arenaExits = new HashMap<>();
+    static final class ArenaExit {
+        long deadline;
+        String dimension;
+        double x,y,z,radius;
+        boolean due(long now, String currentDimension, double px, double py, double pz) {
+            double dx=px-x,dy=py-y,dz=pz-z;
+            return now>=deadline && dimension.equals(currentDimension) && dx*dx+dy*dy+dz*dz<=radius*radius;
         }
     }
     long nextRaid;
@@ -37,6 +67,21 @@ final class RaidState {
         }
     }
     void validate() {
+        if (arenaExits==null) throw new IllegalArgumentException("Retornos automáticos ausentes");
+        for (var entry:arenaExits.entrySet()) {
+            UUID.fromString(entry.getKey()); var exit=entry.getValue();
+            if (exit==null || exit.deadline<0 || exit.dimension==null || !exit.dimension.matches("[a-z0-9_.-]+:[a-z0-9_./-]+")
+                || !Double.isFinite(exit.x+exit.y+exit.z+exit.radius) || exit.radius<8 || exit.radius>128)
+                throw new IllegalArgumentException("Retorno automático inválido");
+        }
+        if (captures == null) throw new IllegalArgumentException("Direitos de captura ausentes");
+        var captureKeys = new HashSet<String>();
+        for (var entry : captures.entrySet()) {
+            var grant = entry.getValue();
+            if (grant == null || !entry.getKey().equals(grant.id)) throw new IllegalArgumentException("ID de captura inválido");
+            grant.validate();
+            if (!captureKeys.add(grant.raid + ":" + grant.player)) throw new IllegalArgumentException("Captura duplicada");
+        }
         if (returns == null) throw new IllegalArgumentException("Posições de retorno ausentes");
         for (var entry : returns.entrySet()) {
             UUID.fromString(entry.getKey());

@@ -4,7 +4,7 @@ set -euo pipefail
 cd /workspace/Shirokai-Raids
 source scripts/cloud-env.sh
 raids_test_mode=${SHIROKAI_INTEGRATION_MODE:-teleport}
-case "$raids_test_mode" in teleport|combat|challenge) ;; *) echo 'Modo de integração inválido' >&2; exit 1 ;; esac
+case "$raids_test_mode" in teleport|combat|challenge|capture) ;; *) echo 'Modo de integração inválido' >&2; exit 1 ;; esac
 raids_test_root=$(mktemp -d "/workspace/shared/raids-${raids_test_mode}-test.XXXXXXXX")
 python3 - "$raids_test_root" "$raids_test_mode" <<'PY'
 from pathlib import Path
@@ -42,6 +42,8 @@ root=Path(sys.argv[1]);mode=sys.argv[2]
 result=json.loads((root/f'{mode}-integration-result.json').read_text())
 assert result['passed'] is True,result
 assert result['realClients']==0,result
+if mode=='capture':
+    assert result['checks'] >= 20,result
 if mode=='combat':
     assert result['controlledSessions']==3 and result['effectiveDamage']==2000,result
 if mode=='challenge':

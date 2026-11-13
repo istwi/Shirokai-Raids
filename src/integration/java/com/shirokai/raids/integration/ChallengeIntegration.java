@@ -38,11 +38,11 @@ public final class ChallengeIntegration implements ModInitializer {
     private Map<UUID,ServerPlayer> lookup;
     private PokemonEntity boss;
     private MinecraftServer server;
-    private int ticks, raidEndedTick=-1,leaveTick;
+    private int ticks, raidEndedTick=-1,phaseEndedTick=-1,leaveTick;
     private long damageBeforeReturn;
     private int ppBeforeReturn;
     private boolean late,finished,swapRequested,switched,departed,returned,secondExit;
-    private boolean partialChecked, rewardsChecked;
+    private boolean partialChecked, rewardsChecked, captureChecked;
     private long hpBeforeChoices;
 
     @Override public void onInitialize() {
@@ -69,11 +69,8 @@ public final class ChallengeIntegration implements ModInitializer {
             player.setPos(5+i*2,200,0);
             require(lookup.putIfAbsent(player.getUUID(),player)==null,"UUID já existia");
             players.add(player);
-            if (i == 0) {
-                for (int slot = 0; slot < player.getInventory().items.size(); slot++)
-                    player.getInventory().setItem(slot, new ItemStack(Items.STONE, 64));
-                player.getInventory().setItem(0, new ItemStack(Items.APPLE, 63));
-            }
+            server.getPlayerList().getPlayers().add(player);
+            if(i==0) player.getInventory().armor.set(0,new ItemStack(Items.DIAMOND_BOOTS));
             var party=Cobblemon.INSTANCE.getStorage().getParty(player);
             var lead=PokemonProperties.Companion.parse("garchomp level=100 moves=dragonclaw"," ","=").create();
             party.add(lead); leads.add(lead);
@@ -162,6 +159,7 @@ public final class ChallengeIntegration implements ModInitializer {
                 secondExit=true;
                 // Contributor really absent from the online lookup when the boss is defeated.
                 lookup.remove(players.get(1).getUUID());
+                server.getPlayerList().getPlayers().remove(players.get(1));
             }
         }
         if(ticks>220 && ticks%20==0 && !boss.isRemoved()) for(int i=0;i<players.size();i++) {
@@ -191,7 +189,8 @@ public final class ChallengeIntegration implements ModInitializer {
             long total=0; for(var entry:state.getAsJsonObject("damage").entrySet()) total+=entry.getValue().getAsLong();
             require(total==RAID_HP && state.getAsJsonObject("damage").size()==3,"Contribuição global incorreta");
             for(int i=0;i<3;i++) {
-                require(BattleRegistry.getBattleByParticipatingPlayer(players.get(i))==null,"Batalha permaneceu ativa");
+                var followup=BattleRegistry.getBattleByParticipatingPlayer(players.get(i));
+                require(followup==null || !com.shirokai.raids.TraditionalRaidBattles.isBossActor(followup.getSide2().getActors()[0]),"Combate coletivo permaneceu ativo após vitória");
                 var used=i==0?benches.get(i):leads.get(i);
                 require(pp(used,i==0?"psychic":"dragonclaw")<beforePP.get(used.getUuid()),"Movimento escolhido não consumiu PP para jogador "+i);
             }
@@ -206,18 +205,32 @@ public final class ChallengeIntegration implements ModInitializer {
             }
             raidEndedTick=ticks;
         }
-        if (raidEndedTick >= 0 && ticks >= raidEndedTick + 20 && !partialChecked) {
+        if (raidEndedTick >= 0 && ticks >= raidEndedTick + 120 && !captureChecked) throw new AssertionError("Batalhas de captura não iniciaram após a vitória");
+        if (raidEndedTick >= 0 && ticks >= raidEndedTick + 20 && !captureChecked
+            && BattleRegistry.getBattleByParticipatingPlayer(players.get(0))!=null && BattleRegistry.getBattleByParticipatingPlayer(players.get(2))!=null) {
+            require(com.shirokai.raids.RaidInventory.locked(players.get(0)) && com.shirokai.raids.RaidInventory.locked(players.get(2)),"Vitória não iniciou captura com inventário guardado");
+            require(apples(players.get(0))==0 && apples(players.get(2))==0 && pendingApples(players.get(0))==4 && pendingApples(players.get(2))==4,"Drops foram entregues no inventário temporário");
+            for(int index:new int[]{0,2}) server.getCommands().getDispatcher().execute("raid sair",players.get(index).createCommandSourceStack());
+            require(apples(players.get(0))==0 && players.get(0).getInventory().armor.get(0).is(Items.DIAMOND_BOOTS),"Saída alterou inventário ou armadura pessoal");
+            // Delivery stress case after leaving: fill ordinary storage to exercise partial insertion.
+            for(int slot=0;slot<players.get(0).getInventory().items.size();slot++) players.get(0).getInventory().setItem(slot,new ItemStack(Items.STONE,64));
+            players.get(0).getInventory().setItem(0,new ItemStack(Items.APPLE,63));
+            require(state().getAsJsonObject("captures").entrySet().stream().noneMatch(e -> e.getValue().getAsJsonObject().get("player").getAsString().equals(players.get(1).getUUID().toString())),"Ausente recebeu captura pendente");
+            captureChecked=true;phaseEndedTick=ticks;
+        }
+        if (captureChecked && ticks >= phaseEndedTick + 20 && !partialChecked) {
             require(apples(players.get(0)) == 64, "Entrega parcial não completou o stack existente");
             require(pendingApples(players.get(0)) == 3, "Entrega parcial perdeu o saldo");
             require(apples(players.get(2)) == 4 && pendingApples(players.get(2)) == 0, "Entrega automática online falhou");
             require(apples(players.get(1)) == 0 && pendingApples(players.get(1)) == 4, "Contribuinte offline perdeu pendências");
             players.get(0).getInventory().setItem(1, ItemStack.EMPTY);
             lookup.put(players.get(1).getUUID(), players.get(1));
+            server.getPlayerList().getPlayers().add(players.get(1));
             // Exercise the registered login callback; no real network/client is simulated here.
             for (int i = 0; i < 2; i++) ServerPlayConnectionEvents.JOIN.invoker().onPlayReady(players.get(i).connection, null, server);
             partialChecked = true;
         }
-        if (partialChecked && ticks >= raidEndedTick + 40 && !rewardsChecked) {
+        if (partialChecked && ticks >= phaseEndedTick + 40 && !rewardsChecked) {
             require(apples(players.get(0)) == 67 && pendingApples(players.get(0)) == 0, "Saldo parcial não foi entregue após liberar espaço");
             require(apples(players.get(1)) == 4 && pendingApples(players.get(1)) == 0, "Login não entregou pendências offline");
             var deliveries = state().getAsJsonObject("deliveries");
@@ -233,7 +246,7 @@ public final class ChallengeIntegration implements ModInitializer {
             }
             rewardsChecked = true;
         }
-        if(raidEndedTick>=0 && ticks>=raidEndedTick+60) {
+        if(phaseEndedTick>=0 && ticks>=phaseEndedTick+60) {
             require(rewardsChecked, "Validação de recompensas não executou");
             var archive = state().getAsJsonObject("archive");
             require(archive.getAsJsonObject("totals").size() == 3, "Participantes ausentes do ranking global");
@@ -286,6 +299,7 @@ public final class ChallengeIntegration implements ModInitializer {
                 var battle=BattleRegistry.getBattleByParticipatingPlayer(player);
                 if(battle!=null && !battle.getEnded()) battle.stop();
                 if(lookup!=null) lookup.remove(player.getUUID(),player);
+                server.getPlayerList().getPlayers().remove(player);
             }
             var result=Map.of("passed",passed,"message",message,"realClients",0,"controlledSessions",players.size());
             Files.writeString(Path.of("challenge-integration-result.json"),new com.google.gson.Gson().toJson(result));

@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class InitializeInstructionMixin {
     @Inject(method="invoke",at=@At("HEAD"),remap=false)
     private void initializeDetachedBoss(PokemonBattle battle,CallbackInfo ci) {
-        for(var actor:battle.getActors()) if(TraditionalRaidBattles.isBossActor(actor))
+        for(var actor:battle.getActors()) if(TraditionalRaidBattles.isBossActor(actor) || com.shirokai.raids.ShirokaiRaids.isCaptureActor(actor))
             actor.getActivePokemon().getFirst().setBattlePokemon(actor.getPokemonList().getFirst());
     }
 }

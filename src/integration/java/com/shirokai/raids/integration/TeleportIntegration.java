@@ -20,6 +20,9 @@ public final class TeleportIntegration implements ModInitializer {
     private Vec3 failedOrigin;
     @Override public void onInitialize() {
         if (!Boolean.getBoolean("shirokai.integration")) throw new IllegalStateException("Fixture requer -Dshirokai.integration=true e mundo descartável");
+        if ("capture".equals(System.getProperty("shirokai.integration.mode"))) {
+            new com.shirokai.raids.CaptureIntegration().onInitialize(); return;
+        }
         if ("restart".equals(System.getProperty("shirokai.integration.mode"))) {
             new com.shirokai.raids.RestartIntegration().onInitialize();
             return;

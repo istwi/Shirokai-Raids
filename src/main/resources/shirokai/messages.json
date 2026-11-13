@@ -195,5 +195,17 @@
   "textos.evento": "Evento: ",
   "textos.item": "Item: ",
   "textos.arena": "Arena: ",
-  "historico.contribuicao": "Contribuição: {porcentagem}%"
+  "historico.contribuicao": "Contribuição: {porcentagem}%",
+  "captura.ja_ativa": "Você já está na fase de captura. Use suas bolas ou /raid sair.",
+  "captura.sem_direito": "Sua chance de captura não está disponível ou já terminou.",
+  "captura.arena_indisponivel": "Arena de captura indisponível; não foi possível iniciar a batalha.",
+  "captura.sobrevivencia": "Para capturar, esteja vivo, em sobrevivência e fora de veículos.",
+  "captura.em_batalha": "Encerre sua batalha antes de iniciar a captura.",
+  "captura.inicio": "&eBatalha de captura contra sua cópia de {boss}! &fVocê tem {quantidade} bolas e 2 minutos contados da vitória. Chance por bola: {chance}%. Sair ou desconectar encerra a chance.",
+  "captura.restantes": "&eCaptura falhou. Tentativas restantes: {quantidade}.",
+  "captura.bola": "&6&lBola da raid &r&7| uso exclusivo nesta captura",
+  "captura.fim": "&eSua fase de captura terminou. &fAs bolas da raid foram removidas. Use /raid sair para voltar à origem.",
+  "captura.aguarde_fases": "Aguarde as sessões de captura em andamento terminarem antes de iniciar outra raid.",
+  "raid.inventario_vazio": "Guarde os itens do inventário, da hotbar, da mão secundária e do cursor antes de entrar na raid. Armadura e acessórios equipados são permitidos.",
+  "raid.retorno_automatico": "Você voltou à origem: o prazo de 10 minutos após a derrota do boss terminou."
 }

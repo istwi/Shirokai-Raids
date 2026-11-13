@@ -1,5 +1,15 @@
 # Histórico de alterações
 
+## 0.1.13-dev
+
+- Entrada exige inventário principal, hotbar, mão secundária e cursor vazios, sem guardar itens. Armadura e acessórios equipados são permitidos e não são removidos.
+- Após vitória, apenas participantes vivos, online, dentro da arena e com dano positivo recebem uma batalha nativa contra sua própria cópia do boss.
+- Cinco bolas para o primeiro em dano, três para segundo/terceiro e uma para os demais elegíveis; chance padrão de 2% por lançamento. Uma captura por jogador, no máximo dois minutos contados da vitória.
+- Sem `/raid capturar`, oportunidades pendentes ou retomada após desconexão. Fugir, perder, sair ou exceder o prazo encerra a chance.
+- Dez minutos após a vitória, participantes remanescentes dentro da arena voltam à origem salva, inclusive após reconexão. Prazos registrados por evento e sem renovação.
+- Build e 79 testes JUnit aprovados; 38 verificações de captura dedicada e a regressão de combate/recompensas passaram, incluindo batalha real, golpe/PP, cancelamento de captura em animação no prazo e retorno à origem aos dez minutos.
+- A limpeza retira somente bolas marcadas da raid; regras e limites em [Captura da raid](docs/CAPTURA_RAID.md). Mantida recuperação de dados do build local anterior, sem criar novos backups de inventário.
+
 ## 0.1.12-dev
 
 - Chat e títulos de BossBar aceitam cores Minecraft (`&a`, `§a`), negrito (`&l`), reset (`&r`) e hexadecimal (`&#RRGGBB`).

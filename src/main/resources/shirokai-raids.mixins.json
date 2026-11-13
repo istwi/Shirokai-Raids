@@ -2,6 +2,21 @@
   "required": true,
   "package": "com.shirokai.raids.mixin",
   "compatibilityLevel": "JAVA_21",
-  "server": ["ChallengeHandlerMixin", "InitializeInstructionMixin", "SwitchInstructionMixin", "PlayerListAccessor", "RaidCommandGuardMixin"],
-  "injectors": {"defaultRequire": 1}
+  "server": [
+    "ChallengeHandlerMixin",
+    "InitializeInstructionMixin",
+    "SwitchInstructionMixin",
+    "PlayerListAccessor",
+    "RaidCommandGuardMixin",
+    "RaidPickupMixin",
+    "RaidInventoryGuardMixin",
+    "RaidBallRefundMixin",
+    "RaidCaptureVisibilityMixin",
+    "RaidCaptureCollisionMixin",
+    "RaidPokemonItemGuardMixin",
+    "RaidInventoryMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
 }

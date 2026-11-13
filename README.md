@@ -2,7 +2,7 @@
 
 Mod **somente servidor** para Minecraft 1.21.1, Fabric e Cobblemon 1.8.3.
 
-**0.1.12-dev: cores e negrito nas mensagens e BossBar de contagem regressiva até a próxima raid. Não é uma Release estável.**
+**0.1.13-dev: entrada com inventário vazio, batalha de captura privada por dois minutos e retorno automático após dez minutos. Não é uma Release estável.**
 
 O fluxo implementado é `/raid` → menu de informações → **Entrar na raid** → enviar seu Pokémon → apontar para o boss e pressionar **R** (ou a tecla configurada no Cobblemon) → escolher os movimentos na interface normal. Cada jogador tem uma batalha real independente, com sua equipe, movimentos e PP; o dano aplicado reduz o HP global do evento. O jogo aguarda a escolha do jogador. Não há `/raid atacar` nem loop de ataques automáticos.
 
@@ -12,13 +12,21 @@ Não exige Shirokai Raids no cliente nem o JAR do Raid Dens no servidor. Não re
 
 Para preparar a instalação e o teste final, siga [o guia do servidor](docs/PREPARAR_SERVIDOR.md). Ele reúne arena/lobby, comandos, campos ativos, LuckPerms, SkiesClear, backups e conferência de reservas antigas. O mod mantém a arena carregada apenas durante o evento e libera seu próprio ticket ao encerrar, sem apagar construções nem alterar `/forceload` externo.
 
+## Entrada e batalha de captura
+
+Para entrar pelo menu ou `/raid entrar`, guarde antes os itens dos 36 slots principais/hotbar, da mão secundária e do cursor. Armadura e acessórios já equipados são permitidos e permanecem no jogador. O mod não guarda nem restaura inventários nas novas entradas; apenas valida essa regra. Coleta e manipulação de itens ficam bloqueadas durante a participação.
+
+Após a vitória, somente participantes vivos, online, dentro da arena e com dano positivo recebem uma batalha nativa contra sua própria cópia do boss. Padrão: 5 bolas para o primeiro em dano, 3 para segundo/terceiro e 1 para os demais. São **2 minutos contados da morte do boss**, sem renovar prazo ao iniciar a batalha. Uma captura por jogador. Quem estava ausente, saiu, desconectou, fugiu, perdeu a batalha ou esgotou o prazo perde a chance. Não existe `/raid capturar` ou oportunidade para outro momento.
+
+Aos **10 minutos após a vitória**, os participantes que ainda estiverem na arena voltam automaticamente à origem salva. O prazo é persistido, inclusive para reconexão após esse horário. `/raid sair` permite retornar antes. A limpeza remove somente bolas marcadas da raid, sem apagar armadura, acessórios ou itens comuns. Veja [regras completas](docs/CAPTURA_RAID.md).
+
 ## Combate e limites
 
 A implementação intercepta o pacote padrão de desafio do Cobblemon somente quando o alvo é o boss ativo. Usa `PlayerBattleActor`, Showdown/Graal e pacotes normais da interface. O Pokémon de cada boss de sessão é uma cópia própria; a entidade pública não recebe um `battleId` de uma das sessões. A vida compartilhada, o crédito efetivo e o encerramento pertencem ao coordenador central.
 
 `maxConcurrentPlayers` tem padrão 100 e aceita de 1 até 100. Ao lotar, o servidor recusa novas batalhas até haver vaga. **A capacidade de 100 combatentes não está comprovada.** Os ensaios realizados até agora incluem três sessões controladas em servidor real; não incluem clientes Minecraft reais nem medição de capacidade para 100 pessoas.
 
-O adaptador exige o serviço Graal padrão do Cobblemon 1.8.3. Cura do boss está desabilitada; Perish Song e sacrifícios do próprio boss têm restrições para impedir vitórias locais. Captura e entrega de Pokémon não fazem parte do evento. Animações/representação visual em clientes e compatibilidade com outros mods ainda precisam de validação. Veja [validação das recompensas](docs/VALIDACAO_0.1.5-dev.md), [validação do combate](docs/VALIDACAO_0.1.4-dev.md) e [auditoria](docs/COBBLEMON_MULTIPLAYER_AUDIT.md).
+O adaptador exige o serviço Graal padrão do Cobblemon 1.8.3. Cura do boss está desabilitada; Perish Song e sacrifícios do próprio boss têm restrições para impedir vitórias locais. Após a vitória, quem causou dano recebe uma captura individual com tentativas limitadas. O boss de combate continua impossível de capturar. Animações/representação visual em clientes e compatibilidade com outros mods ainda precisam de validação. Veja [validação das recompensas](docs/VALIDACAO_0.1.5-dev.md), [validação do combate](docs/VALIDACAO_0.1.4-dev.md) e [auditoria](docs/COBBLEMON_MULTIPLAYER_AUDIT.md).
 
 ## Testar o fluxo no jogo
 
@@ -85,10 +93,10 @@ Requer JDK 21 completo, Node e Python:
 bash gradlew --no-daemon build
 python3 scripts/run_showdown_audit.py
 python3 scripts/run_traditional_probe.py
-python3 scripts/verify_jar.py --version 0.1.12-dev
+python3 scripts/verify_jar.py --version 0.1.13-dev
 ```
 
-Windows: `gradlew.bat build`. O artefato é `build/libs/Shirokai-Raids-0.1.12-dev-fabric-1.21.1.jar`; o verificador gera `SHA256SUMS`. O workflow mantém builds e Artifacts de desenvolvimento em Linux e Windows.
+Windows: `gradlew.bat build`. O artefato é `build/libs/Shirokai-Raids-0.1.13-dev-fabric-1.21.1.jar`; o verificador gera `SHA256SUMS`. O workflow mantém builds e Artifacts de desenvolvimento em Linux e Windows.
 
 No ambiente cloud, `scripts/setup-cloud.sh` prepara o JDK e a compilação. Com servidor preparado por `scripts/prepare-test-server.sh` e EULA aceita para os testes:
 
@@ -96,6 +104,7 @@ No ambiente cloud, `scripts/setup-cloud.sh` prepara o JDK e a compilação. Com 
 bash scripts/run-teleport-integration.sh
 bash scripts/run-combat-integration.sh
 bash scripts/run-challenge-integration.sh
+bash scripts/run-capture-integration.sh
 ```
 
 Os scripts criam mundos descartáveis separados. As fixtures ficam em `build/integration/shirokai-raids-integration.jar`, fora do JAR distribuível; simulam participantes controlados, não clientes reais. Resultados e logs são preservados no diretório de cada execução.

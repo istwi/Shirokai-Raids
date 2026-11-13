@@ -26,5 +26,13 @@
     "z": 0,
     "yaw": 0,
     "pitch": 0
+  },
+  "capture": {
+    "enabled": true,
+    "firstPlaceBalls": 5,
+    "podiumBalls": 3,
+    "participantBalls": 1,
+    "durationSeconds": 120,
+    "chancePerThrow": 0.02
   }
 }
