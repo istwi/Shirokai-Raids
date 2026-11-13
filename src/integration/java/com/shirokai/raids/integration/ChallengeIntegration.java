@@ -125,6 +125,7 @@ public final class ChallengeIntegration implements ModInitializer {
             players.getFirst().setPos(5,200,0);
             var bosses=server.overworld().getEntitiesOfClass(PokemonEntity.class,new AABB(-48,150,-48,48,250,48),e -> e.getTags().contains("shirokai_raids_boss"));
             require(bosses.size()==1,"Boss público não é único"); boss=bosses.getFirst();
+            require(boss.isCurrentlyGlowing() && boss.getTeam()!=null && boss.getTeam().getColor()==net.minecraft.ChatFormatting.RED,"Boss sem contorno vermelho");
             require(boss.getPokemon().getScaleModifier()==2.5f,"Escala configurada não aplicada");
             boss.getPokemon().getMoveSet().clear();
             boss.getPokemon().getMoveSet().setMove(0,Objects.requireNonNull(Moves.INSTANCE.getByName("splash")).create());
@@ -184,6 +185,7 @@ public final class ChallengeIntegration implements ModInitializer {
         }
         if(boss.isRemoved() && raidEndedTick<0) {
             var state=state();
+            require(server.getScoreboard().getPlayersTeam(boss.getScoreboardName())==null,"Contorno do boss deixou entrada residual no placar");
             require(state.get("hp").getAsLong()==0,"Boss removido sem derrota global");
             require(late && switched && departed && returned && secondExit,"Entrada tardia, troca ou saída não executada");
             long total=0; for(var entry:state.getAsJsonObject("damage").entrySet()) total+=entry.getValue().getAsLong();

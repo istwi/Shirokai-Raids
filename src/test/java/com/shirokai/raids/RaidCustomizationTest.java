@@ -32,6 +32,25 @@ class RaidCustomizationTest {
         RaidMessages.load(path);
         assertEquals("Você voltou!", RaidMessages.render(RaidMessages.load(path),"raid.retorno"));
     }
+    @Test void upgradesOnlyShippedVisualDefaultsWithoutOverwritingCustomizedMessages() throws Exception {
+        Path path=dir.resolve("messages.json");
+        Files.writeString(path,"{\"chat.prefixo\":\"[Raids] {texto}\",\"bossbar.titulo\":\"{boss} | {vida}/{vida_maxima} HP | {tempo}\",\"captura.nome\":\"&e{boss} &6[Captura]\"}");
+        var upgraded=RaidMessages.load(path);
+        assertTrue(upgraded.get("chat.prefixo").contains("&lSHIROKAI"));
+        assertTrue(upgraded.get("bossbar.titulo").contains("SHIROKAI"));
+        assertTrue(upgraded.get("captura.nome").startsWith("&b"));
+        assertEquals("Meu prefixo {texto}",RaidMessages.upgradeDefault("chat.prefixo","Meu prefixo {texto}"));
+        assertEquals("Minha barra",RaidMessages.upgradeDefault("bossbar.titulo","Minha barra"));
+        assertTrue(Files.readString(path).contains("[Raids]")); // No rewrite of the administrator's file.
+    }
+    @Test void upgradesLegacyBossLabelAndPreservesOtherCustomNames() throws Exception {
+        var boss=new RaidConfig.Boss();boss.name="Rayquaza — World Boss";
+        JsonFiles.write(dir.resolve("rayquaza.json"),boss);
+        assertEquals("Rayquaza — Raid",RaidBossCatalog.load(dir).get("rayquaza").name);
+        boss.name="&cGuardião Shirokai";
+        JsonFiles.write(dir.resolve("rayquaza.json"),boss);
+        assertEquals(boss.name,RaidBossCatalog.load(dir).get("rayquaza").name);
+    }
     @Test void substitutionsAreLiteralAndSinglePass() throws Exception {
         var values = RaidMessages.load(dir.resolve("messages.json"));
         assertEquals("$5\\{tempo} apareceu! Use /raid para abrir o menu e entrar na arena.",

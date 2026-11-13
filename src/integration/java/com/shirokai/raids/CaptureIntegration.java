@@ -90,7 +90,7 @@ public final class CaptureIntegration implements ModInitializer {
                 }
                 if(stage==13 && !manager.active(other.getUUID())) {
                     require(!exhaustedBall.getCaptureFuture().join(),"Última bola deveria falhar no controle negativo");
-                    require(((Probe)other).messages.contains(RaidMessages.component(RaidMessages.msg("captura.esgotadas","boss",exhaustedGrant.boss.name)).getString()),"Chat não informou que as bolas acabaram");
+                    require(((Probe)other).messages.contains(RaidMessages.chat(RaidMessages.msg("captura.esgotadas","boss",exhaustedGrant.boss.name)).getString()),"Chat não informou que as bolas acabaram");
                     require(exhaustedBar.getPlayers().isEmpty(),"BossBar permaneceu após esgotar as bolas");
                     complete(server,true,"R manual, cópia brilhante privada, BossBar individual, animação de falha, sucesso/esgotamento/timeout no chat, prazos e entrada validados.");
                 }
@@ -167,6 +167,7 @@ public final class CaptureIntegration implements ModInitializer {
         require(player.getInventory().armor.get(0).is(Items.DIAMOND_BOOTS),"Armadura foi removida");
         require(BattleRegistry.getBattleByParticipatingPlayer(player)==null&&BattleRegistry.getBattleByParticipatingPlayer(other)==null,"Cópia iniciou batalha sem R");
         require(target(server,player).isCurrentlyGlowing()&&target(server,player).isCustomNameVisible(),"Cópia sem brilho ou nome visível");
+        require(target(server,player).getTeam()!=null && target(server,player).getTeam().getColor()==net.minecraft.ChatFormatting.AQUA,"Cópia sem contorno ciano");
         var ownerBar=bar(player);var otherBar=bar(other);
         require(ownerBar.getPlayers().contains(player)&&!ownerBar.getPlayers().contains(other)&&otherBar.getPlayers().contains(other),"BossBar não é individual");
         manager.tick(victory+60000);require(Math.abs(ownerBar.getProgress()-.5f)<.001,"BossBar não acompanha o prazo da vitória");
@@ -200,7 +201,7 @@ public final class CaptureIntegration implements ModInitializer {
     }
     private void verify(MinecraftServer server) throws Exception {
         require(Cobblemon.INSTANCE.getStorage().getParty(player).get(0).getMoveSet().getMoves().stream().filter(m->m.getName().equals("falseswipe")).findFirst().orElseThrow().getCurrentPp()<initialPP,"Encerrar a captura restaurou PP gastos");
-        require(((Probe)player).messages.contains(RaidMessages.component(RaidMessages.msg("captura.sucesso","boss",grant.boss.name)).getString()),"Chat não informou captura bem-sucedida");
+        require(((Probe)player).messages.contains(RaidMessages.chat(RaidMessages.msg("captura.sucesso","boss",grant.boss.name)).getString()),"Chat não informou captura bem-sucedida");
         require(!state.captures.containsKey(grant.id),"Direito permaneceu após sucesso");
         require(player.getInventory().items.stream().allMatch(ItemStack::isEmpty),"Bolas restantes não foram removidas");
         require(player.getInventory().armor.get(0).is(Items.DIAMOND_BOOTS),"Armadura perdida após captura");
@@ -216,7 +217,7 @@ public final class CaptureIntegration implements ModInitializer {
         require(state.captures.values().stream().noneMatch(g->g.player.equals(other.getUUID().toString())),"Timeout deixou chance pendente");
         int caught=0;for(var pokemon:Cobblemon.INSTANCE.getStorage().getParty(other)) if(pokemon.getSpecies().getResourceIdentifier().getPath().equals("rayquaza")) caught++;
         require(caught==0,"Animação concluiu captura depois do prazo");
-        require(((Probe)other).messages.contains(RaidMessages.component(RaidMessages.msg("captura.tempo_esgotado","boss",deadlineGrant.boss.name)).getString()),"Chat não informou tempo esgotado");
+        require(((Probe)other).messages.contains(RaidMessages.chat(RaidMessages.msg("captura.tempo_esgotado","boss",deadlineGrant.boss.name)).getString()),"Chat não informou tempo esgotado");
         boolean denied=false;try{manager.start(other);}catch(IllegalStateException expected){denied=true;}
         require(denied,"Timeout permitiu retomar captura");
         var exit=new RaidState.ArenaExit();exit.deadline=victory+600000;exit.dimension="minecraft:overworld";exit.y=200;exit.radius=48;state.arenaExits.put(player.getUUID().toString(),exit);

@@ -142,13 +142,13 @@ public final class RaidCapture {
         var entity=PokemonProperties.Companion.parse(boss.species+" level="+boss.level+" shiny="+boss.shiny+" uncatchable=no"+(boss.form.isEmpty()?"":" form="+boss.form)).createEntity(world);
         entity.addTag(TARGET_TAG); entity.addTag(OWNER_TAG+player.getUUID()); entity.setNoAi(true); entity.setInvulnerable(true); entity.setPersistenceRequired();
         entity.getEntityData().set(PokemonEntity.getUNBATTLEABLE(),false);
-        entity.setGlowingTag(true);
         entity.setCustomName(RaidMessages.component(msg("captura.nome","boss",boss.name,"jogador",player.getGameProfile().getName())));
         entity.setCustomNameVisible(true);
         entity.moveTo(grant.arena.x,grant.arena.y,grant.arena.z,grant.arena.yaw,0);
         var session=new Session(player,grant,entity,System.currentTimeMillis());
         sessions.put(player.getUUID(),session);
         try {
+            RaidPresentation.glow(entity, true);
             world.getChunkAt(entity.blockPosition());
             if (!world.addFreshEntity(entity)) throw new IllegalStateException(msg("captura.arena_indisponivel"));
             refreshBalls(player,session);
@@ -320,6 +320,7 @@ public final class RaidCapture {
                     session.flight.discard();
                 }
                 session.target.getSchedulingTracker().clear();
+                RaidPresentation.clearGlow(session.target);
                 session.target.discard();session.chunks.close();
             }
         }
@@ -348,5 +349,5 @@ public final class RaidCapture {
         }
         RaidInventory.sync(player);
     }
-    static void tell(ServerPlayer player,String key,Object... args) { player.sendSystemMessage(RaidMessages.component(msg(key,args))); }
+    static void tell(ServerPlayer player,String key,Object... args) { player.sendSystemMessage(RaidMessages.chat(msg(key,args))); }
 }

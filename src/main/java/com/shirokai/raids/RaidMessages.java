@@ -33,10 +33,24 @@ final class RaidMessages {
         for (var entry : json.entrySet()) {
             if (!entry.getValue().isJsonPrimitive() || !entry.getValue().getAsJsonPrimitive().isString())
                 throw new IOException("messages.json: texto inválido em " + entry.getKey());
-            values.put(entry.getKey(), entry.getValue().getAsString());
+            String value = entry.getValue().getAsString();
+            values.put(entry.getKey(), upgradeDefault(entry.getKey(), value));
         }
         return Collections.unmodifiableMap(values);
     }
+    static String upgradeDefault(String key, String value) {
+        String previous = switch (key) {
+            case "chat.prefixo" -> "[Raids] {texto}";
+            case "bossbar.proxima" -> "&b&lPróxima raid &r&f| {tempo}";
+            case "bossbar.titulo" -> "{boss} | {vida}/{vida_maxima} HP | {tempo}";
+            case "captura.nome" -> "&e{boss} &6[Captura]";
+            case "captura.bossbar" -> "&eCaptura: {boss} &f| {tempo} &7| {quantidade} bolas";
+            case "recompensas.entregues" -> "[Raids] Itens entregues: {quantidade}. Use /raid recompensas para tentar resgatar pendências.";
+            default -> null;
+        };
+        return value.equals(previous) ? DEFAULTS.get(key) : value;
+    }
+    static Component chat(String text) { return component(msg("chat.prefixo", "texto", text)); }
     static void install(Map<String, String> values) { current = Map.copyOf(values); }
     /** Legacy Minecraft formatting, including &#RRGGBB. Unknown codes remain literal. */
     static Component component(String text) {

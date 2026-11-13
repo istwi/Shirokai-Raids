@@ -12,6 +12,7 @@ final class RaidBossCatalog {
         try (var paths = Files.list(directory)) {
             for (var path : paths.filter(p -> p.toString().endsWith(".json")).sorted().toList()) {
                 var boss = JsonFiles.read(path, RaidConfig.Boss.class);
+                boss.name = boss.name == null ? null : boss.name.replace(" — World Boss", " — Raid");
                 boss.validate();
                 if (bosses.putIfAbsent(boss.id, boss) != null) throw new IOException("ID de boss duplicado: " + boss.id);
             }

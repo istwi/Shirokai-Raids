@@ -1,5 +1,15 @@
 # Histórico de alterações
 
+## 0.1.15-dev
+
+- Contorno vermelho no boss e ciano nas cópias privadas de captura, com limpeza das equipes de brilho ao encerrar.
+- Vitória mostra título e subtítulo aos participantes presentes e uma explosão visual com partículas de fogos e end rod, sem dano ou alteração de blocos.
+- Removido o anúncio antigo de vitória/recompensas no chat. Mensagens de chat usam `✦ SHIROKAI RAID »`, com SHIROKAI em negrito.
+- BossBars de raid, agendamento e captura recebem o tema Shirokai; barra de vida do boss fica vermelha. O sufixo legado `— World Boss` aparece como `— Raid`.
+- Textos padrão antigos são atualizados ao carregar; mensagens personalizadas e arquivos do administrador são preservados. Títulos editáveis em `vitoria.titulo` e `vitoria.subtitulo`.
+
+- Build com 83 testes JUnit e 51 verificações de captura aprovado, além das regressões de combate, recompensas e menus. [Validação local](docs/VALIDACAO_0.1.15-dev.md).
+
 ## 0.1.14-dev
 
 - `/raidadmin setentrada` salva ponto, dimensão e direção de chegada dos participantes, separado do spawn do boss. Local bloqueado recusa o teleporte sem mover o jogador. Sem configuração, preserva a busca segura anterior.

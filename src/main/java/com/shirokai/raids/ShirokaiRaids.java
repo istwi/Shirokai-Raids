@@ -75,7 +75,7 @@ public final class ShirokaiRaids implements ModInitializer {
         Active(RaidConfig.Boss definition, PokemonEntity boss, ServerLevel world, Vec3 center, long ends, int capacity) {
             this.definition = definition; this.boss = boss; this.world = world; this.center = center; this.ends = ends;
             health = new RaidCombatCoordinator(UUID.fromString(id),definition.hp,capacity);
-            bar = new ServerBossEvent(RaidMessages.component(definition.name), BossEvent.BossBarColor.PURPLE, BossEvent.BossBarOverlay.PROGRESS);
+            bar = new ServerBossEvent(RaidMessages.component(definition.name), BossEvent.BossBarColor.RED, BossEvent.BossBarOverlay.PROGRESS);
         }
     }
 
@@ -106,11 +106,11 @@ public final class ShirokaiRaids implements ModInitializer {
         ServerLivingEntityEvents.ALLOW_DAMAGE.register((entity, source, amount) -> !isBoss(entity.getUUID()) && !RaidCapture.protectedEntity(entity));
         ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
             if (entity instanceof net.minecraft.world.entity.item.ItemEntity item && RaidCapture.isBall(item.getItem())) entity.discard();
-            if (RaidCapture.protectedEntity(entity) && (captures==null || !captures.knownTarget(entity))) entity.discard();
+            if (RaidCapture.protectedEntity(entity) && (captures==null || !captures.knownTarget(entity))) { RaidPresentation.clearGlow(entity); entity.discard(); }
             if (entity.getTags().contains(RaidCapture.BALL_TAG) && (captures==null || !captures.knownBall(entity))) entity.discard();
             if (entity instanceof PokemonEntity && (entity.getTags().contains("shirokai_raids_boss")
                 || entity.getTags().contains("shirokai_raid_boss"))
-                && (active == null || entity != active.boss || world != active.world)) entity.discard();
+                && (active == null || entity != active.boss || world != active.world)) { RaidPresentation.clearGlow(entity); entity.discard(); }
         });
         CobblemonEvents.THROWN_POKEBALL_HIT.subscribe(event -> { if (isBoss(event.getPokemon().getUUID())) event.cancel(); });
         CobblemonEvents.BATTLE_STARTED_PRE.subscribe(event -> {
@@ -252,7 +252,7 @@ public final class ShirokaiRaids implements ModInitializer {
             if (!mod.healthy && mod.active != null) {
                 mod.cleanup(mod.active);
             }
-            player.sendSystemMessage(RaidMessages.component(error.getMessage()==null?msg("textos.nao_foi_possivel_iniciar_a_batalha"):error.getMessage()));
+            player.sendSystemMessage(RaidMessages.chat(error.getMessage()==null?msg("textos.nao_foi_possivel_iniciar_a_batalha"):error.getMessage()));
             LOG.debug("Desafio de raid recusado",error);
         }
         return true;
@@ -262,12 +262,12 @@ public final class ShirokaiRaids implements ModInitializer {
         if (mod == null || mod.state == null || !source.isPlayer()
             || (!mod.state.returns.containsKey(source.getPlayer().getUUID().toString()) && !RaidInventory.locked(source.getPlayer()))
             || RaidCommands.allowedDuringRaid(command)) return false;
-        source.sendFailure(RaidMessages.component(msg("comandos.bloqueados")));
+        source.sendFailure(RaidMessages.chat(msg("comandos.bloqueados")));
         return true;
     }
     private boolean isBoss(UUID uuid) { return active != null && active.boss.getUUID().equals(uuid); }
-    private int reply(CommandSourceStack source, String text) { source.sendSuccess(() -> RaidMessages.component(text),false); return 1; }
-    private void broadcast(String text) { server.getPlayerList().broadcastSystemMessage(RaidMessages.component(msg("chat.prefixo", "texto", text)),false); }
+    private int reply(CommandSourceStack source, String text) { source.sendSuccess(() -> RaidMessages.chat(text),false); return 1; }
+    private void broadcast(String text) { server.getPlayerList().broadcastSystemMessage(RaidMessages.chat(text),false); }
     private int info(CommandSourceStack source) {
         if (!healthy) return reply(source,msg("textos.raids_indisponiveis_verifique_os_logs_de_persistencia"));
         if (active == null && !config.automaticRaids) return reply(source, msg("textos.raids_automaticas_desativadas_aguarde_um_evento_manual"));
@@ -301,20 +301,20 @@ public final class ShirokaiRaids implements ModInitializer {
         if (!healthy || active == null) return info(source);
         if (!source.isPlayer()) return info(source);
         if (!RaidPermissions.check(source,"shirokai.raids.join",true)) {
-            source.sendFailure(RaidMessages.component(msg("textos.voce_nao_tem_permissao_para_entrar_na_arena"))); return 0;
+            source.sendFailure(RaidMessages.chat(msg("textos.voce_nao_tem_permissao_para_entrar_na_arena"))); return 0;
         }
         var player=source.getPlayer();
         if (!player.isAlive() || player.isSpectator() || player.isPassenger()
             || com.cobblemon.mod.common.battles.BattleRegistry.getBattleByParticipatingPlayer(player) != null) {
-            source.sendFailure(RaidMessages.component(msg("textos.encerre_sua_batalha_e_saia_de_veiculos_antes_de_usar_raid"))); return 0;
+            source.sendFailure(RaidMessages.chat(msg("textos.encerre_sua_batalha_e_saia_de_veiculos_antes_de_usar_raid"))); return 0;
         }
         if (tick < teleportCooldown.getOrDefault(player.getUUID(),0L)) {
-            source.sendFailure(RaidMessages.component(msg("textos.aguarde_cinco_segundos_entre_teleportes"))); return 0;
+            source.sendFailure(RaidMessages.chat(msg("textos.aguarde_cinco_segundos_entre_teleportes"))); return 0;
         }
         teleportCooldown.put(player.getUUID(),tick+100);
         var raid=active;
         if (raid.boss.isRemoved() || !raid.boss.isAlive() || server.getLevel(raid.world.dimension()) != raid.world) {
-            source.sendFailure(RaidMessages.component(msg("textos.a_arena_nao_esta_disponivel"))); return 0;
+            source.sendFailure(RaidMessages.chat(msg("textos.a_arena_nao_esta_disponivel"))); return 0;
         }
         ServerLevel destinationWorld=raid.world;
         Vec3 destination;
@@ -323,15 +323,15 @@ public final class ShirokaiRaids implements ModInitializer {
             destinationWorld=server.getLevel(ResourceKey.create(Registries.DIMENSION,ResourceLocation.parse(config.entry.dimension)));
             destination=new Vec3(config.entry.x,config.entry.y,config.entry.z);
             if(destinationWorld==null || !destinationWorld.getWorldBorder().isWithinBounds(net.minecraft.core.BlockPos.containing(destination)))
-                { source.sendFailure(RaidMessages.component(msg("entrada.indisponivel")));return 0; }
+                { source.sendFailure(RaidMessages.chat(msg("entrada.indisponivel")));return 0; }
             destinationWorld.getChunkAt(net.minecraft.core.BlockPos.containing(destination));
             if(!safeBodyAt(destinationWorld,player,destination,destinationWorld==raid.world?raid.boss:null,true))
-                { source.sendFailure(RaidMessages.component(msg("entrada.indisponivel")));return 0; }
+                { source.sendFailure(RaidMessages.chat(msg("entrada.indisponivel")));return 0; }
             yaw=config.entry.yaw;pitch=config.entry.pitch;
         } else {
             var spot=SafeTeleportSearch.find(raid.boss.getX(),raid.center.y,raid.boss.getZ(),config.arenaRadius,
                 player.getUUID().hashCode(),candidate -> safeSpot(raid,player,candidate));
-            if(spot.isEmpty()) { source.sendFailure(RaidMessages.component(msg("textos.nao_ha_um_local_seguro_e_carregado_proximo_ao_boss_avise_a_administracao")));return 0; }
+            if(spot.isEmpty()) { source.sendFailure(RaidMessages.chat(msg("textos.nao_ha_um_local_seguro_e_carregado_proximo_ao_boss_avise_a_administracao")));return 0; }
             var target=spot.get();destination=new Vec3(target.x()+.5,target.feetY(),target.z()+.5);
             yaw=(float)(Math.toDegrees(Math.atan2(raid.boss.getZ()-destination.z,raid.boss.getX()-destination.x))-90);pitch=0;
         }
@@ -386,7 +386,7 @@ public final class ShirokaiRaids implements ModInitializer {
     private void cleanup(Active raid) {
         try { if (raid.battles != null) raid.battles.close(); }
         finally {
-            try { raid.bar.removeAllPlayers(); raid.boss.discard(); }
+            try { raid.bar.removeAllPlayers(); RaidPresentation.clearGlow(raid.boss); raid.boss.discard(); }
             finally { if (raid.chunks != null) raid.chunks.close(); if (active == raid) active = null; }
         }
     }
@@ -423,7 +423,7 @@ public final class ShirokaiRaids implements ModInitializer {
             return reply(source, message);
         } catch (Exception error) {
             LOG.error("Falha ao atualizar configuração", error);
-            source.sendFailure(RaidMessages.component(msg("textos.configuracao_nao_concluida") + error.getMessage())); return 0;
+            source.sendFailure(RaidMessages.chat(msg("textos.configuracao_nao_concluida") + error.getMessage())); return 0;
         }
     }
     private int status(CommandSourceStack source) {
@@ -456,7 +456,7 @@ public final class ShirokaiRaids implements ModInitializer {
             LOG.warn("Reserva antiga conferida: id={}, ação={}, operador={}, motivo={}", id, action, actor, reason);
             return reply(source, action == LegacyReservationReview.Action.CONFIRM ? msg("textos.recebimento_confirmado_e_auditado_nenhum_item_adicional_entregue")
                 : msg("textos.itens_voltaram_as_pendencias_uma_unica_vez_conferencia_auditada"));
-        } catch (Exception error) { source.sendFailure(RaidMessages.component(msg("textos.conferencia_nao_concluida") + error.getMessage())); return 0; }
+        } catch (Exception error) { source.sendFailure(RaidMessages.chat(msg("textos.conferencia_nao_concluida") + error.getMessage())); return 0; }
     }
     private int start(CommandSourceStack source, String id) {
         try { begin(id); return reply(source,msg("textos.raid_iniciada")); }
@@ -485,7 +485,6 @@ public final class ShirokaiRaids implements ModInitializer {
         entity.getPokemon().setScaleModifier(definition.scale);
         entity.setCustomName(RaidMessages.component(definition.name));
         entity.setPersistenceRequired(); entity.setInvulnerable(true);
-        entity.setGlowingTag(true);
         entity.getEntityData().set(PokemonEntity.getUNBATTLEABLE(),false);
         entity.setNoAi(true);
         entity.addTag("shirokai_raids_boss");
@@ -497,11 +496,12 @@ public final class ShirokaiRaids implements ModInitializer {
             candidate.damage.record(hit.player(),hit.name(),hit.pokemon(),hit.applied(),System.currentTimeMillis()),
             player -> inArena(player) && joinedCurrentRaid(player));
         active = candidate; // entity load callback must recognize it before insertion
-        if (!world.addFreshEntity(entity)) { active = null; throw new IllegalStateException(msg("textos.spawn_recusado")); }
+        RaidPresentation.glow(entity, false);
+        if (!world.addFreshEntity(entity)) { RaidPresentation.clearGlow(entity); active = null; throw new IllegalStateException(msg("textos.spawn_recusado")); }
         state.activeRaid = candidate.id; state.bossEntity = entity.getUUID().toString(); state.hp = definition.hp; state.damage.clear();
         state.archive.current = new RaidArchive.Event(candidate.id, definition.name, definition.species, System.currentTimeMillis(), definition.hp);
         state.nextRaid = RaidSchedule.next(System.currentTimeMillis(),config.intervalSeconds);
-        try { save(); } catch (RuntimeException e) { entity.discard(); active = null; throw e; }
+        try { save(); } catch (RuntimeException e) { RaidPresentation.clearGlow(entity); entity.discard(); active = null; throw e; }
         retained = true;
         countdownBar.removeAllPlayers();
         broadcast(msg("raid.spawn", "boss", definition.name));
@@ -595,7 +595,7 @@ public final class ShirokaiRaids implements ModInitializer {
                 if(active.health.current()==0) { finish(true,msg("textos.boss_derrotado_recompensas_disponiveis_em_raid_recompensas")); return; }
                 if (tick % 10 == 0) {
                     boolean lowHealthFlash = active.health.fraction() <= 0.20 && (tick / 10) % 2 == 0;
-                    active.bar.setColor(lowHealthFlash ? BossEvent.BossBarColor.RED : BossEvent.BossBarColor.PURPLE);
+                    active.bar.setColor(lowHealthFlash ? BossEvent.BossBarColor.RED : BossEvent.BossBarColor.RED);
                 }
             }
             if (tick % 20 != 0) return;
@@ -672,8 +672,9 @@ public final class ShirokaiRaids implements ModInitializer {
             }
             state.archive.complete(outcome, System.currentTimeMillis(), drops);
             state.activeRaid=null; state.bossEntity=null; save();
+            if (defeated) RaidPresentation.victory(raid.boss, raid.definition.name, server.getPlayerList().getPlayers().stream().filter(p -> present.contains(p.getUUID())).toList());
         } finally { cleanup(raid); }
-        broadcast(message);
+        if (!defeated && !message.isBlank()) broadcast(message);
         if (defeated) {
             for (var player:server.getPlayerList().getPlayers()) if(present.contains(player.getUUID()) && captures!=null && captures.hasGrant(player)) {
                 try { captures.start(player); }
@@ -711,7 +712,7 @@ public final class ShirokaiRaids implements ModInitializer {
     static void openPendingMenu(ServerPlayer player) {
         var mod = instance;
         if (mod == null || !mod.healthy || !PendingRewardMenu.allowed(player)) {
-            player.sendSystemMessage(RaidMessages.component(msg("textos.menu_de_recompensas_indisponivel_neste_momento"))); return;
+            player.sendSystemMessage(RaidMessages.chat(msg("textos.menu_de_recompensas_indisponivel_neste_momento"))); return;
         }
         PendingRewardMenu.open(player, mod.state, java.time.ZoneId.of(mod.config.menuTimeZone), 0, () -> mod.healthy,
             () -> mod.claim(player.createCommandSourceStack()));
@@ -732,7 +733,7 @@ public final class ShirokaiRaids implements ModInitializer {
         if (RaidInventory.locked(player)) return 0;
         try {
             int delivered = rewardDelivery.deliver(new PlayerRewardTarget(server, player), 4);
-            if (delivered > 0) player.sendSystemMessage(RaidMessages.component(msg("recompensas.entregues", "quantidade", delivered)));
+            if (delivered > 0) player.sendSystemMessage(RaidMessages.chat(msg("recompensas.entregues", "quantidade", delivered)));
             return delivered;
         } catch (Exception error) {
             healthy = false;

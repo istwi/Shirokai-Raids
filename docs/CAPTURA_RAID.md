@@ -53,3 +53,11 @@ Use `/raidadmin setspawn` no local do boss e `/raidadmin setentrada` no destino 
 O ponto pode estar fora da arena ou em outra dimensão existente, mas só é possível desafiar o boss e receber captura estando dentro da arena na vitória. Posicioná-lo longe não aumenta `arenaRadius`. Sem ponto configurado, a busca segura perto do boss permanece como compatibilidade. `/raid lobby` e `/raidadmin setlobby` foram removidos; a configuração antiga de lobby não é usada como entrada automaticamente.
 
 As mensagens novas são `captura.nome`, `captura.bossbar`, `captura.sucesso`, `captura.esgotadas`, `captura.tempo_esgotado`, `captura.saiu`, `captura.derrota`, `captura.cancelada` e `entrada.*`. Chaves omitidas no JSON personalizado usam os padrões do mod.
+
+## Visual Shirokai
+
+O boss usa contorno vermelho; cada cópia privada usa contorno ciano. A BossBar vermelha do boss mostra nome, vida e tempo com o tema SHIROKAI. Captura e agendamento têm títulos próprios no mesmo estilo.
+
+Na vitória, participantes presentes recebem título/subtítulo (`vitoria.titulo` e `vitoria.subtitulo` em `messages.json`). A explosão visual usa fogos e end rods, sem dano nem quebra de blocos. O anúncio antigo de recompensas no chat não é enviado.
+
+O prefixo de chat fica em `chat.prefixo`. Somente valores idênticos aos padrões antigos são atualizados em memória ao carregar; personalizações são mantidas e o arquivo não é sobrescrito. O sufixo legado `— World Boss` dos nomes é apresentado como `— Raid`.

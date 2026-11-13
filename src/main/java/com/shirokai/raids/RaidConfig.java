@@ -66,7 +66,7 @@ public final class RaidConfig {
             throw new IllegalArgumentException("config.json: valores fora dos limites de segurança");
     }
     public static final class Boss {
-        public String id = "rayquaza", species = "rayquaza", form = "", name = "Rayquaza — World Boss";
+        public String id = "rayquaza", species = "rayquaza", form = "", name = "Rayquaza — Raid";
         public int level = 100;
         public long hp = 10_000_000;
         public boolean shiny = false;
