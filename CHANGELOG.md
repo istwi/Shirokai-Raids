@@ -1,5 +1,13 @@
 # Histórico de alterações
 
+## 0.1.12-dev
+
+- Chat e títulos de BossBar aceitam cores Minecraft (`&a`, `§a`), negrito (`&l`), reset (`&r`) e hexadecimal (`&#RRGGBB`).
+- BossBar azul pública mostra o tempo até a próxima raid automática e esvazia proporcionalmente ao intervalo, substituindo os avisos periódicos no chat.
+- Ao nascer o boss, a contagem sai e a barra de HP existente continua para os participantes na arena, com o alerta de pouca vida.
+- Contagem removida ao desativar o automático, perder persistência ou encerrar o servidor; desconexões removem jogadores da barra.
+- Guia de personalização atualizado. Build local, 75 testes JUnit, auditoria Showdown, ensaio de três sessões e verificação do JAR passaram. Conferência visual com cliente real permanece pendente.
+
 ## 0.1.11-dev
 
 - Mensagens do chat, menus e BossBar editáveis em `config/shirokai-raids/messages.json`, com variáveis e reload; textos personalizados são preservados e chaves omitidas usam o padrão.

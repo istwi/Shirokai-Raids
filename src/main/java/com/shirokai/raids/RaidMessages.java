@@ -1,6 +1,9 @@
 package com.shirokai.raids;
 
 import com.google.gson.JsonObject;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -35,6 +38,37 @@ final class RaidMessages {
         return Collections.unmodifiableMap(values);
     }
     static void install(Map<String, String> values) { current = Map.copyOf(values); }
+    /** Legacy Minecraft formatting, including &#RRGGBB. Unknown codes remain literal. */
+    static Component component(String text) {
+        var result = Component.empty();
+        var style = Style.EMPTY;
+        var part = new StringBuilder();
+        for (int i = 0; i < text.length(); i++) {
+            char ch = text.charAt(i);
+            if ((ch == '&' || ch == '§') && i + 1 < text.length()) {
+                char code = Character.toLowerCase(text.charAt(i + 1));
+                Integer rgb = null;
+                if (code == '#' && i + 7 < text.length()) {
+                    try { rgb = Integer.parseInt(text.substring(i + 2, i + 8), 16); }
+                    catch (NumberFormatException ignored) { }
+                }
+                var format = ChatFormatting.getByCode(code);
+                if (rgb != null || format != null) {
+                    if (part.length() > 0) { result.append(Component.literal(part.toString()).setStyle(style)); part.setLength(0); }
+                    if (rgb != null) { style = Style.EMPTY.withColor(rgb); i += 7; }
+                    else {
+                        style = format == ChatFormatting.RESET ? Style.EMPTY
+                            : format.isColor() ? Style.EMPTY.applyFormat(format) : style.applyFormat(format);
+                        i++;
+                    }
+                    continue;
+                }
+            }
+            part.append(ch);
+        }
+        if (part.length() > 0) result.append(Component.literal(part.toString()).setStyle(style));
+        return result;
+    }
     static String msg(String key, Object... arguments) { return render(current, key, arguments); }
     static String render(Map<String, String> values, String key, Object... arguments) {
         if (arguments.length % 2 != 0) throw new IllegalArgumentException("Variáveis devem ser pares nome/valor");

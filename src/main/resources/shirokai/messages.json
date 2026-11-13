@@ -5,6 +5,7 @@
   "raid.spawn": "{boss} apareceu! Use /raid para abrir o menu e entrar na arena.",
   "raid.proxima": "Próxima raid em {tempo}.",
   "raid.estado": "{boss}: {vida}/{vida_maxima} HP. Restam {tempo}.",
+  "bossbar.proxima": "&b&lPróxima raid &r&f| {tempo}",
   "bossbar.titulo": "{boss} | {vida}/{vida_maxima} HP | {tempo}",
   "menu.boss": "Boss: {boss}",
   "menu.vida": "Vida: {vida}/{vida_maxima} HP",

@@ -6,6 +6,14 @@ import java.util.concurrent.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class RaidCoreTest {
+    @Test void countdownEmptiesAndClampsAfterDeadlineOrIntervalReload() {
+        assertEquals(1.0f, RaidSchedule.countdownProgress(7_200_000, 7200));
+        assertEquals(0.5f, RaidSchedule.countdownProgress(3_600_000, 7200));
+        assertEquals(0.0f, RaidSchedule.countdownProgress(0, 7200));
+        assertEquals(0.0f, RaidSchedule.countdownProgress(-1000, 7200));
+        assertEquals(1.0f, RaidSchedule.countdownProgress(7_200_000, 60));
+        assertThrows(IllegalArgumentException.class, () -> RaidSchedule.countdownProgress(1000, 0));
+    }
     @Test void sharedHealthClampsOverkillAndRejectsInvalidDamage() {
         var hp = new RaidHealthManager(100);
         assertEquals(0, hp.damage(-1));

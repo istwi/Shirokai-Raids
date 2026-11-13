@@ -8,6 +8,18 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class RaidCustomizationTest {
     @TempDir Path dir;
+    @Test void formatsColorsBoldResetAndHexWithoutDroppingUnknownCodes() {
+        var text = RaidMessages.component("&a&lBoss&r normal &#12AB34hex &zliteral");
+        assertEquals("Boss normal hex &zliteral", text.getString());
+        var parts = text.getSiblings();
+        assertEquals(0x55FF55, parts.get(0).getStyle().getColor().getValue());
+        assertTrue(parts.get(0).getStyle().isBold());
+        assertFalse(parts.get(1).getStyle().isBold());
+        assertNull(parts.get(1).getStyle().getColor());
+        assertEquals(0x12AB34, parts.get(2).getStyle().getColor().getValue());
+        assertEquals("invalid &#ZZZZZZ", RaidMessages.component("invalid &#ZZZZZZ").getString());
+        assertEquals("section", RaidMessages.component("§csection").getString());
+    }
     @Test void createsEditableCatalogWithoutOverwritingCustomTextAndFallsBackForMissingKeys() throws Exception {
         Path path = dir.resolve("messages.json");
         var defaults = RaidMessages.load(path);

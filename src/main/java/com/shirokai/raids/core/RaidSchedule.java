@@ -7,6 +7,11 @@ public final class RaidSchedule {
         if (intervalSeconds < 60 || intervalSeconds > 31_536_000) throw new IllegalArgumentException("Intervalo inválido");
         return Math.addExact(now, Math.multiplyExact(intervalSeconds, 1000));
     }
+    /** Remaining fraction of one interval, safe when a reload shortens the interval. */
+    public static float countdownProgress(long remainingMillis, long intervalSeconds) {
+        if (intervalSeconds <= 0) throw new IllegalArgumentException("Intervalo inválido");
+        return (float) Math.clamp(remainingMillis / (intervalSeconds * 1000.0), 0.0, 1.0);
+    }
     public static boolean due(long now, long scheduled, boolean active) { return !active && now >= scheduled; }
     /** Pick only the nearest relevant threshold after a pause/restart, rather than a burst of stale warnings. */
     public static java.util.OptionalInt warning(long remainingMillis, java.util.List<Integer> thresholds, java.util.Set<Integer> warned) {
