@@ -52,3 +52,5 @@ Use um grupo administrativo separado; revise herança/prioridades no LuckPerms a
 No LuckPerms Fabric 5.4.140 testado, o contexto observado foi `world=overworld` (sem `minecraft:`), além de `gamemode=survival`. Para o Nether, o exemplo usa `world=the_nether`. Confirme o nome do contexto `world` que a versão instalada do LuckPerms expõe. O teste automatizado registra os contextos efetivos; não presuma que todo servidor/plugin use os mesmos nomes. Ao investigar um bloqueio, confira também `use`, heranças, negativos e contextos, não apenas o node específico.
 
 Menus checam permissão na abertura e navegação e invalidam acesso revogado. O teste em conexão controlada não substitui login real, grupos do seu servidor, proxies ou sincronização em banco externo.
+
+Os comandos `rewardreload`, `rewardstatus` e `rewardreview` ficam sob `/raidadmin` e exigem `shirokai.raids.admin`. Confira [Recompensas modulares](RECOMPENSAS_MODULARES.md).

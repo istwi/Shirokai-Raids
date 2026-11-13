@@ -1,5 +1,16 @@
 # Histórico de alterações
 
+## 0.1.16-dev
+
+- Recompensas gerais por contribuição e dificuldade; sorteio especial limitado às posições originais TOP 3, com desempate por UUID e chance de nenhum especial.
+- Sete arquivos de configuração independentes, overrides por boss, valores fixos/aleatórios, probabilidades e limites. `/raidadmin rewardreload` preserva snapshots de raids iniciadas.
+- Integrações opcionais com a API do Impactor 5.3.5 (Dollars/Tokens) e a fábrica oficial de fragmentos assinados do Shirokai Crates 0.2.1. Entregas offline e fila persistente.
+- Outbox com IDs por raid/jogador/prêmio e proteção contra repetição; fragmentos confirmados por recibo no playerdata. Pagamentos externos interrompidos sem confirmação ficam incertos para conferência administrativa, sem replay automático.
+- Registro de handlers e infraestrutura de políticas `REROLL`, `COMPENSATE` e `SKIP`, com consulta de propriedade, limite de tentativas, escopo e raridade preservados. Títulos sem API pública e partículas permanentes ficam indisponíveis para integração futura.
+- Menu de pendências mostra também prêmios gerais/TOP 3. Drops antigos são preservados por `legacyItems`; detalhes em [Recompensas modulares](docs/RECOMPENSAS_MODULARES.md).
+
+- Build e 99 testes JUnit aprovados; integração com moedas e fragmentos reais em dois JVMs, regressões de combate, captura e menus. [Validação e limites](docs/VALIDACAO_0.1.16-dev.md).
+
 ## 0.1.15-dev
 
 - Contorno vermelho no boss e ciano nas cópias privadas de captura, com limpeza das equipes de brilho ao encerrar.

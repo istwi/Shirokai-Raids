@@ -7,6 +7,7 @@ version = providers.gradleProperty('mod_version').get()
 base { archivesName = 'Shirokai-Raids' }
 repositories {
     mavenCentral()
+    maven { url = 'https://maven.impactdev.net/repository/development' }
     maven { url = 'https://artefacts.cobblemon.com/releases' }
 }
 dependencies {
@@ -16,6 +17,8 @@ dependencies {
     modImplementation 'net.fabricmc.fabric-api:fabric-api:0.116.6+1.21.1'
     modImplementation 'com.cobblemon:fabric:1.8.3+1.21.1'
     modCompileOnly 'net.luckperms:api:5.4'
+    compileOnly('net.impactdev.impactor.api:economy:5.3.5') { exclude group: 'net.kyori', module: 'event-api' }
+    testImplementation('net.impactdev.impactor.api:economy:5.3.5') { exclude group: 'net.kyori', module: 'event-api' }
     testImplementation platform('org.junit:junit-bom:5.11.4')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

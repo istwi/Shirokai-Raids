@@ -4,7 +4,7 @@ set -euo pipefail
 cd /workspace/Shirokai-Raids
 source scripts/cloud-env.sh
 raids_test_mode=${SHIROKAI_INTEGRATION_MODE:-teleport}
-case "$raids_test_mode" in teleport|combat|challenge|capture) ;; *) echo 'Modo de integração inválido' >&2; exit 1 ;; esac
+case "$raids_test_mode" in teleport|combat|challenge|capture|rewards) ;; *) echo 'Modo de integração inválido' >&2; exit 1 ;; esac
 raids_test_root=$(mktemp -d "/workspace/shared/raids-${raids_test_mode}-test.XXXXXXXX")
 python3 - "$raids_test_root" "$raids_test_mode" <<'PY'
 from pathlib import Path
@@ -21,6 +21,16 @@ for p in (base/'mods').glob('*.jar'):
 version=next(line.split('=',1)[1] for line in Path('gradle.properties').read_text().splitlines() if line.startswith('mod_version='))
 for p in [Path(f'build/libs/Shirokai-Raids-{version}-fabric-1.21.1.jar'),Path('build/integration/shirokai-raids-integration.jar')]:
     shutil.copy2(p,root/'mods'/p.name)
+if sys.argv[2]=='rewards':
+    import zipfile
+    for p in Path('/workspace/shared/raids-reward-mods').glob('*.jar'):
+        shutil.copy2(p,root/'mods'/p.name)
+    config=root/'config/impactor'
+    config.mkdir(parents=True)
+    jar=next((root/'mods').glob('Impactor*.jar'))
+    with zipfile.ZipFile(jar) as z:
+        economy=z.read('impactor/assets/configs/economy.conf').decode().replace('currencies {', 'currencies {\n "impactor:tokens" { singular=Token, plural=Tokens, decimals=0, primary=false, default-balance=0, symbol=T, transferable=false, formatting { condensed="<amount>", expanded="<amount> Tokens" } }\n',1)
+    (config/'economy.conf').write_text(economy)
 shutil.copy2(base/'eula.txt',root/'eula.txt')
 (root/'server.properties').write_text('server-ip=127.0.0.1\nserver-port=25566\nview-distance=3\nsimulation-distance=3\nlevel-type=minecraft:flat\ngenerate-structures=false\n')
 if sys.argv[2]=='challenge':
@@ -35,6 +45,16 @@ print(f'Mundo descartável: {root}')
 PY
 read -r -a raids_jvm_options <<< "${GRADLE_OPTS:-}"
 (cd "$raids_test_root" && timeout 180 java "${raids_jvm_options[@]}" -Dshirokai.integration=true "-Dshirokai.integration.mode=$raids_test_mode" -Xms512M -Xmx3G -jar fabric-server-launch.jar nogui > integration.log 2>&1)
+if [ "$raids_test_mode" = rewards ]; then
+    python3 - "$raids_test_root" <<'PY_CHECK'
+from pathlib import Path
+import sys,json
+result=json.loads((Path(sys.argv[1])/'rewards-phase1-result.json').read_text())
+assert result['passed'] is True,result
+print(result)
+PY_CHECK
+    (cd "$raids_test_root" && timeout 180 java "${raids_jvm_options[@]}" -Dshirokai.integration=true -Dshirokai.integration.mode=rewards -Xms512M -Xmx3G -jar fabric-server-launch.jar nogui > restart-integration.log 2>&1)
+fi
 python3 - "$raids_test_root" "$raids_test_mode" <<'PY'
 from pathlib import Path
 import json,sys

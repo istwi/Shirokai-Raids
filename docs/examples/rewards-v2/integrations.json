@@ -1,0 +1,11 @@
+{
+  "enabled": true,
+  "legacyItems": true,
+  "impactor": true,
+  "crates": true,
+  "minimumContribution": 0.01,
+  "deliveriesPerTick": 4,
+  "maximumRewardsPerPlayer": 32,
+  "maximumPending": 100000,
+  "maximumAmount": 1000000
+}

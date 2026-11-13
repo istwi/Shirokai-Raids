@@ -1,0 +1,29 @@
+{
+  "values": {
+    "epico": {
+      "general": "epico",
+      "special": "epico",
+      "quantityMultiplier": 2.0
+    },
+    "lendario": {
+      "general": "lendario",
+      "special": "lendario",
+      "quantityMultiplier": 2.5
+    },
+    "normal": {
+      "general": "normal",
+      "special": "normal",
+      "quantityMultiplier": 1.0
+    },
+    "raro": {
+      "general": "raro",
+      "special": "raro",
+      "quantityMultiplier": 1.5
+    },
+    "supremo": {
+      "general": "supremo",
+      "special": "supremo",
+      "quantityMultiplier": 3.0
+    }
+  }
+}

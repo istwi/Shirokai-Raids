@@ -1,0 +1,38 @@
+{
+  "titles": {
+    "policy": "COMPENSATE",
+    "maximumAttempts": 8,
+    "compensation": {
+      "id": "duplicate_compensation",
+      "type": "currency",
+      "reference": "impactor:tokens",
+      "minimum": 2,
+      "maximum": 2,
+      "chance": 1.0,
+      "minimumContribution": 0.0,
+      "baseMultiplier": 0.25,
+      "damageMultiplier": 3.0,
+      "weight": 1,
+      "rarity": 0,
+      "maximumRank": 0
+    }
+  },
+  "particles": {
+    "policy": "COMPENSATE",
+    "maximumAttempts": 8,
+    "compensation": {
+      "id": "duplicate_compensation",
+      "type": "currency",
+      "reference": "impactor:tokens",
+      "minimum": 2,
+      "maximum": 2,
+      "chance": 1.0,
+      "minimumContribution": 0.0,
+      "baseMultiplier": 0.25,
+      "damageMultiplier": 3.0,
+      "weight": 1,
+      "rarity": 0,
+      "maximumRank": 0
+    }
+  }
+}

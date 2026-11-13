@@ -1,0 +1,224 @@
+{
+  "pools": {
+    "epico": [
+      {
+        "id": "epico_bonus_dollars",
+        "type": "currency",
+        "reference": "impactor:dollars",
+        "minimum": 1000,
+        "maximum": 2000,
+        "chance": 1.0,
+        "minimumContribution": 0.0,
+        "baseMultiplier": 0.25,
+        "damageMultiplier": 3.0,
+        "weight": 1,
+        "rarity": 0,
+        "maximumRank": 0
+      },
+      {
+        "id": "epico_bonus_tokens",
+        "type": "currency",
+        "reference": "impactor:tokens",
+        "minimum": 5,
+        "maximum": 10,
+        "chance": 1.0,
+        "minimumContribution": 0.0,
+        "baseMultiplier": 0.25,
+        "damageMultiplier": 3.0,
+        "weight": 1,
+        "rarity": 0,
+        "maximumRank": 0
+      },
+      {
+        "id": "epico_bonus_fragment",
+        "type": "fragment",
+        "reference": "mega",
+        "minimum": 2,
+        "maximum": 4,
+        "chance": 1.0,
+        "minimumContribution": 0.0,
+        "baseMultiplier": 0.25,
+        "damageMultiplier": 3.0,
+        "weight": 1,
+        "rarity": 0,
+        "maximumRank": 0
+      }
+    ],
+    "lendario": [
+      {
+        "id": "lendario_bonus_dollars",
+        "type": "currency",
+        "reference": "impactor:dollars",
+        "minimum": 1000,
+        "maximum": 2000,
+        "chance": 1.0,
+        "minimumContribution": 0.0,
+        "baseMultiplier": 0.25,
+        "damageMultiplier": 3.0,
+        "weight": 1,
+        "rarity": 0,
+        "maximumRank": 0
+      },
+      {
+        "id": "lendario_bonus_tokens",
+        "type": "currency",
+        "reference": "impactor:tokens",
+        "minimum": 5,
+        "maximum": 10,
+        "chance": 1.0,
+        "minimumContribution": 0.0,
+        "baseMultiplier": 0.25,
+        "damageMultiplier": 3.0,
+        "weight": 1,
+        "rarity": 0,
+        "maximumRank": 0
+      },
+      {
+        "id": "lendario_bonus_fragment",
+        "type": "fragment",
+        "reference": "lendaria",
+        "minimum": 2,
+        "maximum": 4,
+        "chance": 1.0,
+        "minimumContribution": 0.0,
+        "baseMultiplier": 0.25,
+        "damageMultiplier": 3.0,
+        "weight": 1,
+        "rarity": 0,
+        "maximumRank": 0
+      }
+    ],
+    "normal": [
+      {
+        "id": "normal_bonus_dollars",
+        "type": "currency",
+        "reference": "impactor:dollars",
+        "minimum": 1000,
+        "maximum": 2000,
+        "chance": 1.0,
+        "minimumContribution": 0.0,
+        "baseMultiplier": 0.25,
+        "damageMultiplier": 3.0,
+        "weight": 1,
+        "rarity": 0,
+        "maximumRank": 0
+      },
+      {
+        "id": "normal_bonus_tokens",
+        "type": "currency",
+        "reference": "impactor:tokens",
+        "minimum": 5,
+        "maximum": 10,
+        "chance": 1.0,
+        "minimumContribution": 0.0,
+        "baseMultiplier": 0.25,
+        "damageMultiplier": 3.0,
+        "weight": 1,
+        "rarity": 0,
+        "maximumRank": 0
+      },
+      {
+        "id": "normal_bonus_fragment",
+        "type": "fragment",
+        "reference": "shiny1",
+        "minimum": 2,
+        "maximum": 4,
+        "chance": 1.0,
+        "minimumContribution": 0.0,
+        "baseMultiplier": 0.25,
+        "damageMultiplier": 3.0,
+        "weight": 1,
+        "rarity": 0,
+        "maximumRank": 0
+      }
+    ],
+    "raro": [
+      {
+        "id": "raro_bonus_dollars",
+        "type": "currency",
+        "reference": "impactor:dollars",
+        "minimum": 1000,
+        "maximum": 2000,
+        "chance": 1.0,
+        "minimumContribution": 0.0,
+        "baseMultiplier": 0.25,
+        "damageMultiplier": 3.0,
+        "weight": 1,
+        "rarity": 0,
+        "maximumRank": 0
+      },
+      {
+        "id": "raro_bonus_tokens",
+        "type": "currency",
+        "reference": "impactor:tokens",
+        "minimum": 5,
+        "maximum": 10,
+        "chance": 1.0,
+        "minimumContribution": 0.0,
+        "baseMultiplier": 0.25,
+        "damageMultiplier": 3.0,
+        "weight": 1,
+        "rarity": 0,
+        "maximumRank": 0
+      },
+      {
+        "id": "raro_bonus_fragment",
+        "type": "fragment",
+        "reference": "shiny1",
+        "minimum": 2,
+        "maximum": 4,
+        "chance": 1.0,
+        "minimumContribution": 0.0,
+        "baseMultiplier": 0.25,
+        "damageMultiplier": 3.0,
+        "weight": 1,
+        "rarity": 0,
+        "maximumRank": 0
+      }
+    ],
+    "supremo": [
+      {
+        "id": "supremo_bonus_dollars",
+        "type": "currency",
+        "reference": "impactor:dollars",
+        "minimum": 1000,
+        "maximum": 2000,
+        "chance": 1.0,
+        "minimumContribution": 0.0,
+        "baseMultiplier": 0.25,
+        "damageMultiplier": 3.0,
+        "weight": 1,
+        "rarity": 0,
+        "maximumRank": 0
+      },
+      {
+        "id": "supremo_bonus_tokens",
+        "type": "currency",
+        "reference": "impactor:tokens",
+        "minimum": 5,
+        "maximum": 10,
+        "chance": 1.0,
+        "minimumContribution": 0.0,
+        "baseMultiplier": 0.25,
+        "damageMultiplier": 3.0,
+        "weight": 1,
+        "rarity": 0,
+        "maximumRank": 0
+      },
+      {
+        "id": "supremo_bonus_fragment",
+        "type": "fragment",
+        "reference": "shiny2",
+        "minimum": 2,
+        "maximum": 4,
+        "chance": 1.0,
+        "minimumContribution": 0.0,
+        "baseMultiplier": 0.25,
+        "damageMultiplier": 3.0,
+        "weight": 1,
+        "rarity": 0,
+        "maximumRank": 0
+      }
+    ]
+  }
+}

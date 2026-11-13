@@ -1,0 +1,21 @@
+[
+  {
+    "project": "impactor",
+    "version": "5.3.5+1.21.1-Fabric",
+    "filename": "Impactor-Fabric-5.3.5+1.21.1.jar",
+    "url": "https://cdn.modrinth.com/data/LdBYVaPS/versions/KwNU9SQW/Impactor-Fabric-5.3.5%2B1.21.1.jar",
+    "sha512": "bfcec7e2a56b77fd874087a615aadaf71250a46dd29bf898ed0d1d280b807d4c5e34b700efe00a428067743dc672786e0467be01a1e30871a04bbf4dcf8b8020"
+  },
+  {
+    "project": "luckperms",
+    "version": "v5.4.140-fabric",
+    "filename": "LuckPerms-Fabric-5.4.140.jar",
+    "url": "https://cdn.modrinth.com/data/Vebnzrzj/versions/l47d4ZWk/LuckPerms-Fabric-5.4.140.jar",
+    "sha512": "386ff4d18981c830d21ddaa599d70c1c5430c1475e2c5960275bad535cbd572c77e38b3841f0a71e3ea4a795c56d45ff8c4a8dba3799dae26bff5a382c6e0a64"
+  },
+  {
+    "filename": "shirokai-crates-0.2.1.jar",
+    "url": "https://github.com/istwi/Shirokai-Crates/releases/download/v0.2.1/shirokai-crates-0.2.1.jar",
+    "sha256": "49a82904ef3fa971c535191657a592b9ee5affad5577913f1bb537ca1274adfd"
+  }
+]

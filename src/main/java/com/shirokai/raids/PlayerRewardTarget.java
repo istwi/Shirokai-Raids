@@ -16,20 +16,25 @@ import java.util.*;
 /** Vanilla entity Tags are saved in the same player NBT as Inventory. No client mod required. */
 final class PlayerRewardTarget implements RewardDelivery.Target {
     private static final String PREFIX = "shirokai_delivery:";
+    private final String prefix;
     private final MinecraftServer server;
     private final ServerPlayer player;
 
     PlayerRewardTarget(MinecraftServer server, ServerPlayer player) {
+        this(server, player, PREFIX);
+    }
+    PlayerRewardTarget(MinecraftServer server, ServerPlayer player, String prefix) {
+        this.prefix=prefix;
         this.server = server;
         this.player = player;
     }
     public String player() { return player.getUUID().toString(); }
-    public boolean received(String id) { return player.getTags().contains(PREFIX + id); }
-    public void forget(String id) { player.removeTag(PREFIX + id); }
+    public boolean received(String id) { return player.getTags().contains(prefix + id); }
+    public void forget(String id) { player.removeTag(prefix + id); }
     public void prune(Set<String> outstanding) {
         for (String tag : Set.copyOf(player.getTags())) {
-            if (!tag.startsWith(PREFIX)) continue;
-            String id = tag.substring(PREFIX.length());
+            if (!tag.startsWith(prefix)) continue;
+            String id = tag.substring(prefix.length());
             try { UUID.fromString(id); } catch (IllegalArgumentException ignored) { continue; }
             if (!outstanding.contains(id)) player.removeTag(tag);
         }
@@ -39,7 +44,10 @@ final class PlayerRewardTarget implements RewardDelivery.Target {
         var id = ResourceLocation.tryParse(item);
         if (id == null || !BuiltInRegistries.ITEM.containsKey(id) || player.getTags().size() >= 1024) return null;
         var template = new ItemStack(BuiltInRegistries.ITEM.get(id));
-        if (template.isEmpty()) return null;
+        return plan(template, limit);
+    }
+    RewardDelivery.Transfer plan(ItemStack template, int limit) {
+        if (template.isEmpty() || limit<1 || player.getTags().size()>=1024) return null;
         var inventory = player.getInventory();
         var before = new LinkedHashMap<Integer, ItemStack>();
         var after = new LinkedHashMap<Integer, ItemStack>();
@@ -67,12 +75,12 @@ final class PlayerRewardTarget implements RewardDelivery.Target {
                 // Planning and insertion run synchronously on the server thread, with no callbacks between.
                 try {
                     after.forEach((slot, stack) -> inventory.setItem(slot, stack.copy()));
-                    if (!player.addTag(PREFIX + receipt)) throw new IllegalStateException("Não foi possível registrar a entrega");
+                    if (!player.addTag(prefix + receipt)) throw new IllegalStateException("Não foi possível registrar a entrega");
                     inventory.setChanged();
                     player.inventoryMenu.broadcastChanges();
                 } catch (RuntimeException error) {
                     before.forEach((slot, stack) -> inventory.setItem(slot, stack.copy()));
-                    player.removeTag(PREFIX + receipt);
+                    player.removeTag(prefix + receipt);
                     throw error;
                 }
             }
@@ -85,7 +93,7 @@ final class PlayerRewardTarget implements RewardDelivery.Target {
         var path = server.getWorldPath(LevelResource.PLAYER_DATA_DIR).resolve(player() + ".dat");
         var saved = NbtIo.readCompressed(path, NbtAccounter.unlimitedHeap());
         var tags = saved.getList("Tags", Tag.TAG_STRING);
-        for (int i = 0; i < tags.size(); i++) if (tags.getString(i).equals(PREFIX + id)) return;
+        for (int i = 0; i < tags.size(); i++) if (tags.getString(i).equals(prefix + id)) return;
         throw new IOException("Salvamento do inventário não confirmou o recibo; reserva preservada");
     }
 }

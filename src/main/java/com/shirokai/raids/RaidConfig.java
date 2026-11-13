@@ -73,11 +73,13 @@ public final class RaidConfig {
         public float scale = 2;
         public double damageMultiplier = 1.0;
         public String rewards = "default";
+        public String difficulty = "normal";
         public void validate() {
             if (id == null || !id.matches("[a-z0-9_-]+") || species == null || !species.matches("[a-z0-9_:.-]+")
                 || form == null || !form.matches("[a-zA-Z0-9_-]*") || name == null || name.isBlank()
                 || level < 1 || level > 100 || hp < 1 || hp > 1_000_000_000_000L || !Float.isFinite(scale) || scale < .5 || scale > 5
                 || !Double.isFinite(damageMultiplier) || damageMultiplier < 0 || damageMultiplier > 100
+                || difficulty == null || !RaidRewardSettings.DIFFICULTIES.contains(difficulty)
                 || rewards == null || !rewards.matches("[a-z0-9_-]+")) throw new IllegalArgumentException("Boss inválido: " + id);
         }
     }

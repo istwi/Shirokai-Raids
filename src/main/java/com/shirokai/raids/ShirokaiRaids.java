@@ -54,6 +54,8 @@ public final class ShirokaiRaids implements ModInitializer {
     private boolean healthy;
     private long tick;
     private RewardDelivery rewardDelivery;
+    private RaidRewardSettings rewardSettings;
+    private RaidRewardJournal modularRewards;
     private RaidCapture captures;
     private final Set<UUID> rewardQueue = new LinkedHashSet<>();
     private final Map<UUID,Long> claimCooldown = new HashMap<>();
@@ -67,6 +69,10 @@ public final class ShirokaiRaids implements ModInitializer {
         final ServerLevel world;
         final Vec3 center;
         final RaidCombatCoordinator health;
+        long rewardPendingAtStart;
+        final Set<UUID> rewardParticipants=new HashSet<>();
+        RaidRewardSettings rewardSettings;
+        RaidConfig.Rewards legacyRewards;
         RaidChunkLease chunks;
         TraditionalRaidBattles battles;
         final RaidDamageTracker damage = new RaidDamageTracker();
@@ -143,6 +149,11 @@ public final class ShirokaiRaids implements ModInitializer {
                 .executes(c -> start(c.getSource(), StringArgumentType.getString(c,"boss")))));
             admin.then(Commands.literal("parar").executes(c -> { finish(false,msg("textos.raid_encerrada_pela_administracao")); return 1; }));
             admin.then(Commands.literal("setspawn").executes(c -> setSpawn(c.getSource())));
+            admin.then(Commands.literal("rewardreload").executes(c -> rewardReload(c.getSource())));
+            admin.then(Commands.literal("rewardstatus").executes(c -> rewardStatus(c.getSource())));
+            admin.then(Commands.literal("rewardreview").then(Commands.argument("transaction",StringArgumentType.word())
+                .then(Commands.literal("confirmar").then(Commands.argument("motivo",StringArgumentType.greedyString()).executes(c -> rewardReview(c.getSource(),StringArgumentType.getString(c,"transaction"),true,StringArgumentType.getString(c,"motivo")))))
+                .then(Commands.literal("repetir").then(Commands.argument("motivo",StringArgumentType.greedyString()).executes(c -> rewardReview(c.getSource(),StringArgumentType.getString(c,"transaction"),false,StringArgumentType.getString(c,"motivo")))))));
             admin.then(Commands.literal("setentrada").executes(c -> setEntry(c.getSource())));
             admin.then(Commands.literal("status").executes(c -> status(c.getSource())));
             admin.then(Commands.literal("info").executes(c -> status(c.getSource())));
@@ -181,6 +192,7 @@ public final class ShirokaiRaids implements ModInitializer {
             JsonFiles.defaultFile(configDir.resolve("bosses/rayquaza.json"), new RaidConfig.Boss());
         JsonFiles.defaultFile(configDir.resolve("rewards/default.json"), RaidConfig.Rewards.defaults());
         var next = JsonFiles.read(configDir.resolve("config.json"), RaidConfig.class); next.validate();
+        var nextRewardSettings = RaidRewardSettings.load(configDir.resolve("rewards-v2"));
         var nextMessages = RaidMessages.load(configDir.resolve("messages.json"));
         var bossMap = RaidBossCatalog.load(configDir.resolve("bosses"));
         var rewardMap = new HashMap<String,RaidConfig.Rewards>();
@@ -189,7 +201,7 @@ public final class ShirokaiRaids implements ModInitializer {
             rewardMap.put(boss.rewards,table);
         }
         if(server!=null) { validateRewardItems(rewardMap); validateDestinations(next); }
-        config = next; bosses = bossMap; rewards = rewardMap;
+        config = next; bosses = bossMap; rewards = rewardMap; rewardSettings = nextRewardSettings;
         RaidMessages.install(nextMessages);
     }
     private void validateRewardItems(Map<String,RaidConfig.Rewards> tables) {
@@ -222,6 +234,15 @@ public final class ShirokaiRaids implements ModInitializer {
             healthy = true; save();
             rewardDelivery = new RewardDelivery(state, this::save);
             captures = new RaidCapture(server,state,this::save);
+            modularRewards = new RaidRewardJournal(state.modularRewards,this::save,server,line -> LOG.info("{}",line));
+            modularRewards.register("currency",new ImpactorRaidRewards(() -> rewardSettings.integrations.impactor));
+            modularRewards.register("fragment",new CratesRaidRewards(server,() -> rewardSettings.integrations.crates));
+            for(var provider:FabricLoader.getInstance().getEntrypoints("shirokai_raids:rewards",RaidRewardHandler.Provider.class)) provider.register(modularRewards::register);
+            modularRewards.recover();
+            modularRewards.onDelivered(g -> {
+                var player=server.getPlayerList().getPlayer(UUID.fromString(g.player));
+                if(player!=null) RaidCapture.tell(player,"recompensas.modular_entregue","quantidade",g.choice.amount.toPlainString(),"premio",rewardName(g.choice.reward.type,g.choice.reward.reference),"categoria",g.scope.equals("special")?"TOP 3":"Geral");
+            });
             rewardQueue.clear();
         } catch (Exception e) { healthy = false; LOG.error("Raids desativadas: falha ao carregar estado; arquivo preservado",e); }
     }
@@ -338,11 +359,14 @@ public final class ShirokaiRaids implements ModInitializer {
         String key = player.getUUID().toString();
         if (captures != null && captures.active(player.getUUID())) return reply(source,msg("captura.ja_ativa"));
         if (state.returns.containsKey(key)) return reply(source,msg("textos.voce_ja_entrou_use_raid_sair_antes_de_entrar_novamente"));
+        if(!raid.rewardParticipants.contains(player.getUUID()) && !RaidRewardJournal.hasCapacity(raid.rewardPendingAtStart,raid.rewardParticipants.size()+1,raid.rewardSettings.integrations))
+            return reply(source,"Não há capacidade para novas recompensas nesta raid. Avise a administração.");
         try { RaidInventory.requireEmpty(player); } catch(IllegalStateException error) { return reply(source,error.getMessage()); }
         state.returns.put(key, new RaidState.ReturnPosition(player.serverLevel().dimension().location().toString(),
             player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot()));
         state.returns.get(key).raid=raid.id;
         save(); // Persist the origin before moving the player; never move or store personal items.
+        raid.rewardParticipants.add(player.getUUID());
         player.teleportTo(destinationWorld,destination.x,destination.y,destination.z,Set.of(),yaw,pitch);
         player.fallDistance=0;
         if(inArena(player)) raid.bar.addPlayer(player);
@@ -472,6 +496,9 @@ public final class ShirokaiRaids implements ModInitializer {
         var world = server.getLevel(ResourceKey.create(Registries.DIMENSION,ResourceLocation.parse(config.dimension)));
         if (world == null) throw new IllegalArgumentException(msg("textos.dimensao_inexistente"));
         if (config.y < world.getMinBuildHeight() || config.y >= world.getMaxBuildHeight()) throw new IllegalArgumentException(msg("textos.altura_de_arena_invalida"));
+        long rewardPendingAtStart=state.modularRewards.grants.values().stream().filter(g -> g.status!=RaidRewardJournal.Status.DONE && g.status!=RaidRewardJournal.Status.SKIPPED).count();
+        if(!RaidRewardJournal.hasCapacity(rewardPendingAtStart,config.maxConcurrentPlayers,rewardSettings.integrations))
+            throw new IllegalStateException("Limite de pendências: resolva as entregas antes de iniciar outra raid.");
         var center = net.minecraft.core.BlockPos.containing(config.x, config.y, config.z);
         if (!world.getWorldBorder().isWithinBounds(center)) throw new IllegalArgumentException(msg("textos.arena_fora_da_borda_do_mundo"));
         var lease = new RaidChunkLease(world, new net.minecraft.world.level.ChunkPos(center), config.arenaRadius);
@@ -491,6 +518,9 @@ public final class ShirokaiRaids implements ModInitializer {
         entity.addTag("shirokai_raid_boss");
         entity.moveTo(config.x,config.y,config.z,config.spawnYaw,config.spawnPitch);
         var candidate = new Active(definition,entity,world,new Vec3(config.x,config.y,config.z),System.currentTimeMillis()+config.durationSeconds*1000L,config.maxConcurrentPlayers);
+        candidate.rewardPendingAtStart=rewardPendingAtStart;
+        candidate.rewardSettings=JsonFiles.copy(rewardSettings,RaidRewardSettings.class);
+        candidate.legacyRewards=JsonFiles.copy(rewards.get(definition.rewards),RaidConfig.Rewards.class);
         candidate.chunks = lease;
         candidate.battles=new TraditionalRaidBattles(entity,candidate.health,definition.damageMultiplier,hit ->
             candidate.damage.record(hit.player(),hit.name(),hit.pokemon(),hit.applied(),System.currentTimeMillis()),
@@ -590,6 +620,7 @@ public final class ShirokaiRaids implements ModInitializer {
         try {
             if (captures != null) captures.tick();
             retryRewards();
+            if(tick%20==0 && modularRewards!=null) modularRewards.tick(rewardSettings.integrations.deliveriesPerTick);
             if(active!=null) {
                 active.battles.tick();
                 if(active.health.current()==0) { finish(true,msg("textos.boss_derrotado_recompensas_disponiveis_em_raid_recompensas")); return; }
@@ -653,8 +684,10 @@ public final class ShirokaiRaids implements ModInitializer {
             capture(raid);
             var drops = new HashMap<String, Map<String, Integer>>();
             if(defeated && !state.completed.contains(raid.id)) {
-                var table=rewards.get(raid.definition.rewards);
+                modularRewards.award(raid.id,raid.definition.id,raid.definition.difficulty,raid.health.maximum(),raid.damage.ranking(),raid.rewardSettings,random);
+                var table=raid.legacyRewards;
                 for(var entry:raid.damage.ranking()) {
+                    if(!raid.rewardSettings.integrations.legacyItems) continue;
                     double contribution=raid.damage.contribution(entry.player(),raid.health.maximum());
                     if(contribution<table.minimumContribution) continue;
                     for(var drop:RaidLootRoller.roll(table,contribution,random)) {
@@ -717,9 +750,30 @@ public final class ShirokaiRaids implements ModInitializer {
         PendingRewardMenu.open(player, mod.state, java.time.ZoneId.of(mod.config.menuTimeZone), 0, () -> mod.healthy,
             () -> mod.claim(player.createCommandSourceStack()));
     }
+    static String rewardName(String type,String reference) {
+        return reference.equals("impactor:dollars")?"Dollars":reference.equals("impactor:tokens")?"Tokens":type.equals("fragment")?"Fragmentos de chave ("+reference+")":reference;
+    }
+    private int rewardReload(CommandSourceStack source) {
+        try {var next=RaidRewardSettings.load(configDir.resolve("rewards-v2"));rewardSettings=next;return reply(source,"Tabelas de recompensas recarregadas. Raids iniciadas preservam suas tabelas.");}
+        catch(Exception error){return reply(source,"Recarregamento recusado; tabelas anteriores preservadas: "+error.getMessage());}
+    }
+    private int rewardStatus(CommandSourceStack source) {
+        if(state==null)return reply(source,"Recompensas indisponíveis.");
+        for(var status:RaidRewardJournal.Status.values()) reply(source,"Recompensas "+status+": "+state.modularRewards.grants.values().stream().filter(g->g.status==status).count());
+        state.modularRewards.grants.values().stream().filter(g->g.status==RaidRewardJournal.Status.PENDING).collect(java.util.stream.Collectors.groupingBy(g->g.choice.reward.type+"/"+g.choice.reward.reference,java.util.stream.Collectors.counting())).forEach((type,count)->reply(source,"Pendentes "+type+": "+count));
+        state.modularRewards.grants.values().stream().filter(g->g.status==RaidRewardJournal.Status.UNCERTAIN).limit(20).forEach(g->reply(source,g.id+" | "+g.player+" | "+g.choice.reward.reference+" x"+g.choice.amount));
+        return 1;
+    }
+    private int rewardReview(CommandSourceStack source,String id,boolean paid,String reason) {
+        try {if(!healthy||modularRewards==null)throw new IllegalStateException("Persistência indisponível");modularRewards.review(id,paid,source.getTextName()+": "+reason);return reply(source,"Conferência registrada.");}
+        catch(Exception error){return reply(source,"Conferência recusada: "+error.getMessage());}
+    }
     private void retryRewards() {
         if (tick % 100 == 0) for (var player : server.getPlayerList().getPlayers()) {
             String key = player.getUUID().toString();
+            var outstanding=new HashSet<String>();
+            state.modularRewards.grants.values().stream().filter(g->g.player.equals(key)&&g.status!=RaidRewardJournal.Status.DONE&&g.status!=RaidRewardJournal.Status.SKIPPED).forEach(g->outstanding.add(g.id));
+            new PlayerRewardTarget(server,player,"shirokai_modular:").prune(outstanding);
             if (!state.pending.getOrDefault(key, List.of()).isEmpty()
                 || state.deliveries.values().stream().anyMatch(d -> d.player.equals(key))) rewardQueue.add(player.getUUID());
         }

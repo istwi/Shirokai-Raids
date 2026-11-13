@@ -60,6 +60,12 @@ final class PendingRewardMenu extends ChestMenu {
         if (page > 0) container.setItem(18, icon(Items.ARROW,msg("textos.pagina_anterior")));
         container.setItem(19, icon(Items.BOOK,msg("textos.historico_pessoal")));
         container.setItem(20, icon(Items.GOLD_INGOT,msg("textos.ranking_global")));
+        var modular=icon(Items.EMERALD,"Recompensas gerais e TOP 3");
+        var modularLore=new ArrayList<Component>();
+        state.modularRewards.grants.values().stream().filter(g->g.player.equals(player.getUUID().toString())&&g.status!=RaidRewardJournal.Status.DONE&&g.status!=RaidRewardJournal.Status.SKIPPED).limit(12)
+            .forEach(g->modularLore.add(Component.literal(ShirokaiRaids.rewardName(g.choice.reward.type,g.choice.reward.reference)+" x"+g.choice.amount+" | "+g.status)));
+        modularLore.add(Component.literal("Entrega automática; pendências preservadas."));
+        modular.set(DataComponents.LORE,new ItemLore(modularLore));container.setItem(21,modular);
         container.setItem(22, icon(Items.LIME_DYE,msg("textos.tentar_entregar_no_inventario")));
         container.setItem(23, icon(Items.CLOCK,msg("textos.atualizar_pendencias")));
         container.setItem(24, icon(Items.PAPER,msg("textos.sem_espaco_saldo_preservado_aguarde_5s_entre_tentativas")));

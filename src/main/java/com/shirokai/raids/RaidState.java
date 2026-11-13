@@ -42,6 +42,7 @@ final class RaidState {
             return now>=deadline && dimension.equals(currentDimension) && dx*dx+dy*dy+dz*dz<=radius*radius;
         }
     }
+    RaidRewardJournal.Data modularRewards = new RaidRewardJournal.Data();
     long nextRaid;
     String activeRaid, bossEntity;
     long hp;
@@ -67,6 +68,8 @@ final class RaidState {
         }
     }
     void validate() {
+        if(modularRewards==null)throw new IllegalArgumentException("Recompensas modulares ausentes");
+        modularRewards.validate();
         if (arenaExits==null) throw new IllegalArgumentException("Retornos automáticos ausentes");
         for (var entry:arenaExits.entrySet()) {
             UUID.fromString(entry.getKey()); var exit=entry.getValue();
