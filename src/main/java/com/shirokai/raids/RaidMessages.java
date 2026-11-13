@@ -48,7 +48,16 @@ final class RaidMessages {
             case "recompensas.entregues" -> "[Raids] Itens entregues: {quantidade}. Use /raid recompensas para tentar resgatar pendências.";
             default -> null;
         };
-        return value.equals(previous) ? DEFAULTS.get(key) : value;
+        String recent = switch (key) {
+            case "chat.prefixo" -> "&f✦ &lSHIROKAI&r &c&lRAID&r &8» &f{texto}";
+            case "bossbar.proxima" -> "&f&lSHIROKAI&r &8✦ &c&lRAID&r &8┃ &fPróxima em &e{tempo}";
+            case "bossbar.titulo" -> "&f&lSHIROKAI&r &8┃ &c{boss} &8┃ &f{vida}&7/&f{vida_maxima} &c♥ &8┃ &e{tempo}";
+            case "captura.bossbar" -> "&f&lSHIROKAI&r &8┃ &b&lCAPTURA&r &8┃ &b{boss} &8┃ &e{tempo} &8┃ &f{quantidade} bolas";
+            case "captura.inicio" -> "&eSua cópia de {boss} está brilhando na arena! &fEnvie seu Pokémon, mire na cópia e pressione R. Você tem {quantidade} bolas e 2 minutos desde a vitória. Chance por bola: {chance}%.";
+            case "vitoria.titulo" -> "&f&lSHIROKAI &8✦ &a&lVITÓRIA!";
+            default -> null;
+        };
+        return value.equals(previous) || value.equals(recent) ? DEFAULTS.get(key) : value;
     }
     static Component chat(String text) { return component(msg("chat.prefixo", "texto", text)); }
     static void install(Map<String, String> values) { current = Map.copyOf(values); }

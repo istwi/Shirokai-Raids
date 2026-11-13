@@ -49,6 +49,8 @@ public final class ShirokaiRaids implements ModInitializer {
     private Path statePath;
     private MinecraftServer server;
     private Active active;
+    private record Victory(String raid,Set<UUID> present,RaidVictoryTransition animation) {}
+    private Victory victory;
     private final ServerBossEvent countdownBar = new ServerBossEvent(Component.empty(),
         BossEvent.BossBarColor.BLUE, BossEvent.BossBarOverlay.PROGRESS);
 
@@ -92,7 +94,7 @@ public final class ShirokaiRaids implements ModInitializer {
         RaidCapture.register();
         try { loadConfig(); } catch (Exception e) { throw new IllegalStateException(msg("textos.configuracao_shirokai_raids_invalida"), e); }
         ServerLifecycleEvents.SERVER_STARTED.register(this::started);
-        ServerLifecycleEvents.SERVER_STOPPING.register(s -> { if (captures != null) captures.shutdown(); countdownBar.removeAllPlayers(); if (active != null) finish(false, msg("textos.servidor_encerrando_raid_cancelada")); });
+        ServerLifecycleEvents.SERVER_STOPPING.register(s -> { cancelVictory(); if (captures != null) captures.shutdown(); countdownBar.removeAllPlayers(); if (active != null) finish(false, msg("textos.servidor_encerrando_raid_cancelada")); });
         ServerTickEvents.END_SERVER_TICK.register(s -> tick());
         ServerPlayConnectionEvents.JOIN.register((handler, sender, s) -> {
             try { RaidLegacyInventory.recover(handler.getPlayer()); } catch(Exception error) { LOG.error("Backup legado preservado",error); }
@@ -106,6 +108,7 @@ public final class ShirokaiRaids implements ModInitializer {
         });
         ServerPlayConnectionEvents.DISCONNECT.register((handler, s) -> {
             countdownBar.removePlayer(handler.getPlayer());
+            if (victory!=null) victory.animation.removeViewer(handler.getPlayer());
             if (active != null) active.battles.leave(handler.getPlayer().getUUID());
             if (captures != null) captures.close(handler.getPlayer(),true);
             RaidInventory.removeRaidBalls(handler.getPlayer());
@@ -117,15 +120,14 @@ public final class ShirokaiRaids implements ModInitializer {
             if (entity.getTags().contains(RaidCapture.BALL_TAG) && (captures==null || !captures.knownBall(entity))) entity.discard();
             if (entity instanceof PokemonEntity && (entity.getTags().contains("shirokai_raids_boss")
                 || entity.getTags().contains("shirokai_raid_boss"))
-                && (active == null || entity != active.boss || world != active.world)) { RaidPresentation.clearGlow(entity); entity.discard(); }
+                && (active == null || entity != active.boss || world != active.world) && !(victory!=null && victory.animation.known(entity))) { RaidPresentation.clearGlow(entity); entity.discard(); }
         });
         CobblemonEvents.THROWN_POKEBALL_HIT.subscribe(event -> { if (isBoss(event.getPokemon().getUUID())) event.cancel(); });
         CobblemonEvents.BATTLE_STARTED_PRE.subscribe(event -> {
             if (captures!=null && !captures.allowsBattle(event.getBattle())) { event.cancel(); return; }
-            if (active == null) return;
             for (var actor : event.getBattle().getActors()) for (var bp : actor.getPokemonList()) {
                 UUID id = bp.getEffectedPokemon().getUuid();
-                if (id.equals(active.boss.getPokemon().getUuid())) {
+                if ((active!=null && id.equals(active.boss.getPokemon().getUuid())) || (victory!=null && victory.animation.pokemon(id))) {
                     event.cancel(); return;
                 }
             }
@@ -185,7 +187,7 @@ public final class ShirokaiRaids implements ModInitializer {
             admin.then(reservations);
             admin.then(Commands.literal("listar").executes(c -> reply(c.getSource(), String.join(", ", bosses.keySet()))));
             admin.then(Commands.literal("reload").executes(c -> {
-                if (active != null) return reply(c.getSource(),msg("textos.encerre_a_raid_antes_de_recarregar"));
+                if (active != null || victory!=null) return reply(c.getSource(),msg("textos.encerre_a_raid_antes_de_recarregar"));
                 try { loadConfig(); return reply(c.getSource(),msg("textos.configuracoes_recarregadas")); }
                 catch (Exception e) { LOG.error("Falha de configuração", e); return reply(c.getSource(),msg("config.erro", "erro", e.getMessage())); }
             }));
@@ -296,7 +298,7 @@ public final class ShirokaiRaids implements ModInitializer {
         source.sendFailure(RaidMessages.chat(msg("comandos.bloqueados")));
         return true;
     }
-    private boolean isBoss(UUID uuid) { return active != null && active.boss.getUUID().equals(uuid); }
+    private boolean isBoss(UUID uuid) { return active != null && active.boss.getUUID().equals(uuid) || victory!=null && victory.animation.known(uuid); }
     private int reply(CommandSourceStack source, String text) { source.sendSuccess(() -> RaidMessages.chat(text),false); return 1; }
     private void broadcast(String text) { server.getPlayerList().broadcastSystemMessage(RaidMessages.chat(text),false); }
     private int info(CommandSourceStack source) {
@@ -447,7 +449,7 @@ public final class ShirokaiRaids implements ModInitializer {
         } catch (Exception e) { return reply(source, msg("entrada.erro") + e.getMessage()); }
     }
     private int configure(CommandSourceStack source, java.util.function.Consumer<RaidConfig> change, String message) {
-        if (active != null) return reply(source, msg("textos.encerre_a_raid_antes_de_alterar_a_configuracao"));
+        if (active != null || victory!=null) return reply(source, msg("textos.encerre_a_raid_antes_de_alterar_a_configuracao"));
         try {
             var next = JsonFiles.copy(config, RaidConfig.class); change.accept(next); next.validate(); validateDestinations(next);
             JsonFiles.write(configDir.resolve("config.json"), next);
@@ -515,7 +517,7 @@ public final class ShirokaiRaids implements ModInitializer {
         begin(definition,null);
     }
     private void begin(RaidConfig.Boss definition,RaidAutomaticCatalog.Draw automaticDraw) {
-        if (!healthy || active != null) throw new IllegalStateException(msg("textos.raids_indisponiveis_ou_ja_existe_uma_raid_ativa"));
+        if (!healthy || active != null || victory!=null) throw new IllegalStateException(msg("textos.raids_indisponiveis_ou_ja_existe_uma_raid_ativa"));
         if (captures!=null && captures.anyActive()) throw new IllegalStateException(msg("captura.aguarde_fases"));
         if (!config.spawnConfigured) throw new IllegalStateException(msg("textos.use_raidadmin_setspawn_primeiro"));
         validateRewardItems(Map.of(definition.rewards,rewards.get(definition.rewards)));
@@ -609,6 +611,7 @@ public final class ShirokaiRaids implements ModInitializer {
         var world = server.getLevel(ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(origin.dimension)));
         if (world == null) return reply(source,msg("textos.a_dimensao_de_retorno_esta_indisponivel_sua_posicao_foi_preservada_avise_a_"));
         if (!player.isAlive() || player.isPassenger()) return reply(source,msg("textos.voce_precisa_estar_vivo_e_fora_de_veiculos_para_sair"));
+        if (victory!=null) victory.animation.removeViewer(player);
         if (active != null) { active.battles.leave(player.getUUID()); active.bar.removePlayer(player); }
         try { if (captures != null) captures.close(player,true); }
         catch(Exception error) { return reply(source,error.getMessage()); }
@@ -632,7 +635,7 @@ public final class ShirokaiRaids implements ModInitializer {
         active.damage.ranking().stream().limit(10).forEach(e -> reply(source,e.name() + ": " + e.damage() + " HP")); return 1;
     }
     private void updateCountdown(long now) {
-        if (!healthy || active != null || captures!=null && captures.anyActive() || !config.spawnConfigured || !config.automaticRaids) {
+        if (!healthy || active != null || victory!=null || captures!=null && captures.anyActive() || !config.spawnConfigured || !config.automaticRaids) {
             countdownBar.removeAllPlayers();
             return;
         }
@@ -644,9 +647,10 @@ public final class ShirokaiRaids implements ModInitializer {
     private void tick() {
         tick++;
         if (server == null) return;
-        if (!healthy) { countdownBar.removeAllPlayers(); if (captures!=null) captures.shutdown(); return; }
+        if (!healthy) { cancelVictory(); countdownBar.removeAllPlayers(); if (captures!=null) captures.shutdown(); return; }
         try {
             if (captures != null) captures.tick();
+            advanceVictory();
             retryRewards();
             if(tick%20==0 && modularRewards!=null) modularRewards.tick(rewardSettings.integrations.deliveriesPerTick);
             if(active!=null) {
@@ -674,14 +678,14 @@ public final class ShirokaiRaids implements ModInitializer {
                     else { active.bar.removePlayer(player); active.battles.leave(player.getUUID()); }
                 }
                 if (tick % 200 == 0) snapshot();
-            } else if (config.spawnConfigured && config.automaticRaids && (captures==null || !captures.anyActive())) {
+            } else if (victory==null && config.spawnConfigured && config.automaticRaids && (captures==null || !captures.anyActive())) {
                 if (RaidSchedule.due(now,state.nextRaid,false)) {
                     try { beginAutomatic(); }
                     catch (Exception e) { LOG.warn("Raid automática adiada",e); state.nextRaid=RaidSchedule.next(now,config.intervalSeconds); save(); }
                 }
                 updateCountdown(now);
             }
-        } catch (Exception e) { LOG.error("Raid suspensa após falha; verifique o estado persistente",e); healthy=false; countdownBar.removeAllPlayers(); if(active!=null) cleanup(active); }
+        } catch (Exception e) { LOG.error("Raid suspensa após falha; verifique o estado persistente",e); healthy=false; countdownBar.removeAllPlayers(); cancelVictory(); if(active!=null) cleanup(active); }
     }
     private void snapshot() {
         capture(active);
@@ -701,8 +705,9 @@ public final class ShirokaiRaids implements ModInitializer {
         finish(defeated ? RaidArchive.Outcome.VICTORY : RaidArchive.Outcome.CANCELLED, message);
     }
     private void finish(RaidArchive.Outcome outcome, String message) {
-        if(active==null) return;
+        if(active==null) { if(victory!=null && outcome!=RaidArchive.Outcome.VICTORY){cancelVictory();if(!message.isBlank())broadcast(message);}return; }
         var raid=active;
+        boolean deferred=false;
         boolean defeated = outcome == RaidArchive.Outcome.VICTORY;
         long victoryTime=System.currentTimeMillis();
         Set<UUID> present=new HashSet<>();
@@ -733,15 +738,36 @@ public final class ShirokaiRaids implements ModInitializer {
             }
             state.archive.complete(outcome, System.currentTimeMillis(), drops);
             state.activeRaid=null; state.bossEntity=null; save();
-            if (defeated) RaidPresentation.victory(raid.boss, raid.definition.name, server.getPlayerList().getPlayers().stream().filter(p -> present.contains(p.getUUID())).toList());
-        } finally { cleanup(raid); }
+            if (defeated) {
+                raid.battles.close();
+                var animation=new RaidVictoryTransition(raid.boss,raid.chunks,raid.bar);
+                victory=new Victory(raid.id,Set.copyOf(present),animation);active=null;deferred=true;
+                animation.begin(raid.definition.name,server.getPlayerList().getPlayers().stream().filter(p -> present.contains(p.getUUID())).toList());
+            }
+        } finally { if(!deferred) cleanup(raid); }
         if (!defeated && !message.isBlank()) broadcast(message);
         if (defeated) {
-            for (var player:server.getPlayerList().getPlayers()) if(present.contains(player.getUUID()) && captures!=null && captures.hasGrant(player)) {
-                try { captures.start(player); }
-                catch(Exception error) { captures.close(player,true); state.captures.values().removeIf(g -> g.player.equals(player.getUUID().toString())); save(); LOG.warn("Captura não iniciada",error); }
-            }
             for (var entry:raid.damage.ranking()) rewardQueue.add(entry.player());
+        }
+    }
+    private void advanceVictory() {
+        var current=victory;
+        if(current==null || !current.animation.tick())return;
+        victory=null;
+        try {
+            for(var player:server.getPlayerList().getPlayers()) if(current.present.contains(player.getUUID()) && captures!=null && captures.hasGrant(player)) {
+                var origin=state.returns.get(player.getUUID().toString());
+                if(origin==null || !current.raid.equals(origin.raid)){captures.close(player,true);continue;}
+                try {captures.start(player);}
+                catch(Exception error){captures.close(player,RaidCapture.Outcome.CANCELLED);LOG.warn("Captura não iniciada após transição",error);}
+            }
+        } finally {current.animation.close();}
+    }
+    private void cancelVictory() {
+        var current=victory;if(current==null)return;victory=null;
+        try{current.animation.close();}finally{
+            boolean removed=state.captures.values().removeIf(g -> current.raid.equals(g.raid));
+            if(removed&&healthy)save();
         }
     }
     private void returnExpiredPlayers(long now) {

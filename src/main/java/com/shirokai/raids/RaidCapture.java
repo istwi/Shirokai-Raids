@@ -154,7 +154,7 @@ public final class RaidCapture {
             refreshBalls(player,session);
             updateBar(session,System.currentTimeMillis());
             if (sessions.get(player.getUUID())!=session) return;
-            tell(player,"captura.inicio","boss",boss.name,"quantidade",grant.remaining,"tempo",RaidTime.format(grant.durationSeconds),"chance",String.format(Locale.ROOT,"%.2f",grant.chance*100));
+            tell(player,"captura.inicio","boss",boss.name,"quantidade",grant.remaining,"tempo",RaidTime.format(Math.max(0,(grant.expiresAt-System.currentTimeMillis()+999)/1000)));
         } catch(RuntimeException error) { close(player,true); throw error; }
     }
     private void beginBattle(Session session,UUID selected) {
@@ -259,6 +259,11 @@ public final class RaidCapture {
     }
     void tick() { tick(System.currentTimeMillis()); }
     void tick(long now) {
+        var expired=state.captures.values().stream().filter(g->now>=g.expiresAt&&!sessions.containsKey(UUID.fromString(g.player))).toList();
+        if(!expired.isEmpty()) {
+            expired.forEach(g->state.captures.remove(g.id));persist.run();
+            for(var grant:expired){var player=server.getPlayerList().getPlayer(UUID.fromString(grant.player));if(player!=null)tell(player,Outcome.TIMEOUT.message,"boss",grant.boss.name);}
+        }
         for(var id:List.copyOf(sessions.keySet())) {
             var session=sessions.get(id); var player=session.player;
             if (player==null) { remove(id); continue; }
@@ -281,11 +286,13 @@ public final class RaidCapture {
             && current.flight.getCaptureFuture().isDone() && !current.flight.getCaptureFuture().isCompletedExceptionally()
             && Boolean.TRUE.equals(current.flight.getCaptureFuture().getNow(false)))) reason=Outcome.CAPTURED;
         var session=remove(player.getUUID());
+        var pending=state.captures.values().stream().filter(g->g.player.equals(player.getUUID().toString())).findFirst().orElse(null);
         try {
-            if (session!=null) { state.captures.remove(session.grant.id); persist.run(); }
+            boolean removed=state.captures.values().removeIf(g->g.player.equals(player.getUUID().toString()));
+            if(removed) persist.run();
             RaidInventory.removeRaidBalls(player);
             ShirokaiRaids.inventoryRestored(player);
-            if (session!=null) tell(player,reason.message,"boss",session.grant.boss.name);
+            if (session!=null || pending!=null) tell(player,reason.message,"boss",session!=null?session.grant.boss.name:pending.boss.name);
         } catch(Exception error) { throw new IllegalStateException("Não foi possível encerrar a captura com segurança.",error); }
     }
     private void syncPP(Session session) {

@@ -61,3 +61,13 @@ O boss usa contorno vermelho; cada cópia privada usa contorno ciano. A BossBar 
 Na vitória, participantes presentes recebem título/subtítulo (`vitoria.titulo` e `vitoria.subtitulo` em `messages.json`). A explosão visual usa fogos e end rods, sem dano nem quebra de blocos. O anúncio antigo de recompensas no chat não é enviado.
 
 O prefixo de chat fica em `chat.prefixo`. Somente valores idênticos aos padrões antigos são atualizados em memória ao carregar; personalizações são mantidas e o arquivo não é sobrescrito. O sufixo legado `— World Boss` dos nomes é apresentado como `— Raid`.
+
+## Transição de vitória — 0.1.19-dev
+
+O combate termina e a vitória é persistida imediatamente. O boss permanece visualmente por cerca de 1,5 segundo, contrai e recolhe partículas; depois desaparece com um clarão e explosão mais suave. Uma breve pausa com partículas ciano antecede a revelação das cópias, por volta de três segundos após a vitória (60 ticks em 20 TPS). O tempo pode alongar em servidor com TPS baixo.
+
+A arena mantém seu ticket durante o efeito. O boss derrotado fica protegido e não aceita novos desafios nem capturas. A BossBar temporária de vitória dá retorno durante a espera; ao revelar, cada jogador elegível recebe sua cópia e BossBar privada. Cancelar ou encerrar o servidor limpa boss, barra, ticket e direitos ainda não iniciados.
+
+Os dois minutos continuam contados desde a vitória, incluindo a transição. A introdução usa o tempo efetivamente restante (aproximadamente 1min57s num servidor a 20 TPS), sem informar chance por bola. A chance configurada de captura não foi alterada. Sair ou desconectar durante a espera remove a chance e reconectar não a recupera. Direitos que expirem antes da revelação são encerrados sem criar cópia.
+
+Chat e BossBars passam a usar somente RAID. Valores iguais aos padrões antigos de SHIROKAI em `messages.json` são atualizados em memória; não é necessário apagar a configuração. Textos personalizados são preservados. O título do menu administrativo continua com a identidade do servidor.

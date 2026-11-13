@@ -38,10 +38,8 @@ final class RaidPresentation {
     static void victory(Entity boss, String name, Collection<ServerPlayer> participants) {
         var world = (ServerLevel) boss.level();
         double x = boss.getX(), y = boss.getY() + boss.getBbHeight() / 2, z = boss.getZ();
-        world.sendParticles(ParticleTypes.EXPLOSION_EMITTER, x, y, z, 1, 0, 0, 0, 0);
-        world.sendParticles(ParticleTypes.FIREWORK, x, y, z, 90, 1.5, 1, 1.5, 0.2);
-        world.sendParticles(ParticleTypes.END_ROD, x, y, z, 60, 1.5, 1, 1.5, 0.12);
-        world.playSound(null, x, y, z, SoundEvents.GENERIC_EXPLODE, SoundSource.HOSTILE, 1.2f, 1.1f);
+        world.sendParticles(ParticleTypes.END_ROD,x,y,z,12,.5,.8,.5,.025);
+        world.playSound(null,x,y,z,SoundEvents.PLAYER_LEVELUP,SoundSource.PLAYERS,.6f,.9f);
         for (var player : participants) {
             player.connection.send(new ClientboundSetTitlesAnimationPacket(10, 60, 20));
             player.connection.send(new ClientboundSetSubtitleTextPacket(RaidMessages.component(RaidMessages.msg("vitoria.subtitulo", "boss", name))));

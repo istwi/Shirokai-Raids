@@ -36,8 +36,8 @@ class RaidCustomizationTest {
         Path path=dir.resolve("messages.json");
         Files.writeString(path,"{\"chat.prefixo\":\"[Raids] {texto}\",\"bossbar.titulo\":\"{boss} | {vida}/{vida_maxima} HP | {tempo}\",\"captura.nome\":\"&e{boss} &6[Captura]\"}");
         var upgraded=RaidMessages.load(path);
-        assertTrue(upgraded.get("chat.prefixo").contains("&lSHIROKAI"));
-        assertTrue(upgraded.get("bossbar.titulo").contains("SHIROKAI"));
+        assertTrue(upgraded.get("chat.prefixo").contains("&lRAID"));
+        assertFalse(upgraded.get("bossbar.titulo").contains("SHIROKAI"));
         assertTrue(upgraded.get("captura.nome").startsWith("&b"));
         assertEquals("Meu prefixo {texto}",RaidMessages.upgradeDefault("chat.prefixo","Meu prefixo {texto}"));
         assertEquals("Minha barra",RaidMessages.upgradeDefault("bossbar.titulo","Minha barra"));

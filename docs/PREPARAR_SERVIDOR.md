@@ -1,6 +1,6 @@
 # Preparar o servidor para o teste final
 
-Use o build de desenvolvimento `0.1.18-dev` num servidor de testes com backup. Ela reúne o combate tradicional, drops, histórico/rankings e os controles operacionais; não é uma versão estável nem comprovação de 100 jogadores.
+Use o build de desenvolvimento `0.1.19-dev` num servidor de testes com backup. Ela reúne o combate tradicional, drops, histórico/rankings e os controles operacionais; não é uma versão estável nem comprovação de 100 jogadores.
 
 ## Instalação
 

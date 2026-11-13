@@ -161,6 +161,11 @@ public final class CaptureIntegration implements ModInitializer {
         manager.award(raid,definition,config,tracker.ranking(),Set.of(player.getUUID(),other.getUUID()),victory);
         require(state.captures.size()==2,"Direito duplicado");
         var rng=RaidCapture.class.getDeclaredField("random");rng.setAccessible(true);((Random)rng.get(manager)).setSeed(7);
+        var pendingPlayer=FakePlayer.get(server.overworld(),new GameProfile(UUID.randomUUID(),"PendingProbe"));
+        var pending=JsonFiles.copy(grant,RaidState.CaptureGrant.class);pending.id=UUID.randomUUID().toString();pending.player=pendingPlayer.getUUID().toString();state.captures.put(pending.id,pending);
+        manager.close(pendingPlayer,true);require(state.captures.size()==2&&!manager.hasGrant(pendingPlayer),"Saída antes de revelar cópia preservou chance");
+        pending.id=UUID.randomUUID().toString();pending.expiresAt=System.currentTimeMillis()-1;state.captures.put(pending.id,pending);
+        manager.tick(System.currentTimeMillis());require(state.captures.size()==2,"Direito não iniciado persistiu após prazo");
         manager.start(player);manager.start(other);
         require(manager.active(player.getUUID())&&manager.active(other.getUUID()),"Sessões não iniciadas");
         require(target(server,player).broadcastToPlayer(player)&&!target(server,player).broadcastToPlayer(other),"Cópia não é privada");

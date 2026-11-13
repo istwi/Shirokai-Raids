@@ -1,5 +1,13 @@
 # Histórico de alterações
 
+## 0.1.19-dev
+
+- Prefixo do chat e BossBars de raid, captura e próxima raid passam a usar somente RAID. Retirada a divulgação da chance por bola na introdução de captura.
+- Vitória ganha transição de aproximadamente três segundos: contração com partículas, clarão/explosão suave, pausa com energia ciano e revelação das cópias privadas. A arena permanece carregada até a revelação.
+- Combates são encerrados no momento da vitória; o boss visual não pode ser desafiado/capturado nem receber dano durante o efeito. Novas raids aguardam a transição.
+- O prazo original de dois minutos não é renovado; a mensagem mostra o tempo realmente restante. Sair, desconectar ou cancelar antes da cópia remove a chance pendente.
+- Padrões antigos de mensagens são atualizados em memória sem apagar arquivos ou substituir textos personalizados.
+
 ## 0.1.18-dev
 
 - `/raidadmin` agora abre uma prévia administrativa de recompensas; aliases `/raidadmin menu` e `/raidadmin recompensas [boss]`.

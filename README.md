@@ -2,7 +2,7 @@
 
 Mod **somente servidor** para Minecraft 1.21.1, Fabric e Cobblemon 1.8.3.
 
-**0.1.18-dev: entrada configurável, captura por R com cópia brilhante, BossBar individual e resultado no chat. Não é uma Release estável.**
+**0.1.19-dev: entrada configurável, captura por R com cópia brilhante, BossBar individual e resultado no chat. Não é uma Release estável.**
 
 O fluxo implementado é `/raid` → menu de informações → **Entrar na raid** → enviar seu Pokémon → apontar para o boss e pressionar **R** (ou a tecla configurada no Cobblemon) → escolher os movimentos na interface normal. Cada jogador tem uma batalha real independente, com sua equipe, movimentos e PP; o dano aplicado reduz o HP global do evento. O jogo aguarda a escolha do jogador. Não há `/raid atacar` nem loop de ataques automáticos.
 
@@ -92,10 +92,10 @@ Requer JDK 21 completo, Node e Python:
 bash gradlew --no-daemon build
 python3 scripts/run_showdown_audit.py
 python3 scripts/run_traditional_probe.py
-python3 scripts/verify_jar.py --version 0.1.18-dev
+python3 scripts/verify_jar.py --version 0.1.19-dev
 ```
 
-Windows: `gradlew.bat build`. O artefato é `build/libs/Shirokai-Raids-0.1.18-dev-fabric-1.21.1.jar`; o verificador gera `SHA256SUMS`. O workflow mantém builds e Artifacts de desenvolvimento em Linux e Windows.
+Windows: `gradlew.bat build`. O artefato é `build/libs/Shirokai-Raids-0.1.19-dev-fabric-1.21.1.jar`; o verificador gera `SHA256SUMS`. O workflow mantém builds e Artifacts de desenvolvimento em Linux e Windows.
 
 No ambiente cloud, `scripts/setup-cloud.sh` prepara o JDK e a compilação. Com servidor preparado por `scripts/prepare-test-server.sh` e EULA aceita para os testes:
 
