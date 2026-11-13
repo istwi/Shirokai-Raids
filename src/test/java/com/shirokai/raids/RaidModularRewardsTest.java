@@ -135,6 +135,16 @@ class RaidModularRewardsTest {
         assertFalse(RaidRewardJournal.hasCapacity(120,3,c));
         c.enabled=false;assertTrue(RaidRewardJournal.hasCapacity(128,100,c));
     }
+    @Test void retryingOfflineEntriesCannotStarveOtherPlayersWithinTheDeliveryBudget(){
+        var data=awards(settings(),400,300,200,100);var e=engine(data);
+        e.register("currency",new RaidRewardHandler(){
+            public boolean available(String ref){return true;}
+            public CompletionStage<Result> deliver(UUID player,String id,String ref,BigDecimal amount){return CompletableFuture.completedFuture(player.equals(PLAYER)?Result.RETRY:Result.APPLIED);}
+        });
+        for(int i=0;i<10;i++)e.tick(1);
+        assertTrue(data.grants.values().stream().filter(g->!g.player.equals(PLAYER.toString())).allMatch(g->g.status==RaidRewardJournal.Status.DONE));
+        assertTrue(data.grants.values().stream().filter(g->g.player.equals(PLAYER.toString())).allMatch(g->g.status==RaidRewardJournal.Status.PENDING));
+    }
     @Test void persistBarrierPreventsEffectWhenJournalCannotBeSaved(){
         var data=awards(settings(),600);var p=new Provider();var e=new RaidRewardJournal(data,()->{throw new IllegalStateException("disk full");},Runnable::run,line->{});e.register("currency",p);e.tick(4);assertEquals(0,p.calls);
     }

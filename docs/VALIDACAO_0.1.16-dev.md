@@ -1,6 +1,6 @@
 # Validação — 0.1.16-dev
 
-- Build Java 21 aprovado, 99 testes JUnit sem falhas, erros ou casos ignorados.
+- Build Java 21 aprovado, 100 testes JUnit sem falhas, erros ou casos ignorados.
 - Recompensas modulares: contribuição, ranking acumulado por UUID e desempate, TOP 3 exclusivo, nenhum especial garantido, quantidades, dificuldades/overrides, tetos, IDs únicos e snapshots persistidos.
 - Políticas futuras de cosméticos testadas com provedores de teste: consulta de propriedade, desbloqueio por UUID, SKIP, COMPENSATE, REROLL limitado, restrição de raridade/escopo e fallback sem compensação. Não existe integração cosmética real nesta versão.
 - Proteção da barreira de persistência, recuperação de recibos, pagamento incerto sem replay e conferência administrativa testados.

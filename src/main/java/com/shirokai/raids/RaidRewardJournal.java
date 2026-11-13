@@ -49,6 +49,7 @@ final class RaidRewardJournal {
     private final Map<String,RaidRewardHandler> handlers=new HashMap<>();
     private final Set<String> busy=new HashSet<>();
     private boolean failed;
+    private int cursor;
     private Consumer<Grant> delivered = grant -> {};
     void onDelivered(Consumer<Grant> listener){delivered=listener;}
     RaidRewardJournal(Data data,Runnable persist,Executor executor,Consumer<String> audit){this.data=data;this.persist=persist;this.executor=executor;this.audit=audit;}
@@ -122,8 +123,13 @@ final class RaidRewardJournal {
     void tick(int budget) {
         if(failed)return;
         int started=0;
-        for(var g:List.copyOf(data.grants.values())) {
-            if(started>=budget)break;
+        var snapshot=List.copyOf(data.grants.values());
+        if(snapshot.isEmpty())return;
+        int start=Math.floorMod(cursor,snapshot.size());
+        for(int offset=0;offset<snapshot.size() && started<budget;offset++) {
+            int index=(start+offset)%snapshot.size();
+            var g=snapshot.get(index);
+            cursor=(index+1)%snapshot.size();
             if(g.status!=Status.PENDING||busy.contains(g.id))continue;
             var handler=handlers.get(g.choice.reward.type);
             if(handler==null||!handler.available(g.choice.reward.reference))continue;

@@ -79,7 +79,7 @@ A infraestrutura de registro e políticas foi preparada e testada com provedores
 
 ## Persistência e recuperação
 
-A outbox modular fica em `state.json`, no mesmo salvamento que marca a raid como concluída. Cada sorteio tem ID derivado de raid, UUID, categoria e ID da recompensa. Valores não são sorteados novamente no login, reload ou reinício. Logs registram transação, raid, UUID, categoria, sorteio, resolução, entrega e conferência. A fila processa um número limitado de transações por tick de distribuição e serializa as entregas do mesmo jogador.
+A outbox modular fica em `state.json`, no mesmo salvamento que marca a raid como concluída. Cada sorteio tem ID derivado de raid, UUID, categoria e ID da recompensa. Valores não são sorteados novamente no login, reload ou reinício. Logs registram transação, raid, UUID, categoria, sorteio, resolução, entrega e conferência. A fila processa um número limitado de transações por tick de distribuição, alterna entre pendências para que jogadores offline não bloqueiem os demais e serializa as entregas do mesmo jogador.
 
 Fragmentos usam recibo salvo junto com o inventário no playerdata, com leitura de confirmação. Um reinício pode retomar a transação sem inserir os mesmos itens novamente. A entrega é integral; inventário cheio mantém a pendência. Recibos encerrados são limpos depois de confirmados no journal.
 

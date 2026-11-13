@@ -9,7 +9,7 @@
 - Registro de handlers e infraestrutura de políticas `REROLL`, `COMPENSATE` e `SKIP`, com consulta de propriedade, limite de tentativas, escopo e raridade preservados. Títulos sem API pública e partículas permanentes ficam indisponíveis para integração futura.
 - Menu de pendências mostra também prêmios gerais/TOP 3. Drops antigos são preservados por `legacyItems`; detalhes em [Recompensas modulares](docs/RECOMPENSAS_MODULARES.md).
 
-- Build e 99 testes JUnit aprovados; integração com moedas e fragmentos reais em dois JVMs, regressões de combate, captura e menus. [Validação e limites](docs/VALIDACAO_0.1.16-dev.md).
+- Build e 100 testes JUnit aprovados; integração com moedas e fragmentos reais em dois JVMs, regressões de combate, captura e menus. [Validação e limites](docs/VALIDACAO_0.1.16-dev.md).
 
 ## 0.1.15-dev
 
