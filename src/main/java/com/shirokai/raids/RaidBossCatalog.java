@@ -8,6 +8,9 @@ import java.util.random.RandomGenerator;
 final class RaidBossCatalog {
     private RaidBossCatalog() {}
     static Map<String, RaidConfig.Boss> load(Path directory) throws IOException {
+        return load(directory,false);
+    }
+    static Map<String,RaidConfig.Boss> load(Path directory,boolean allowEmpty)throws IOException {
         var bosses = new TreeMap<String, RaidConfig.Boss>();
         try (var paths = Files.list(directory)) {
             for (var path : paths.filter(p -> p.toString().endsWith(".json")).sorted().toList()) {
@@ -17,7 +20,7 @@ final class RaidBossCatalog {
                 if (bosses.putIfAbsent(boss.id, boss) != null) throw new IOException("ID de boss duplicado: " + boss.id);
             }
         }
-        if (bosses.isEmpty()) throw new IOException("Cadastre pelo menos um boss");
+        if (bosses.isEmpty() && !allowEmpty) throw new IOException("Cadastre pelo menos um boss");
         return Collections.unmodifiableMap(bosses);
     }
     static String randomId(Map<String, RaidConfig.Boss> bosses, RandomGenerator random) {

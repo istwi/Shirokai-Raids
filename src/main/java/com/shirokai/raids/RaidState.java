@@ -43,6 +43,8 @@ final class RaidState {
         }
     }
     RaidRewardJournal.Data modularRewards = new RaidRewardJournal.Data();
+    long automaticRaidStarts;
+    List<String> catalogRecentNormal=new ArrayList<>(),catalogRecentSpecial=new ArrayList<>();
     long nextRaid;
     String activeRaid, bossEntity;
     long hp;
@@ -68,6 +70,7 @@ final class RaidState {
         }
     }
     void validate() {
+        if(automaticRaidStarts<0 || catalogRecentNormal==null || catalogRecentSpecial==null || catalogRecentNormal.size()>100 || catalogRecentSpecial.size()>100 || java.util.stream.Stream.concat(catalogRecentNormal.stream(),catalogRecentSpecial.stream()).anyMatch(s->s==null||!s.matches("[a-z0-9_.-]+:[a-z0-9_./-]+"))) throw new IllegalArgumentException("Histórico automático inválido");
         if(modularRewards==null)throw new IllegalArgumentException("Recompensas modulares ausentes");
         modularRewards.validate();
         if (arenaExits==null) throw new IllegalArgumentException("Retornos automáticos ausentes");

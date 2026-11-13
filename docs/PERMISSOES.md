@@ -54,3 +54,5 @@ No LuckPerms Fabric 5.4.140 testado, o contexto observado foi `world=overworld` 
 Menus checam permissão na abertura e navegação e invalidam acesso revogado. O teste em conexão controlada não substitui login real, grupos do seu servidor, proxies ou sincronização em banco externo.
 
 Os comandos `rewardreload`, `rewardstatus` e `rewardreview` ficam sob `/raidadmin` e exigem `shirokai.raids.admin`. Confira [Recompensas modulares](RECOMPENSAS_MODULARES.md).
+
+`/raidadmin catalogo` e `/raidadmin sortear` exigem `shirokai.raids.admin`. O sorteio administrativo inicia uma raid e consome a próxima posição do ciclo automático; consulta não consome.

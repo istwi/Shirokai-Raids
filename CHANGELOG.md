@@ -1,5 +1,19 @@
 # Histórico de alterações
 
+## 0.1.17-dev
+
+- IV de Speed fixado em 15 para todos os bosses de combate, incluindo eventos manuais; os demais IVs continuam seguindo a dificuldade.
+
+- Raids automáticas sorteiam o catálogo carregado do Cobblemon, sem exigir um arquivo por Pokémon. Filtra espécies implementadas, formas finais, força, porte e golpes ofensivos legais.
+- Formas finais de linhas com dois estágios são permitidas; Charmander, Charmeleon e outros estágios iniciais/intermediários são excluídos. Formas alternativas não são sorteadas.
+- Ciclo persistente: 19 raids com espécies comuns, depois uma especial. Lendários, míticos, Ultra Beasts e paradoxos ficam somente no 20º espaço; pseudo-lendários permanecem comuns fortes.
+- Perfis Normal/Raro/Épico para espécies comuns e Lendário/Supremo para especiais. Nível, IVs, EVs, natureza, golpes, vida global, dano e escala acompanham o perfil; recompensas usam a dificuldade gerada.
+- `catalog.json` centraliza filtros e balanceamento, com HP calculado para o grupo esperado. Histórico separado reduz repetições em cada pool.
+- `/raidadmin catalogo` consulta os candidatos e o ciclo; `/raidadmin sortear` inicia a próxima posição. Eventos cadastrados iniciados por ID continuam disponíveis e não consomem o ciclo.
+- [Regras, configuração e limites](docs/CATALOGO_AUTOMATICO.md).
+
+- Build com 111 testes JUnit aprovado; 338 verificações do catálogo e sete após reinício real do JVM, além das regressões de combate/captura/recompensas. [Validação local](docs/VALIDACAO_0.1.17-dev.md).
+
 ## 0.1.16-dev
 
 - Recompensas gerais por contribuição e dificuldade; sorteio especial limitado às posições originais TOP 3, com desempate por UUID e chance de nenhum especial.

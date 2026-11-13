@@ -1,0 +1,99 @@
+{
+  "enabled": true,
+  "minimumBaseStats": 480,
+  "minimumOffense": 85,
+  "minimumHeightMetres": 1.2,
+  "maximumHeightMetres": 10.0,
+  "expectedPlayers": 10,
+  "estimatedDamagePerTurn": 100,
+  "recentNormal": 8,
+  "recentSpecial": 3,
+  "shinyChance": 0.01,
+  "namespaces": [
+    "cobblemon"
+  ],
+  "blocked": [
+    "cobblemon:ditto",
+    "cobblemon:shedinja",
+    "cobblemon:smeargle",
+    "cobblemon:shuckle",
+    "cobblemon:wobbuffet",
+    "cobblemon:clefable",
+    "cobblemon:wigglytuff",
+    "cobblemon:togekiss",
+    "cobblemon:audino",
+    "cobblemon:blissey",
+    "cobblemon:meganium",
+    "cobblemon:azumarill",
+    "cobblemon:delcatty",
+    "cobblemon:alcremie",
+    "cobblemon:slurpuff",
+    "cobblemon:aromatisse",
+    "cobblemon:maushold",
+    "cobblemon:dudunsparce",
+    "cobblemon:mrmime",
+    "cobblemon:mrrime"
+  ],
+  "profiles": {
+    "normal": {
+      "level": 85,
+      "iv": 25,
+      "offenseEv": 128,
+      "speedEv": 128,
+      "healthEv": 128,
+      "targetTurns": 25,
+      "damageMultiplier": 1.0,
+      "targetHeightMetres": 3.5,
+      "referencePower": 520.0,
+      "rewards": "default"
+    },
+    "raro": {
+      "level": 90,
+      "iv": 28,
+      "offenseEv": 196,
+      "speedEv": 196,
+      "healthEv": 116,
+      "targetTurns": 35,
+      "damageMultiplier": 1.1,
+      "targetHeightMetres": 4.0,
+      "referencePower": 560.0,
+      "rewards": "default"
+    },
+    "epico": {
+      "level": 95,
+      "iv": 31,
+      "offenseEv": 252,
+      "speedEv": 252,
+      "healthEv": 4,
+      "targetTurns": 50,
+      "damageMultiplier": 1.2,
+      "targetHeightMetres": 4.5,
+      "referencePower": 620.0,
+      "rewards": "default"
+    },
+    "lendario": {
+      "level": 100,
+      "iv": 31,
+      "offenseEv": 252,
+      "speedEv": 252,
+      "healthEv": 4,
+      "targetTurns": 65,
+      "damageMultiplier": 1.35,
+      "targetHeightMetres": 5.0,
+      "referencePower": 625.0,
+      "rewards": "default"
+    },
+    "supremo": {
+      "level": 100,
+      "iv": 31,
+      "offenseEv": 252,
+      "speedEv": 252,
+      "healthEv": 4,
+      "targetTurns": 85,
+      "damageMultiplier": 1.5,
+      "targetHeightMetres": 6.0,
+      "referencePower": 700.0,
+      "rewards": "default"
+    }
+  }
+}

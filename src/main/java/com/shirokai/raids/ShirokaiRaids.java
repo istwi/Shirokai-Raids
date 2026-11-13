@@ -42,6 +42,7 @@ public final class ShirokaiRaids implements ModInitializer {
     private static final Logger LOG = LoggerFactory.getLogger("shirokai_raids");
     private final Path configDir = FabricLoader.getInstance().getConfigDir().resolve("shirokai-raids");
     private RaidConfig config;
+    private RaidCatalogSettings catalogSettings;
     private Map<String, RaidConfig.Boss> bosses;
     private Map<String, RaidConfig.Rewards> rewards;
     private RaidState state;
@@ -148,6 +149,8 @@ public final class ShirokaiRaids implements ModInitializer {
                 .suggests((c,b) -> { bosses.keySet().forEach(b::suggest); return b.buildFuture(); })
                 .executes(c -> start(c.getSource(), StringArgumentType.getString(c,"boss")))));
             admin.then(Commands.literal("parar").executes(c -> { finish(false,msg("textos.raid_encerrada_pela_administracao")); return 1; }));
+            admin.then(Commands.literal("sortear").executes(c -> { try {beginAutomatic();return reply(c.getSource(),"Raid sorteada e iniciada. O ciclo automático foi contabilizado.");}catch(Exception e){return reply(c.getSource(),"Sorteio recusado: "+e.getMessage());} }));
+            admin.then(Commands.literal("catalogo").executes(c -> catalogStatus(c.getSource())));
             admin.then(Commands.literal("setspawn").executes(c -> setSpawn(c.getSource())));
             admin.then(Commands.literal("rewardreload").executes(c -> rewardReload(c.getSource())));
             admin.then(Commands.literal("rewardstatus").executes(c -> rewardStatus(c.getSource())));
@@ -192,16 +195,19 @@ public final class ShirokaiRaids implements ModInitializer {
             JsonFiles.defaultFile(configDir.resolve("bosses/rayquaza.json"), new RaidConfig.Boss());
         JsonFiles.defaultFile(configDir.resolve("rewards/default.json"), RaidConfig.Rewards.defaults());
         var next = JsonFiles.read(configDir.resolve("config.json"), RaidConfig.class); next.validate();
+        var nextCatalogSettings=RaidCatalogSettings.load(configDir.resolve("catalog.json"));
         var nextRewardSettings = RaidRewardSettings.load(configDir.resolve("rewards-v2"));
         var nextMessages = RaidMessages.load(configDir.resolve("messages.json"));
-        var bossMap = RaidBossCatalog.load(configDir.resolve("bosses"));
+        var bossMap = RaidBossCatalog.load(configDir.resolve("bosses"),nextCatalogSettings.enabled);
         var rewardMap = new HashMap<String,RaidConfig.Rewards>();
-        for (var boss : bossMap.values()) {
-            var table = JsonFiles.read(configDir.resolve("rewards/" + boss.rewards + ".json"),RaidConfig.Rewards.class); table.validate();
-            rewardMap.put(boss.rewards,table);
+        var rewardIds=new HashSet<String>();bossMap.values().forEach(b -> rewardIds.add(b.rewards));
+        if(nextCatalogSettings.enabled)nextCatalogSettings.profiles.values().forEach(p -> rewardIds.add(p.rewards));
+        for (var id : rewardIds) {
+            var table = JsonFiles.read(configDir.resolve("rewards/" + id + ".json"),RaidConfig.Rewards.class); table.validate();
+            rewardMap.put(id,table);
         }
         if(server!=null) { validateRewardItems(rewardMap); validateDestinations(next); }
-        config = next; bosses = bossMap; rewards = rewardMap; rewardSettings = nextRewardSettings;
+        config = next; bosses = bossMap; rewards = rewardMap; rewardSettings = nextRewardSettings; catalogSettings=nextCatalogSettings;
         RaidMessages.install(nextMessages);
     }
     private void validateRewardItems(Map<String,RaidConfig.Rewards> tables) {
@@ -486,12 +492,28 @@ public final class ShirokaiRaids implements ModInitializer {
         try { begin(id); return reply(source,msg("textos.raid_iniciada")); }
         catch (Exception e) { LOG.error("Falha ao iniciar raid",e); return reply(source,msg("raid.erro_inicio", "erro", e.getMessage())); }
     }
+    private int catalogStatus(CommandSourceStack source) {
+        if(state==null)return reply(source,"Catálogo indisponível.");
+        var species=RaidCatalogPokemon.species(catalogSettings);
+        var counts=new TreeMap<String,Long>();
+        species.stream().filter(p -> RaidAutomaticCatalog.eligible(p,catalogSettings)).forEach(p -> counts.merge(RaidAutomaticCatalog.difficulty(p),1L,Long::sum));
+        reply(source,"Catálogo: "+counts+" | raids automáticas iniciadas: "+state.automaticRaidStarts+" | próxima especial em "+(20-state.automaticRaidStarts%20)+" raid(s).");
+        return 1;
+    }
+    private void beginAutomatic() {
+        if(!catalogSettings.enabled){begin(RaidBossCatalog.randomId(bosses,random));return;}
+        var draw=RaidAutomaticCatalog.draw(RaidCatalogPokemon.species(catalogSettings),catalogSettings,state.automaticRaidStarts,state.catalogRecentNormal,state.catalogRecentSpecial,random);
+        begin(draw.boss(),draw);
+    }
     private void begin(String id) {
+        var definition=bosses.get(id);
+        if(definition==null)throw new IllegalArgumentException(msg("textos.boss_desconhecido"));
+        begin(definition,null);
+    }
+    private void begin(RaidConfig.Boss definition,RaidAutomaticCatalog.Draw automaticDraw) {
         if (!healthy || active != null) throw new IllegalStateException(msg("textos.raids_indisponiveis_ou_ja_existe_uma_raid_ativa"));
         if (captures!=null && captures.anyActive()) throw new IllegalStateException(msg("captura.aguarde_fases"));
         if (!config.spawnConfigured) throw new IllegalStateException(msg("textos.use_raidadmin_setspawn_primeiro"));
-        var definition = bosses.get(id);
-        if (definition == null) throw new IllegalArgumentException(msg("textos.boss_desconhecido"));
         validateRewardItems(Map.of(definition.rewards,rewards.get(definition.rewards)));
         var world = server.getLevel(ResourceKey.create(Registries.DIMENSION,ResourceLocation.parse(config.dimension)));
         if (world == null) throw new IllegalArgumentException(msg("textos.dimensao_inexistente"));
@@ -507,8 +529,9 @@ public final class ShirokaiRaids implements ModInitializer {
         world.getChunkAt(center);
         var properties = PokemonProperties.Companion.parse(definition.species + " level=" + definition.level + " shiny=" + definition.shiny + " uncatchable=yes" + (definition.form.isEmpty() ? "" : " form=" + definition.form));
         var entity = properties.createEntity(world);
-        if (!entity.getPokemon().getSpecies().getResourceIdentifier().getPath().equals(definition.species.replace("cobblemon:","")))
+        if (!entity.getPokemon().getSpecies().getResourceIdentifier().equals(ResourceLocation.parse(definition.species.contains(":")?definition.species:"cobblemon:"+definition.species)))
             throw new IllegalArgumentException(msg("textos.especie_invalida_ou_indisponivel"));
+        RaidCatalogPokemon.train(entity.getPokemon(),definition);
         entity.getPokemon().setScaleModifier(definition.scale);
         entity.setCustomName(RaidMessages.component(definition.name));
         entity.setPersistenceRequired(); entity.setInvulnerable(true);
@@ -531,6 +554,7 @@ public final class ShirokaiRaids implements ModInitializer {
         state.activeRaid = candidate.id; state.bossEntity = entity.getUUID().toString(); state.hp = definition.hp; state.damage.clear();
         state.archive.current = new RaidArchive.Event(candidate.id, definition.name, definition.species, System.currentTimeMillis(), definition.hp);
         state.nextRaid = RaidSchedule.next(System.currentTimeMillis(),config.intervalSeconds);
+        if(automaticDraw!=null) RaidAutomaticCatalog.record(state,automaticDraw,catalogSettings);
         try { save(); } catch (RuntimeException e) { RaidPresentation.clearGlow(entity); entity.discard(); active = null; throw e; }
         retained = true;
         countdownBar.removeAllPlayers();
@@ -648,7 +672,7 @@ public final class ShirokaiRaids implements ModInitializer {
                 if (tick % 200 == 0) snapshot();
             } else if (config.spawnConfigured && config.automaticRaids && (captures==null || !captures.anyActive())) {
                 if (RaidSchedule.due(now,state.nextRaid,false)) {
-                    try { begin(RaidBossCatalog.randomId(bosses, random)); }
+                    try { beginAutomatic(); }
                     catch (Exception e) { LOG.warn("Raid automática adiada",e); state.nextRaid=RaidSchedule.next(now,config.intervalSeconds); save(); }
                 }
                 updateCountdown(now);

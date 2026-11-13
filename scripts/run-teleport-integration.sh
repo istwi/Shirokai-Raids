@@ -4,7 +4,7 @@ set -euo pipefail
 cd /workspace/Shirokai-Raids
 source scripts/cloud-env.sh
 raids_test_mode=${SHIROKAI_INTEGRATION_MODE:-teleport}
-case "$raids_test_mode" in teleport|combat|challenge|capture|rewards) ;; *) echo 'Modo de integração inválido' >&2; exit 1 ;; esac
+case "$raids_test_mode" in teleport|combat|challenge|capture|rewards|catalog) ;; *) echo 'Modo de integração inválido' >&2; exit 1 ;; esac
 raids_test_root=$(mktemp -d "/workspace/shared/raids-${raids_test_mode}-test.XXXXXXXX")
 python3 - "$raids_test_root" "$raids_test_mode" <<'PY'
 from pathlib import Path
@@ -45,15 +45,15 @@ print(f'Mundo descartável: {root}')
 PY
 read -r -a raids_jvm_options <<< "${GRADLE_OPTS:-}"
 (cd "$raids_test_root" && timeout 180 java "${raids_jvm_options[@]}" -Dshirokai.integration=true "-Dshirokai.integration.mode=$raids_test_mode" -Xms512M -Xmx3G -jar fabric-server-launch.jar nogui > integration.log 2>&1)
-if [ "$raids_test_mode" = rewards ]; then
-    python3 - "$raids_test_root" <<'PY_CHECK'
+if [ "$raids_test_mode" = rewards ] || [ "$raids_test_mode" = catalog ]; then
+    python3 - "$raids_test_root" "$raids_test_mode" <<'PY_CHECK'
 from pathlib import Path
 import sys,json
-result=json.loads((Path(sys.argv[1])/'rewards-phase1-result.json').read_text())
+result=json.loads((Path(sys.argv[1])/('rewards-phase1-result.json' if sys.argv[2]=='rewards' else 'catalog-integration-result.json')).read_text())
 assert result['passed'] is True,result
 print(result)
 PY_CHECK
-    (cd "$raids_test_root" && timeout 180 java "${raids_jvm_options[@]}" -Dshirokai.integration=true -Dshirokai.integration.mode=rewards -Xms512M -Xmx3G -jar fabric-server-launch.jar nogui > restart-integration.log 2>&1)
+    (cd "$raids_test_root" && timeout 180 java "${raids_jvm_options[@]}" -Dshirokai.integration=true "-Dshirokai.integration.mode=$raids_test_mode" -Xms512M -Xmx3G -jar fabric-server-launch.jar nogui > restart-integration.log 2>&1)
 fi
 python3 - "$raids_test_root" "$raids_test_mode" <<'PY'
 from pathlib import Path
@@ -62,6 +62,10 @@ root=Path(sys.argv[1]);mode=sys.argv[2]
 result=json.loads((root/f'{mode}-integration-result.json').read_text())
 assert result['passed'] is True,result
 assert result['realClients']==0,result
+if mode=='catalog':
+    restart=json.loads((root/'catalog-restart-result.json').read_text())
+    assert restart['passed'] is True and restart['realClients']==0,restart
+    print(json.dumps(restart,ensure_ascii=False))
 if mode=='capture':
     assert result['checks'] >= 20,result
 if mode=='combat':
