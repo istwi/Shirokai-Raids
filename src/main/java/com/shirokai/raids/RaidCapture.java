@@ -32,6 +32,13 @@ public final class RaidCapture {
     public static final String BALL_TAG = "shirokai_raid_throw";
     public static final String OWNER_TAG = "shirokai_capture_owner:";
     public static final String TARGET_TAG = "shirokai_raid_capture";
+    enum Outcome {
+        CAPTURED("captura.sucesso"), NO_BALLS("captura.esgotadas"), TIMEOUT("captura.tempo_esgotado"),
+        LEFT("captura.saiu"), BATTLE_ENDED("captura.derrota"), CANCELLED("captura.cancelada");
+        final String message;
+        Outcome(String message) { this.message=message; }
+    }
+    static CaptureContext animation(boolean success) { return new CaptureContext(3,success,false); }
     private static final String ITEM_KEY = "shirokai_capture_grant";
     private final MinecraftServer server;
     private final RaidState state;
@@ -44,12 +51,17 @@ public final class RaidCapture {
         final PokemonEntity target;
         final RaidChunkLease chunks;
         final long ends;
+        final net.minecraft.server.level.ServerBossEvent bar;
+        Outcome result;
+        long finishAt;
         PokemonBattle battle;
         boolean starting;
         EmptyPokeBallEntity flight;
         long nextThrow;
         Session(ServerPlayer player, RaidState.CaptureGrant grant, PokemonEntity target, long now) {
             this.player=player; this.grant=grant; this.target=target; ends=grant.expiresAt;
+            bar=new net.minecraft.server.level.ServerBossEvent(net.minecraft.network.chat.Component.empty(),net.minecraft.world.BossEvent.BossBarColor.BLUE,net.minecraft.world.BossEvent.BossBarOverlay.PROGRESS);
+            bar.addPlayer(player);
             chunks=new RaidChunkLease(player.server.getLevel(target.level().dimension()),new net.minecraft.world.level.ChunkPos(target.blockPosition()),grant.radius);
         }
     }
@@ -89,7 +101,7 @@ public final class RaidCapture {
             var manager=ShirokaiRaids.captureManager();
             event.setCaptureResult(new CaptureContext(0,false,false));
             boolean success = manager != null && manager.decide(event.getPokeBallEntity(), event.getPokemonEntity());
-            event.setCaptureResult(new CaptureContext(success ? 3 : 0, success, false));
+            event.setCaptureResult(animation(success));
         });
     }
     void award(String raid, RaidConfig.Boss boss, RaidConfig config, List<RaidDamageTracker.Entry> ranking, Set<UUID> present, long victoryTime) {
@@ -130,6 +142,9 @@ public final class RaidCapture {
         var entity=PokemonProperties.Companion.parse(boss.species+" level="+boss.level+" shiny="+boss.shiny+" uncatchable=no"+(boss.form.isEmpty()?"":" form="+boss.form)).createEntity(world);
         entity.addTag(TARGET_TAG); entity.addTag(OWNER_TAG+player.getUUID()); entity.setNoAi(true); entity.setInvulnerable(true); entity.setPersistenceRequired();
         entity.getEntityData().set(PokemonEntity.getUNBATTLEABLE(),false);
+        entity.setGlowingTag(true);
+        entity.setCustomName(RaidMessages.component(msg("captura.nome","boss",boss.name,"jogador",player.getGameProfile().getName())));
+        entity.setCustomNameVisible(true);
         entity.moveTo(grant.arena.x,grant.arena.y,grant.arena.z,grant.arena.yaw,0);
         var session=new Session(player,grant,entity,System.currentTimeMillis());
         sessions.put(player.getUUID(),session);
@@ -137,19 +152,19 @@ public final class RaidCapture {
             world.getChunkAt(entity.blockPosition());
             if (!world.addFreshEntity(entity)) throw new IllegalStateException(msg("captura.arena_indisponivel"));
             refreshBalls(player,session);
-            beginBattle(session);
+            updateBar(session,System.currentTimeMillis());
             if (sessions.get(player.getUUID())!=session) return;
             tell(player,"captura.inicio","boss",boss.name,"quantidade",grant.remaining,"tempo",RaidTime.format(grant.durationSeconds),"chance",String.format(Locale.ROOT,"%.2f",grant.chance*100));
         } catch(RuntimeException error) { close(player,true); throw error; }
     }
-    private void beginBattle(Session session) {
+    private void beginBattle(Session session,UUID selected) {
         if (session.battle!=null) return;
         var player=session.player;
         if (BattleRegistry.getBattleByParticipatingPlayer(player)!=null || com.cobblemon.mod.common.util.PlayerExtensionsKt.isPartyBusy(player)) return;
         var party=Cobblemon.INSTANCE.getStorage().getParty(player);
-        UUID lead=null;
-        for (var pokemon:party) if(pokemon.getCurrentHealth()>0) { lead=pokemon.getUuid(); break; }
-        if (lead==null) { close(player,true); return; }
+        var chosen=party.get(selected);
+        if(chosen==null || chosen.getCurrentHealth()<=0) { tell(player,"textos.selecione_um_pokemon_saudavel_da_sua_equipe");return; }
+        UUID lead=selected;
         session.starting=true;
         try {
             BattleBuilder.INSTANCE.pve(player,session.target,lead,BattleFormat.Companion.getGEN_9_SINGLES(),false,false,(float)(session.grant.radius+16),party)
@@ -160,7 +175,38 @@ public final class RaidCapture {
                     return kotlin.Unit.INSTANCE;
                 });
         } finally { session.starting=false; }
-        if (session.battle==null) close(player,true);
+        if (session.battle==null) tell(player,"captura.inicio_recusado");
+    }
+    boolean challenge(com.cobblemon.mod.common.net.messages.server.BattleChallengePacket packet,ServerPlayer player) {
+        var target=player.level().getEntity(packet.getTargetedEntityId());
+        if(target==null || !protectedEntity(target)) return false;
+        var session=sessions.get(player.getUUID());
+        if(session==null || session.target!=target) { tell(player,"captura.alvo_privado");return true; }
+        if(System.currentTimeMillis()>=session.ends) { close(player,Outcome.TIMEOUT);return true; }
+        if(!inside(player,session) || !player.isAlive() || session.result!=null) return true;
+        if(!RaidPermissions.check(player.createCommandSourceStack(),"shirokai.raids.use",true)
+            || !RaidPermissions.check(player.createCommandSourceStack(),"shirokai.raids.join",true)) { tell(player,"textos.voce_nao_tem_permissao_para_participar_da_raid");return true; }
+        if(!canAimAtOwnCopy(player,session.target)) {
+            tell(player,"textos.aproxime_se_do_boss_para_desafia_lo");return true;
+        }
+        try { beginBattle(session,packet.getSelectedPokemonId()); }
+        catch(RuntimeException error) { tell(player,"captura.inicio_recusado"); }
+        return true;
+    }
+    private boolean canAimAtOwnCopy(ServerPlayer player,PokemonEntity target) {
+        var eye=player.getEyePosition();
+        var end=eye.add(player.getViewVector(1).scale(Cobblemon.config.getBattleWildMaxDistance()));
+        var hit=target.getBoundingBox().inflate(target.getPickRadius()).clip(eye,end);
+        if(hit.isEmpty()) return false;
+        // Other players' invisible copies share this position. They must not block the owner's ray.
+        var obstacle=player.level().clip(new net.minecraft.world.level.ClipContext(eye,hit.get(),
+            net.minecraft.world.level.ClipContext.Block.COLLIDER,net.minecraft.world.level.ClipContext.Fluid.NONE,player));
+        return obstacle.getType()==net.minecraft.world.phys.HitResult.Type.MISS;
+    }
+    private void updateBar(Session session,long now) {
+        long remaining=Math.max(0,session.ends-now);
+        session.bar.setName(RaidMessages.component(msg("captura.bossbar","boss",session.grant.boss.name,"tempo",RaidTime.format((remaining+999)/1000),"quantidade",session.grant.remaining)));
+        session.bar.setProgress((float)Math.clamp(remaining/120000.0,0,1));
     }
     boolean allowsBattle(PokemonBattle battle) {
         for (var session:sessions.values()) for (var actor:battle.getActors()) for (var pokemon:actor.getPokemonList()) {
@@ -175,7 +221,7 @@ public final class RaidCapture {
         var stack=player.getItemInHand(hand);
         if (session == null || !isBall(stack) || !session.grant.id.equals(stack.get(DataComponents.CUSTOM_DATA).copyTag().getString(ITEM_KEY))) return;
         long now=System.currentTimeMillis();
-        if (session.flight!=null || now<session.nextThrow || session.grant.resolved || session.grant.remaining<=0 || now>=session.ends) return;
+        if (session.result!=null || session.flight!=null || now<session.nextThrow || session.grant.resolved || session.grant.remaining<=0 || now>=session.ends) return;
         if (session.battle==null || session.battle.getEnded() || BattleRegistry.getBattleByParticipatingPlayer(player)!=session.battle
             || !(session.battle.getSide1().getActors()[0] instanceof PlayerBattleActor actor) || !actor.canFitForcedAction()) return;
         // Spend and save before creating the projectile. A crash never restores a spent throw.
@@ -189,7 +235,9 @@ public final class RaidCapture {
         if (!player.serverLevel().addFreshEntity(ball)) { session.flight=null; return; }
         ball.getCaptureFuture().whenComplete((success,error) -> server.execute(() -> {
             if (sessions.get(player.getUUID())!=session) return;
-            if (Boolean.TRUE.equals(success) || session.grant.resolved || session.grant.remaining==0) close(player,true);
+            if (Boolean.TRUE.equals(success)) { session.result=Outcome.CAPTURED;session.finishAt=System.currentTimeMillis()+1200; }
+            else if(error!=null || session.grant.resolved) { session.result=Outcome.CANCELLED;session.finishAt=System.currentTimeMillis()+1200; }
+            else if(session.grant.remaining==0) { session.result=Outcome.NO_BALLS;session.finishAt=System.currentTimeMillis()+1200; }
             else { session.flight=null; tell(player,"captura.restantes","quantidade",session.grant.remaining); }
         }));
     }
@@ -214,23 +262,30 @@ public final class RaidCapture {
         for(var id:List.copyOf(sessions.keySet())) {
             var session=sessions.get(id); var player=session.player;
             if (player==null) { remove(id); continue; }
-            if (now>=session.ends) { close(player,true); continue; }
-            if (session.battle==null) beginBattle(session);
+            updateBar(session,now);
+            if (now>=session.ends) { close(player,Outcome.TIMEOUT);continue; }
+            if(session.result!=null) { if(now>=session.finishAt) close(player,session.result);continue; }
             if (sessions.get(id)!=session) continue;
-            if (!player.isAlive() || !inside(player,session) || now>=session.ends || session.target.isRemoved() && session.flight==null || session.battle!=null && session.battle.getEnded() && session.flight==null) { close(player,true); continue; }
-            if (session.flight!=null && session.flight.isRemoved() && now>=session.nextThrow) {
+            if (!player.isAlive() || !inside(player,session)) { close(player,Outcome.LEFT);continue; }
+            if(session.target.isRemoved() && session.flight==null || session.battle!=null && session.battle.getEnded() && session.flight==null) { close(player,Outcome.BATTLE_ENDED);continue; }
+            if (session.flight!=null && session.flight.isRemoved() && now>=session.nextThrow && !session.flight.getCaptureFuture().isDone()) {
                 session.flight=null;
-                if (session.grant.remaining==0 || session.grant.resolved) close(player,true);
+                if (session.grant.remaining==0 || session.grant.resolved) close(player,session.grant.resolved?Outcome.CANCELLED:Outcome.NO_BALLS);
             }
         }
     }
-    void close(ServerPlayer player, boolean forfeit) {
+    void close(ServerPlayer player, boolean forfeit) { close(player,Outcome.LEFT); }
+    void close(ServerPlayer player,Outcome reason) {
+        var current=sessions.get(player.getUUID());
+        if(current!=null && (current.result==Outcome.CAPTURED || current.flight!=null
+            && current.flight.getCaptureFuture().isDone() && !current.flight.getCaptureFuture().isCompletedExceptionally()
+            && Boolean.TRUE.equals(current.flight.getCaptureFuture().getNow(false)))) reason=Outcome.CAPTURED;
         var session=remove(player.getUUID());
         try {
             if (session!=null) { state.captures.remove(session.grant.id); persist.run(); }
             RaidInventory.removeRaidBalls(player);
             ShirokaiRaids.inventoryRestored(player);
-            if (session!=null && player.isAlive()) tell(player,"captura.fim");
+            if (session!=null) tell(player,reason.message,"boss",session.grant.boss.name);
         } catch(Exception error) { throw new IllegalStateException("Não foi possível encerrar a captura com segurança.",error); }
     }
     private void syncPP(Session session) {
@@ -254,6 +309,7 @@ public final class RaidCapture {
     private Session remove(UUID id) {
         var session=sessions.remove(id);
         if(session!=null) {
+            session.bar.removeAllPlayers();
             try { syncPP(session); }
             catch(RuntimeException error) { org.slf4j.LoggerFactory.getLogger("shirokai_raids").warn("Não foi possível sincronizar PP ao encerrar captura",error); }
             try { if(session.battle!=null && !session.battle.getEnded()) session.battle.stop(); }
@@ -271,7 +327,7 @@ public final class RaidCapture {
     }
     void shutdown() {
         for(var session:List.copyOf(sessions.values())) {
-            try { close(session.player,false); }
+            try { close(session.player,Outcome.CANCELLED); }
             catch(Exception error) { org.slf4j.LoggerFactory.getLogger("shirokai_raids").error("Falha ao suspender captura",error); }
         }
     }

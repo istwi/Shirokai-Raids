@@ -18,15 +18,6 @@
   "maxConcurrentPlayers": 100,
   "spawnYaw": 0,
   "spawnPitch": 0,
-  "lobby": {
-    "configured": false,
-    "dimension": "minecraft:overworld",
-    "x": 0,
-    "y": 80,
-    "z": 0,
-    "yaw": 0,
-    "pitch": 0
-  },
   "capture": {
     "enabled": true,
     "firstPlaceBalls": 5,
@@ -34,5 +25,14 @@
     "participantBalls": 1,
     "durationSeconds": 120,
     "chancePerThrow": 0.02
+  },
+  "entry": {
+    "configured": false,
+    "dimension": "minecraft:overworld",
+    "x": 0,
+    "y": 80,
+    "z": 0,
+    "yaw": 0,
+    "pitch": 0
   }
 }

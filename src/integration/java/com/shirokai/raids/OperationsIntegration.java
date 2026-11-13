@@ -32,12 +32,10 @@ public final class OperationsIntegration {
         var settings = JsonFiles.read(configPath, RaidConfig.class);
         require(!settings.automaticRaids && settings.intervalSeconds == 120 && settings.durationSeconds == 30 && settings.maxConcurrentPlayers == 3, "Controles administrativos não persistiram");
         player.setPos(20, 200, 20); player.setYRot(73); player.setXRot(11);
-        require(dispatcher.execute("raidadmin setlobby", source) == 1, "Lobby não configurado");
-        player.setPos(1000, 200, 1000);
-        require(dispatcher.execute("raid lobby", source) == 1 && player.position().distanceToSqr(new net.minecraft.world.phys.Vec3(20.5,200,20.5)) < 1,
-            "Teleporte seguro ao lobby falhou");
-        require(player.getYRot() == 73 && player.getXRot() == 11, "Orientação do lobby perdida");
-        require(dispatcher.execute("raid lobby", source) == 0, "Cooldown do lobby ignorado");
+        require(dispatcher.getRoot().getChild("raid").getChild("lobby")==null && dispatcher.getRoot().getChild("raidadmin").getChild("setlobby")==null,"Comandos de lobby ainda registrados");
+        require(dispatcher.execute("raidadmin setentrada",source)==1,"Entrada não configurada");
+        var entryConfig=JsonFiles.read(configPath,RaidConfig.class);
+        require(entryConfig.entry.configured&&entryConfig.entry.x==20&&entryConfig.entry.yaw==73&&entryConfig.entry.pitch==11,"Ponto ou orientação de entrada não persistiram");
         boolean denied = false;
         try { dispatcher.execute("raidadmin iniciar rayquaza", player.createCommandSourceStack().withPermission(0)); }
         catch (com.mojang.brigadier.exceptions.CommandSyntaxException expected) { denied = true; }
@@ -109,7 +107,7 @@ public final class OperationsIntegration {
         dispatcher.execute("raidadmin intervalo " + originalConfig.intervalSeconds, source);
         Files.writeString(configPath, original); dispatcher.execute("raidadmin reload", source);
         Files.writeString(Path.of("operations-result.json"), "{\"passed\":true,\"pendingClickChecks\":"+checks+",\"realClients\":0}");
-        System.out.println("SHIROKAI_OPERATIONS: lobby, orientation, permissions, configuration, ticket release, orphan cleanup, pending menu and legacy review passed");
+        System.out.println("SHIROKAI_OPERATIONS: entry point, orientation, permissions, configuration, ticket release, orphan cleanup, pending menu and legacy review passed");
     }
     private static boolean hasRaidTicket(ServerLevel world) throws Exception {
         Field field = Arrays.stream(ServerChunkCache.class.getDeclaredFields()).filter(f -> f.getType() == DistanceManager.class).findFirst().orElseThrow();

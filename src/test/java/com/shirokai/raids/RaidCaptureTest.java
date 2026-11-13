@@ -5,6 +5,21 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class RaidCaptureTest {
+    @Test void failedCaptureHasFullAnimationAndDistinctResults() {
+        var fail=RaidCapture.animation(false);var win=RaidCapture.animation(true);
+        assertEquals(3,fail.getNumberOfShakes());assertFalse(fail.isSuccessfulCapture());
+        assertEquals(3,win.getNumberOfShakes());assertTrue(win.isSuccessfulCapture());
+        assertNotEquals(RaidMessages.msg(RaidCapture.Outcome.CAPTURED.message,"boss","Mew"),RaidMessages.msg(RaidCapture.Outcome.NO_BALLS.message,"boss","Mew"));
+        assertTrue(RaidMessages.msg(RaidCapture.Outcome.NO_BALLS.message,"boss","Mew").contains("acabaram"));
+        assertTrue(RaidMessages.msg(RaidCapture.Outcome.TIMEOUT.message,"boss","Mew").contains("2 minutos"));
+    }
+    @Test void entryPointIsOptionalAndItsCoordinatesAreValidated() {
+        var legacy=new com.google.gson.Gson().fromJson("{}",RaidConfig.class);legacy.validate();assertFalse(legacy.entry.configured);
+        var config=new RaidConfig();config.entry.configured=true;config.entry.x=120.25;config.entry.yaw=73;config.entry.pitch=11;
+        var copy=JsonFiles.copy(config,RaidConfig.class);copy.validate();assertEquals(120.25,copy.entry.x);
+        copy.entry.x=Double.NaN;assertThrows(IllegalArgumentException.class,copy::validate);
+        copy.entry.x=0;copy.entry.pitch=91;assertThrows(IllegalArgumentException.class,copy::validate);
+    }
     @Test void automaticReturnUsesTheVictoryDeadlineAndOnlyTheArena() {
         var exit=new RaidState.ArenaExit();exit.deadline=1000+600_000L;exit.dimension="minecraft:overworld";
         exit.x=0;exit.y=200;exit.z=0;exit.radius=48;

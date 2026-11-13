@@ -2,7 +2,7 @@
 
 Mod **somente servidor** para Minecraft 1.21.1, Fabric e Cobblemon 1.8.3.
 
-**0.1.13-dev: entrada com inventário vazio, batalha de captura privada por dois minutos e retorno automático após dez minutos. Não é uma Release estável.**
+**0.1.14-dev: entrada configurável, captura por R com cópia brilhante, BossBar individual e resultado no chat. Não é uma Release estável.**
 
 O fluxo implementado é `/raid` → menu de informações → **Entrar na raid** → enviar seu Pokémon → apontar para o boss e pressionar **R** (ou a tecla configurada no Cobblemon) → escolher os movimentos na interface normal. Cada jogador tem uma batalha real independente, com sua equipe, movimentos e PP; o dano aplicado reduz o HP global do evento. O jogo aguarda a escolha do jogador. Não há `/raid atacar` nem loop de ataques automáticos.
 
@@ -10,13 +10,13 @@ O boss público aparece com contorno luminoso nativo (Glowing), sem mod adiciona
 
 Não exige Shirokai Raids no cliente nem o JAR do Raid Dens no servidor. Não registra cristais, itens, blocos, receitas ou dimensões do Raid Dens. O [escopo vigente](docs/ESCOPO_WORLD_BOSS.md) continua válido; as demais etapas de World Boss/recompensas ainda não estão concluídas.
 
-Para preparar a instalação e o teste final, siga [o guia do servidor](docs/PREPARAR_SERVIDOR.md). Ele reúne arena/lobby, comandos, campos ativos, LuckPerms, SkiesClear, backups e conferência de reservas antigas. O mod mantém a arena carregada apenas durante o evento e libera seu próprio ticket ao encerrar, sem apagar construções nem alterar `/forceload` externo.
+Para preparar a instalação e o teste final, siga [o guia do servidor](docs/PREPARAR_SERVIDOR.md). Ele reúne arena/entrada, comandos, campos ativos, LuckPerms, SkiesClear, backups e conferência de reservas antigas. O mod mantém a arena carregada apenas durante o evento e libera seu próprio ticket ao encerrar, sem apagar construções nem alterar `/forceload` externo.
 
 ## Entrada e batalha de captura
 
 Para entrar pelo menu ou `/raid entrar`, guarde antes os itens dos 36 slots principais/hotbar, da mão secundária e do cursor. Armadura e acessórios já equipados são permitidos e permanecem no jogador. O mod não guarda nem restaura inventários nas novas entradas; apenas valida essa regra. Coleta e manipulação de itens ficam bloqueadas durante a participação.
 
-Após a vitória, somente participantes vivos, online, dentro da arena e com dano positivo recebem uma batalha nativa contra sua própria cópia do boss. Padrão: 5 bolas para o primeiro em dano, 3 para segundo/terceiro e 1 para os demais. São **2 minutos contados da morte do boss**, sem renovar prazo ao iniciar a batalha. Uma captura por jogador. Quem estava ausente, saiu, desconectou, fugiu, perdeu a batalha ou esgotou o prazo perde a chance. Não existe `/raid capturar` ou oportunidade para outro momento.
+Após a vitória, somente participantes vivos, online, dentro da arena e com dano positivo recebem uma cópia brilhante e identificada do boss na arena. Envie seu Pokémon, mire na sua cópia e pressione R para abrir a batalha nativa; uma BossBar exclusiva mostra o tempo restante, inclusive antes de R. Padrão: 5 bolas para o primeiro em dano, 3 para segundo/terceiro e 1 para os demais. São **2 minutos contados da morte do boss**, sem renovar prazo ao iniciar a batalha. Uma captura por jogador. Quem estava ausente, saiu, desconectou, fugiu, perdeu a batalha ou esgotou o prazo perde a chance. Não existe `/raid capturar` ou oportunidade para outro momento.
 
 Aos **10 minutos após a vitória**, os participantes que ainda estiverem na arena voltam automaticamente à origem salva. O prazo é persistido, inclusive para reconexão após esse horário. `/raid sair` permite retornar antes. A limpeza remove somente bolas marcadas da raid, sem apagar armadura, acessórios ou itens comuns. Veja [regras completas](docs/CAPTURA_RAID.md).
 
@@ -31,7 +31,7 @@ O adaptador exige o serviço Graal padrão do Cobblemon 1.8.3. Cura do boss est�
 ## Testar o fluxo no jogo
 
 1. Instale Fabric Loader 0.17.2+, Fabric API 0.116.6+1.21.1, Fabric Language Kotlin 1.13.6+kotlin.2.2.20, Cobblemon 1.8.3 e o JAR Shirokai **no servidor de testes**.
-2. Construa uma arena segura e use `/raidadmin setspawn` no ponto desejado. Não há geração de arena nem modificação automática de blocos.
+2. Construa uma arena segura, use `/raidadmin setspawn` no ponto do boss e `/raidadmin setentrada` onde os jogadores devem aparecer. Não há geração de arena nem modificação automática de blocos.
 3. Use `/raidadmin iniciar rayquaza`.
 4. Entre com `/raid`, envie seu Pokémon normalmente e aponte diretamente para o Rayquaza, dentro do alcance normal de desafio.
 5. Pressione R (ou a tecla configurada). Escolha um movimento na batalha normal. Trocas usam o menu normal da equipe.
@@ -39,7 +39,7 @@ O adaptador exige o serviço Graal padrão do Cobblemon 1.8.3. Cura do boss est�
 
 O HP padrão é 10.000.000. Para um teste curto, configure um valor menor em `config/shirokai-raids/bosses/rayquaza.json` e use `/raidadmin reload` fora de uma raid ativa. Arquivos personalizados não são sobrescritos. Não use a fixture de integração em mundo de produção.
 
-O menu `/raid` mostra boss, HP, tempo restante e combatentes. Use **Entrar na raid** ou `/raid entrar`; o destino fica na arena definida por `/raidadmin setspawn`, dentro de `arenaRadius`. Só quem entrou e está dentro da área pode desafiar o boss. Sair da área encerra a batalha, mas a posição de retorno permanece salva até usar `/raid sair` ou **Sair da raid** no menu. Enquanto estiver na raid, todos os outros comandos ficam bloqueados; somente `/raid`, `/raid menu` e `/raid sair` são permitidos. Fechar o menu não sai da raid. A posição anterior, dimensão e orientação são persistidas, inclusive após desconexão ou reinício. Ao terminar o evento, o retorno continua disponível pelo comando ou menu.
+O menu `/raid` mostra boss, HP, tempo restante e combatentes. Use **Entrar na raid** ou `/raid entrar`; o destino é o ponto salvo por `/raidadmin setentrada`, incluindo dimensão e direção. Sem entrada configurada, permanece a busca segura perto do boss. Só quem entrou e está dentro da área pode desafiar o boss. Sair da área encerra a batalha, mas a posição de retorno permanece salva até usar `/raid sair` ou **Sair da raid** no menu. Enquanto estiver na raid, todos os outros comandos ficam bloqueados; somente `/raid`, `/raid menu` e `/raid sair` são permitidos. Fechar o menu não sai da raid. A posição anterior, dimensão e orientação são persistidas, inclusive após desconexão ou reinício. Ao terminar o evento, o retorno continua disponível pelo comando ou menu.
 
 Os contadores de evento, BossBar, avisos e histórico aparecem em horas, minutos e segundos (por exemplo, `1h 05min 30s`). Os campos JSON e argumentos administrativos de intervalo/duração continuam em segundos para preservar compatibilidade.
 
@@ -59,7 +59,6 @@ Sair encerra somente sua sessão e libera a vaga. Seu dano permanece no ranking 
 | --- | --- |
 | `/raid`, `/raid menu` | Menu de informações, entrada e saída da raid |
 | `/raid entrar` | Salva o local anterior e teleporta com segurança para a arena |
-| `/raid lobby` | Teleporte seguro ao lobby configurado, fora de batalhas e com cooldown |
 | `/raid tempo` | Estado/tempo, sem teleporte |
 | `/raid dano`, `/raid top` | Dano efetivo e ranking |
 | `/raid historico` | Menu com suas 20 últimas raids, resultado, contribuição, posição e drops |
@@ -67,7 +66,7 @@ Sair encerra somente sua sessão e libera a vaga. Seu dano permanece no ranking 
 | `/raid sair` | Encerra a batalha e retorna ao local anterior à entrada, preservando contribuição |
 | `/raid recompensas`, `/raid pendentes` | Menu de pendências com botão de entrega, atualização e paginação |
 | `/raid resgatar` | Tentar entrega pelo comando, com o mesmo journal e cooldown do botão |
-| `/raidadmin iniciar <boss>`, `parar`, `setspawn`, `setlobby`, `reload`, `status`, `info`, `listar` | Administração |
+| `/raidadmin iniciar <boss>`, `parar`, `setspawn`, `setentrada`, `reload`, `status`, `info`, `listar` | Administração |
 | `/raidadmin intervalo <segundos>`, `duracao <segundos>`, `limite <1–100>`, `automatico <true/false>` | Configuração persistente fora de raids ativas |
 | `/raidadmin reservas [confirmar/devolver "<id>" <motivo>]` | Conferência auditada de reservas antigas; exige permissão específica |
 
@@ -93,10 +92,10 @@ Requer JDK 21 completo, Node e Python:
 bash gradlew --no-daemon build
 python3 scripts/run_showdown_audit.py
 python3 scripts/run_traditional_probe.py
-python3 scripts/verify_jar.py --version 0.1.13-dev
+python3 scripts/verify_jar.py --version 0.1.14-dev
 ```
 
-Windows: `gradlew.bat build`. O artefato é `build/libs/Shirokai-Raids-0.1.13-dev-fabric-1.21.1.jar`; o verificador gera `SHA256SUMS`. O workflow mantém builds e Artifacts de desenvolvimento em Linux e Windows.
+Windows: `gradlew.bat build`. O artefato é `build/libs/Shirokai-Raids-0.1.14-dev-fabric-1.21.1.jar`; o verificador gera `SHA256SUMS`. O workflow mantém builds e Artifacts de desenvolvimento em Linux e Windows.
 
 No ambiente cloud, `scripts/setup-cloud.sh` prepara o JDK e a compilação. Com servidor preparado por `scripts/prepare-test-server.sh` e EULA aceita para os testes:
 

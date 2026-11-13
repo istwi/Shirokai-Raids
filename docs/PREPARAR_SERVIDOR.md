@@ -1,6 +1,6 @@
 # Preparar o servidor para o teste final
 
-Use a pré-release `0.1.8-dev` num servidor de testes com backup. Ela reúne o combate tradicional, drops, histórico/rankings e os controles operacionais; não é uma versão estável nem comprovação de 100 jogadores.
+Use o build de desenvolvimento `0.1.14-dev` num servidor de testes com backup. Ela reúne o combate tradicional, drops, histórico/rankings e os controles operacionais; não é uma versão estável nem comprovação de 100 jogadores.
 
 ## Instalação
 
@@ -8,7 +8,7 @@ Servidor: Java 21, Minecraft 1.21.1, Fabric Loader 0.17.2+, Fabric API 0.116.6+1
 
 Baixe o JAR e `SHA256SUMS` da pré-release em Releases. Pare o servidor e preserve, juntos, o mundo, `playerdata`, `data/shirokai-raids/state.json` e `config/shirokai-raids` antes de atualizar. Não substitua configurações existentes pelos exemplos: adapte os campos desejados. Arquivos padrão só são criados quando ausentes.
 
-## Arena e lobby
+## Arena e entrada
 
 Use uma dimensão que já exista no servidor. O mod não cria dimensões, arenas, estruturas, portais nem altera blocos. Construa um piso seguro, com espaço para o boss e para os jogadores; evite fluidos, fogo e bordas perigosas.
 
@@ -21,9 +21,9 @@ Com OP 2 ou permissão administrativa, sem uma raid ativa:
 /raidadmin limite 3
 ```
 
-Fique no centro destinado ao boss, orientado como deseja, e execute `/raidadmin setspawn`. Vá ao lobby, sobre piso sólido e com espaço livre, ajuste sua direção e execute `/raidadmin setlobby`. As posições pertencem ao seu mundo; não é possível escolher coordenadas válidas para ele a partir do repositório.
+Fique no centro destinado ao boss, orientado como deseja, e execute `/raidadmin setspawn`. Vá ao ponto onde os jogadores devem chegar, sobre piso sólido e com espaço livre, ajuste sua direção e execute `/raidadmin setentrada`. As posições pertencem ao seu mundo; não é possível escolher coordenadas válidas para ele a partir do repositório.
 
-`/raid` e `/raid entrar` levam à arena com evento ativo. O jogador envia o Pokémon e usa R/tecla normal de desafio; escolhe os movimentos manualmente. `/raid sair` encerra apenas sua sessão e preserva contribuição; `/raid lobby` é um teleporte separado, exige estar fora de batalha/veículo e mantém cooldown de cinco segundos. O lobby pode estar em outra dimensão existente.
+`/raid` e `/raid entrar` levam ao ponto de entrada durante o evento. Sem configuração, é usada uma posição segura perto do boss. O jogador envia o Pokémon e usa R/tecla normal de desafio; escolhe os movimentos manualmente. Após a vitória, quem tiver direito verá uma cópia brilhante e uma BossBar individual; deve usar R na cópia para iniciar a captura, dentro dos dois minutos desde a vitória. `/raid sair` encerra a sessão e retorna à origem. Os comandos de lobby foram removidos.
 
 A arena recebe um ticket temporário enquanto o evento existe. Encerrar/cancelar libera apenas esse ticket; não remove blocos, mundos ou tickets de outros mods. O raio do ticket varia de 2 a 9 chunks conforme o raio configurado da arena. Apenas o centro é carregado imediatamente; chunks vizinhos são processados pelo Minecraft. Uma busca segura pode recusar um destino ainda indisponível, sem mover o jogador. Não há carregamento ilimitado, mas o custo precisa ser medido no hardware real.
 
@@ -51,7 +51,6 @@ Sem LuckPerms, jogadores têm uso normal e administração exige OP 2. Com LuckP
 | --- | --- |
 | `shirokai.raids.use` | Comando principal e acesso aos recursos |
 | `shirokai.raids.join` | Arena e desafio do boss |
-| `shirokai.raids.lobby` | Teleporte ao lobby |
 | `shirokai.raids.rewards` | Menu e tentativas manuais de entrega |
 | `shirokai.raids.history` | Histórico pessoal |
 | `shirokai.raids.ranking` | Ranking global público |

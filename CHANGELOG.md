@@ -1,5 +1,16 @@
 # Histórico de alterações
 
+## 0.1.14-dev
+
+- `/raidadmin setentrada` salva ponto, dimensão e direção de chegada dos participantes, separado do spawn do boss. Local bloqueado recusa o teleporte sem mover o jogador. Sem configuração, preserva a busca segura anterior.
+- Removidos `/raid lobby` e `/raidadmin setlobby`.
+- Cópia de captura fica visível na arena, com brilho e nome específico. O jogador envia seu Pokémon, mira na sua cópia e pressiona R para iniciar a batalha.
+- BossBar exclusiva acompanha os dois minutos desde a vitória, antes e durante a batalha, mostrando bolas restantes. O relógio não reinicia ao usar R.
+- Falhas também usam três shakes da animação nativa. A limpeza normal aguarda a apresentação do resultado; o prazo máximo continua encerrando a fase imediatamente.
+- Chat diferencia sucesso, falta de bolas, tempo esgotado, saída e batalha encerrada sem captura. Chance permanece em 2% por bola.
+
+- Build, 81 testes JUnit, 50 verificações de captura e regressões de teleporte, combate, recompensas e menus aprovados. Detalhes em [Validação local](docs/VALIDACAO_0.1.14-dev.md).
+
 ## 0.1.13-dev
 
 - Entrada exige inventário principal, hotbar, mão secundária e cursor vazios, sem guardar itens. Armadura e acessórios equipados são permitidos e não são removidos.

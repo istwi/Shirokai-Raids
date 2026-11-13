@@ -101,7 +101,7 @@ public final class RestartIntegration implements ModInitializer {
         var boss=(PokemonEntity)field(active(),"boss");
         require(Math.abs(boss.getX()-X)<.001 && Math.abs(boss.getY()-Y)<.001 && Math.abs(boss.getZ()-Z)<.001,"Boss não nasceu no ponto salvo");
         require(config.spawnConfigured && config.x==X && config.y==Y && config.z==Z && config.spawnYaw==37 && config.spawnPitch==9,"Ponto/orientação salvos mudaram");
-        require(config.lobby.configured && config.lobby.x==24 && config.lobby.y==200 && config.lobby.z==12 && config.lobby.yaw==81,"Lobby salvo mudou");
+        require(config.entry.configured && config.entry.x==24 && config.entry.y==200 && config.entry.z==12 && config.entry.yaw==81,"Entrada salva mudou");
         require(boss.hasGlowingTag() && boss.isCurrentlyGlowing(),"Brilho não ativado na nova raid");
         require(boss.getPokemon().getScaleModifier()==definition.scale,"Escala editada não aplicada");
         var health=(RaidCombatCoordinator)field(active(),"health");
@@ -122,7 +122,7 @@ public final class RestartIntegration implements ModInitializer {
         for(int x=-24;x<=48;x++) for(int z=-40;z<=24;z++) server.overworld().setBlock(new BlockPos(x,199,z),Blocks.STONE.defaultBlockState(),3);
         var player=FakePlayer.get(server.overworld(),new GameProfile(CONTRIBUTOR,"[RestartProbe]"));
         player.setPos(24,200,12); player.setYRot(81); player.setXRot(7);
-        require(command(server,"raidadmin setlobby")==1,"setlobby falhou");
+        require(command(server,"raidadmin setentrada")==1,"setentrada falhou");
         player.setPos(X,Y,Z); player.setYRot(37); player.setXRot(9);
         require(command(server,"raidadmin setspawn")==1,"setspawn falhou");
         var ordinary=PokemonProperties.Companion.parse("magikarp level=10").createEntity(server.overworld());

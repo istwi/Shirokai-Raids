@@ -126,7 +126,6 @@ public final class ShirokaiRaids implements ModInitializer {
         CommandRegistrationCallback.EVENT.register((dispatcher, registries, environment) -> {
             var raid = Commands.literal("raid").requires(s -> RaidPermissions.check(s,"shirokai.raids.use",true)).executes(c -> raidCommand(c.getSource()));
             raid.then(Commands.literal("entrar").requires(s -> RaidPermissions.check(s,"shirokai.raids.join",true)).executes(c -> join(c.getSource())));
-            raid.then(Commands.literal("lobby").requires(s -> RaidPermissions.check(s,"shirokai.raids.lobby",true)).executes(c -> lobby(c.getSource())));
             raid.then(Commands.literal("sair").executes(c -> leave(c.getSource())));
             raid.then(Commands.literal("tempo").executes(c -> info(c.getSource())));
             raid.then(Commands.literal("dano").executes(c -> damage(c.getSource())));
@@ -144,7 +143,7 @@ public final class ShirokaiRaids implements ModInitializer {
                 .executes(c -> start(c.getSource(), StringArgumentType.getString(c,"boss")))));
             admin.then(Commands.literal("parar").executes(c -> { finish(false,msg("textos.raid_encerrada_pela_administracao")); return 1; }));
             admin.then(Commands.literal("setspawn").executes(c -> setSpawn(c.getSource())));
-            admin.then(Commands.literal("setlobby").executes(c -> setLobby(c.getSource())));
+            admin.then(Commands.literal("setentrada").executes(c -> setEntry(c.getSource())));
             admin.then(Commands.literal("status").executes(c -> status(c.getSource())));
             admin.then(Commands.literal("info").executes(c -> status(c.getSource())));
             admin.then(Commands.literal("intervalo").then(Commands.argument("segundos", com.mojang.brigadier.arguments.IntegerArgumentType.integer(60,31_536_000))
@@ -200,7 +199,7 @@ public final class ShirokaiRaids implements ModInitializer {
     }
     private void validateDestinations(RaidConfig next) {
         if (next.spawnConfigured) validateDestination(next.dimension, next.y);
-        if (next.lobby.configured) validateDestination(next.lobby.dimension, next.lobby.y);
+        if (next.entry.configured) validateDestination(next.entry.dimension, next.entry.y);
     }
     private void validateDestination(String dimension, double y) {
         var world = server.getLevel(ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(dimension)));
@@ -233,6 +232,7 @@ public final class ShirokaiRaids implements ModInitializer {
     }
     public static boolean tryChallenge(com.cobblemon.mod.common.net.messages.server.BattleChallengePacket packet,ServerPlayer player) {
         var mod=instance;
+        if(mod!=null && mod.captures!=null && mod.captures.challenge(packet,player)) return true;
         if(mod==null || mod.active==null || player.level().getEntity(packet.getTargetedEntityId())!=mod.active.boss) return false;
         try {
             if (mod.captures!=null && mod.captures.active(player.getUUID())) throw new IllegalStateException(msg("captura.ja_ativa"));
@@ -316,14 +316,25 @@ public final class ShirokaiRaids implements ModInitializer {
         if (raid.boss.isRemoved() || !raid.boss.isAlive() || server.getLevel(raid.world.dimension()) != raid.world) {
             source.sendFailure(RaidMessages.component(msg("textos.a_arena_nao_esta_disponivel"))); return 0;
         }
-        var spot=SafeTeleportSearch.find(raid.boss.getX(),raid.center.y,raid.boss.getZ(),config.arenaRadius,
-            player.getUUID().hashCode(),candidate -> safeSpot(raid,player,candidate));
-        if (spot.isEmpty()) {
-            source.sendFailure(RaidMessages.component(msg("textos.nao_ha_um_local_seguro_e_carregado_proximo_ao_boss_avise_a_administracao"))); return 0;
+        ServerLevel destinationWorld=raid.world;
+        Vec3 destination;
+        float yaw,pitch;
+        if(config.entry.configured) {
+            destinationWorld=server.getLevel(ResourceKey.create(Registries.DIMENSION,ResourceLocation.parse(config.entry.dimension)));
+            destination=new Vec3(config.entry.x,config.entry.y,config.entry.z);
+            if(destinationWorld==null || !destinationWorld.getWorldBorder().isWithinBounds(net.minecraft.core.BlockPos.containing(destination)))
+                { source.sendFailure(RaidMessages.component(msg("entrada.indisponivel")));return 0; }
+            destinationWorld.getChunkAt(net.minecraft.core.BlockPos.containing(destination));
+            if(!safeBodyAt(destinationWorld,player,destination,destinationWorld==raid.world?raid.boss:null,true))
+                { source.sendFailure(RaidMessages.component(msg("entrada.indisponivel")));return 0; }
+            yaw=config.entry.yaw;pitch=config.entry.pitch;
+        } else {
+            var spot=SafeTeleportSearch.find(raid.boss.getX(),raid.center.y,raid.boss.getZ(),config.arenaRadius,
+                player.getUUID().hashCode(),candidate -> safeSpot(raid,player,candidate));
+            if(spot.isEmpty()) { source.sendFailure(RaidMessages.component(msg("textos.nao_ha_um_local_seguro_e_carregado_proximo_ao_boss_avise_a_administracao")));return 0; }
+            var target=spot.get();destination=new Vec3(target.x()+.5,target.feetY(),target.z()+.5);
+            yaw=(float)(Math.toDegrees(Math.atan2(raid.boss.getZ()-destination.z,raid.boss.getX()-destination.x))-90);pitch=0;
         }
-        var target=spot.get();
-        double x=target.x()+.5,z=target.z()+.5;
-        float yaw=(float)(Math.toDegrees(Math.atan2(raid.boss.getZ()-z,raid.boss.getX()-x))-90);
         String key = player.getUUID().toString();
         if (captures != null && captures.active(player.getUUID())) return reply(source,msg("captura.ja_ativa"));
         if (state.returns.containsKey(key)) return reply(source,msg("textos.voce_ja_entrou_use_raid_sair_antes_de_entrar_novamente"));
@@ -332,9 +343,9 @@ public final class ShirokaiRaids implements ModInitializer {
             player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot()));
         state.returns.get(key).raid=raid.id;
         save(); // Persist the origin before moving the player; never move or store personal items.
-        player.teleportTo(raid.world,x,target.feetY(),z,Set.of(),yaw,0);
+        player.teleportTo(destinationWorld,destination.x,destination.y,destination.z,Set.of(),yaw,pitch);
         player.fallDistance=0;
-        raid.bar.addPlayer(player);
+        if(inArena(player)) raid.bar.addPlayer(player);
         return reply(source,msg("textos.voce_chegou_a_arena_envie_seu_pokemon_e_desafie_o_boss_com_r_para_escolher_"));
     }
     private boolean safeSpot(Active raid,ServerPlayer player,SafeTeleportSearch.Spot spot) {
@@ -346,6 +357,13 @@ public final class ShirokaiRaids implements ModInitializer {
         return safeBody(world, player, feet, raid.boss);
     }
     private boolean safeBody(ServerLevel world, ServerPlayer player, net.minecraft.core.BlockPos feet, net.minecraft.world.entity.Entity boss) {
+        return safeBodyAt(world,player,new Vec3(feet.getX()+.5,feet.getY(),feet.getZ()+.5),boss);
+    }
+    private boolean safeBodyAt(ServerLevel world,ServerPlayer player,Vec3 position,net.minecraft.world.entity.Entity boss) {
+        return safeBodyAt(world,player,position,boss,false);
+    }
+    private boolean safeBodyAt(ServerLevel world,ServerPlayer player,Vec3 position,net.minecraft.world.entity.Entity boss,boolean allowPlayers) {
+        var feet=net.minecraft.core.BlockPos.containing(position);
         if (feet.getY() <= world.getMinBuildHeight() || feet.getY() + player.getBbHeight() >= world.getMaxBuildHeight()
             || !world.hasChunkAt(feet) || !world.getWorldBorder().isWithinBounds(feet)) return false;
         var floor=feet.below();
@@ -358,41 +376,12 @@ public final class ShirokaiRaids implements ModInitializer {
                 || state.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE) || state.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
                 || state.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE) || state.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)) return false;
         }
-        var body=net.minecraft.world.phys.AABB.ofSize(new Vec3(feet.getX()+.5,feet.getY()+player.getBbHeight()/2.0,feet.getZ()+.5),
+        var body=net.minecraft.world.phys.AABB.ofSize(new Vec3(position.x,position.y+player.getBbHeight()/2.0,position.z),
             player.getBbWidth(),player.getBbHeight(),player.getBbWidth());
         return body.minX >= world.getWorldBorder().getMinX() && body.maxX <= world.getWorldBorder().getMaxX()
             && body.minZ >= world.getWorldBorder().getMinZ() && body.maxZ <= world.getWorldBorder().getMaxZ()
             && world.noCollision(player,body) && (boss == null || !boss.getBoundingBox().inflate(2).intersects(body))
-            && world.getEntities(player,body,entity -> entity.isAlive() && entity.isPickable()).isEmpty();
-    }
-    private int lobby(CommandSourceStack source) {
-        if (!healthy) return reply(source, msg("textos.teleporte_indisponivel_confira_a_persistencia"));
-        if (!config.lobby.configured) return reply(source, msg("textos.o_lobby_ainda_nao_foi_configurado_pela_administracao"));
-        try {
-            var player = source.getPlayerOrException();
-            if (state.returns.containsKey(player.getUUID().toString())) return reply(source,msg("textos.use_raid_sair_para_voltar_ao_local_anterior_antes_de_ir_ao_lobby"));
-            if (!player.isAlive() || player.isSpectator() || player.isPassenger()
-                || com.cobblemon.mod.common.battles.BattleRegistry.getBattleByParticipatingPlayer(player) != null) {
-                source.sendFailure(RaidMessages.component(msg("textos.encerre_sua_batalha_e_saia_de_veiculos_antes_de_ir_ao_lobby"))); return 0;
-            }
-            if (tick < teleportCooldown.getOrDefault(player.getUUID(), 0L)) {
-                source.sendFailure(RaidMessages.component(msg("textos.aguarde_cinco_segundos_entre_teleportes"))); return 0;
-            }
-            validateDestination(config.lobby.dimension, config.lobby.y);
-            var world = server.getLevel(ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(config.lobby.dimension)));
-            var center = net.minecraft.core.BlockPos.containing(config.lobby.x, config.lobby.y, config.lobby.z);
-            if (!world.getWorldBorder().isWithinBounds(center)) throw new IllegalStateException(msg("textos.lobby_fora_da_borda_do_mundo"));
-            world.getChunkAt(center);
-            var target = safeBody(world, player, center, null) ? java.util.Optional.of(new SafeTeleportSearch.Spot(center.getX(), center.getY(), center.getZ()))
-                : SafeTeleportSearch.find(config.lobby.x, config.lobby.y, config.lobby.z, 16, player.getUUID().hashCode(),
-                    spot -> safeBody(world, player, new net.minecraft.core.BlockPos(spot.x(), spot.feetY(), spot.z()), null));
-            if (target.isEmpty()) { source.sendFailure(RaidMessages.component(msg("textos.nao_ha_um_destino_seguro_no_lobby_posicao_preservada"))); return 0; }
-            var spot = target.get();
-            player.teleportTo(world, spot.x()+.5, spot.feetY(), spot.z()+.5, Set.of(), config.lobby.yaw, config.lobby.pitch);
-            player.fallDistance = 0;
-            teleportCooldown.put(player.getUUID(), tick + 100);
-            return reply(source, msg("textos.voce_chegou_ao_lobby_da_raid"));
-        } catch (Exception error) { source.sendFailure(RaidMessages.component(msg("textos.nao_foi_possivel_acessar_o_lobby") + error.getMessage())); return 0; }
+            && world.getEntities(player,body,entity -> entity.isAlive() && entity.isPickable() && (!allowPlayers || !(entity instanceof ServerPlayer))).isEmpty();
     }
     private void cleanup(Active raid) {
         try { if (raid.battles != null) raid.battles.close(); }
@@ -411,17 +400,17 @@ public final class ShirokaiRaids implements ModInitializer {
             }, msg("textos.arena_configurada_mantenha_o_local_acessivel_e_livre_de_construcoes"));
         } catch (Exception e) { return reply(source,msg("textos.nao_foi_possivel_salvar_a_arena") + e.getMessage()); }
     }
-    private int setLobby(CommandSourceStack source) {
+    private int setEntry(CommandSourceStack source) {
         try {
             var player = source.getPlayerOrException();
-            if (!safeBody(player.serverLevel(), player, net.minecraft.core.BlockPos.containing(player.position()), null))
-                return reply(source, msg("textos.fique_sobre_piso_solido_e_em_um_local_livre_para_definir_o_lobby"));
+            if (!safeBodyAt(player.serverLevel(), player, player.position(), null,true))
+                return reply(source, msg("entrada.insegura"));
             return configure(source, next -> {
-                next.lobby.configured = true; next.lobby.dimension = player.serverLevel().dimension().location().toString();
-                next.lobby.x = player.getX(); next.lobby.y = player.getY(); next.lobby.z = player.getZ();
-                next.lobby.yaw = player.getYRot(); next.lobby.pitch = player.getXRot();
-            }, msg("textos.lobby_salvo_use_raid_lobby_para_acessa_lo"));
-        } catch (Exception e) { return reply(source, msg("textos.nao_foi_possivel_definir_o_lobby") + e.getMessage()); }
+                next.entry.configured = true; next.entry.dimension = player.serverLevel().dimension().location().toString();
+                next.entry.x = player.getX(); next.entry.y = player.getY(); next.entry.z = player.getZ();
+                next.entry.yaw = player.getYRot(); next.entry.pitch = player.getXRot();
+            }, msg("entrada.salva"));
+        } catch (Exception e) { return reply(source, msg("entrada.erro") + e.getMessage()); }
     }
     private int configure(CommandSourceStack source, java.util.function.Consumer<RaidConfig> change, String message) {
         if (active != null) return reply(source, msg("textos.encerre_a_raid_antes_de_alterar_a_configuracao"));
@@ -441,7 +430,7 @@ public final class ShirokaiRaids implements ModInitializer {
         reply(source, msg("textos.persistencia") + (healthy ? msg("textos.disponivel") : msg("textos.indisponivel")) + msg("textos.automatico") + config.automaticRaids
             + msg("textos.intervalo") + RaidTime.format(config.intervalSeconds) + msg("textos.duracao") + RaidTime.format(config.durationSeconds) + msg("textos.limite") + config.maxConcurrentPlayers);
         reply(source, msg("textos.arena") + (config.spawnConfigured ? config.dimension + " " + config.x + ", " + config.y + ", " + config.z : msg("textos.use_raidadmin_setspawn"))
-            + msg("textos.lobby") + (config.lobby.configured ? config.lobby.dimension : msg("textos.use_raidadmin_setlobby")));
+            + msg("entrada.rotulo") + (config.entry.configured ? config.entry.dimension : msg("entrada.comando")));
         if (active != null) reply(source, msg("textos.evento") + active.id + msg("textos.sessoes") + active.health.snapshot().activeSessions()
             + msg("textos.raio_do_ticket") + active.chunks.radius() + " chunks");
         if (state != null) reply(source, msg("textos.pendencias") + state.pending.values().stream().mapToInt(List::size).sum()

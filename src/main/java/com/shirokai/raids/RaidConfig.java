@@ -33,8 +33,8 @@ public final class RaidConfig {
         }
     }
     public float spawnYaw, spawnPitch;
-    public Lobby lobby = new Lobby();
-    public static final class Lobby {
+    public Entry entry = new Entry();
+    public static final class Entry {
         public boolean configured;
         public String dimension = "minecraft:overworld";
         public double x, y = 80, z;
@@ -47,12 +47,12 @@ public final class RaidConfig {
         capture.validate();
         if (menuTimeZone == null) throw new IllegalArgumentException("Fuso horário do menu ausente");
         java.time.ZoneId.of(menuTimeZone);
-        if (dimension == null || !dimension.matches("[a-z0-9_.-]+:[a-z0-9_./-]+") || lobby == null
-            || lobby.dimension == null || !lobby.dimension.matches("[a-z0-9_.-]+:[a-z0-9_./-]+")
-            || !Double.isFinite(lobby.x + lobby.y + lobby.z) || Math.abs(x) > 29_999_984 || Math.abs(z) > 29_999_984
-            || Math.abs(lobby.x) > 29_999_984 || Math.abs(lobby.z) > 29_999_984
+        if (dimension == null || !dimension.matches("[a-z0-9_.-]+:[a-z0-9_./-]+") || entry == null
+            || entry.dimension == null || !entry.dimension.matches("[a-z0-9_.-]+:[a-z0-9_./-]+")
+            || !Double.isFinite(entry.x + entry.y + entry.z) || Math.abs(x) > 29_999_984 || Math.abs(z) > 29_999_984
+            || Math.abs(entry.x) > 29_999_984 || Math.abs(entry.z) > 29_999_984
             || !Float.isFinite(spawnYaw) || !Float.isFinite(spawnPitch) || Math.abs(spawnPitch) > 90
-            || !Float.isFinite(lobby.yaw) || !Float.isFinite(lobby.pitch) || Math.abs(lobby.pitch) > 90)
+            || !Float.isFinite(entry.yaw) || !Float.isFinite(entry.pitch) || Math.abs(entry.pitch) > 90)
             throw new IllegalArgumentException("Dimensão, posição ou orientação inválida");
         com.shirokai.raids.core.RaidSchedule.next(0, intervalSeconds);
         if (durationSeconds < 30 || durationSeconds > 7200 || !Double.isFinite(x+y+z)

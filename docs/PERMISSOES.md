@@ -8,7 +8,6 @@ Sem LuckPerms, o acesso normal é permitido e administração exige OP 2. Com Lu
 | --- | --- | --- |
 | `shirokai.raids.use` | Permitido | Raiz `/raid` e acesso geral; também exigido nas funções abaixo |
 | `shirokai.raids.join` | Permitido | `/raid`, `/raid entrar` para arena e desafio nativo do boss |
-| `shirokai.raids.lobby` | Permitido | `/raid lobby` |
 | `shirokai.raids.rewards` | Permitido | `/raid recompensas`, `/raid pendentes`, `/raid resgatar` e botão de entrega |
 | `shirokai.raids.history` | Permitido | `/raid menu`, `/raid historico` e aba de histórico |
 | `shirokai.raids.ranking` | Permitido | `/raid ranking` e abas globais |
@@ -24,7 +23,6 @@ Escolha o grupo que realmente existe no seu servidor. Estes comandos configuram 
 ```text
 /lp group default permission set shirokai.raids.use true
 /lp group default permission set shirokai.raids.join true
-/lp group default permission set shirokai.raids.lobby true
 /lp group default permission set shirokai.raids.rewards true
 /lp group default permission set shirokai.raids.history true
 /lp group default permission set shirokai.raids.ranking true

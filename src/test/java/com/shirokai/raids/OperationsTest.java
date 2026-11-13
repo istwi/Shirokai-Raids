@@ -31,17 +31,17 @@ class OperationsTest {
         assertTrue(RaidSchedule.warning(120_000,effective,new HashSet<>()).isEmpty());
         assertEquals(60,RaidSchedule.warning(59_000,effective,new HashSet<>()).orElseThrow());
     }
-    @Test void editingConfigurationUsesIndependentCopyAndRejectsInvalidLobby() {
+    @Test void editingConfigurationUsesIndependentCopyAndRejectsInvalidEntry() {
         var original = new RaidConfig(); original.intervalSeconds = 10_000;
         var next = JsonFiles.copy(original, RaidConfig.class);
-        next.lobby.configured = true; next.lobby.dimension = "missing dimension";
+        next.entry.configured = true; next.entry.dimension = "missing dimension";
         assertThrows(IllegalArgumentException.class, next::validate);
-        assertFalse(original.lobby.configured); assertEquals(10_000, original.intervalSeconds);
-        next.lobby.dimension = "minecraft:the_nether"; next.lobby.pitch = 91;
+        assertFalse(original.entry.configured); assertEquals(10_000, original.intervalSeconds);
+        next.entry.dimension = "minecraft:the_nether"; next.entry.pitch = 91;
         assertThrows(IllegalArgumentException.class, next::validate);
-        next.lobby.pitch = 30; next.lobby.x = Double.NaN;
+        next.entry.pitch = 30; next.entry.x = Double.NaN;
         assertThrows(IllegalArgumentException.class, next::validate);
-        next.lobby.x = 0; next.validate();
+        next.entry.x = 0; next.validate();
     }
     private String legacy(RaidState state, String owner) {
         String id = owner + ":" + UUID.randomUUID() + ":" + UUID.randomUUID();

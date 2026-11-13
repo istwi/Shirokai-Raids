@@ -205,6 +205,18 @@ public final class ChallengeIntegration implements ModInitializer {
             }
             raidEndedTick=ticks;
         }
+        if(raidEndedTick>=0 && !captureChecked && ticks%20==0) for(int index:new int[]{0,2}) {
+            var player=players.get(index);
+            if(BattleRegistry.getBattleByParticipatingPlayer(player)!=null) continue;
+            var copies=server.overworld().getEntitiesOfClass(PokemonEntity.class,new AABB(-50,180,-50,50,240,50),e->e.getTags().contains("shirokai_capture_owner:"+player.getUUID()));
+            if(copies.isEmpty()) continue;
+            var party=Cobblemon.INSTANCE.getStorage().getParty(player);UUID selected=null;
+            for(var pokemon:party) if(pokemon.getCurrentHealth()>0){selected=pokemon.getUuid();break;}
+            if(selected==null) continue;
+            player.setPos(0,200,index==0?3:-3);
+            player.lookAt(net.minecraft.commands.arguments.EntityAnchorArgument.Anchor.EYES,copies.getFirst().getBoundingBox().getCenter());
+            ChallengeHandler.INSTANCE.handle(new BattleChallengePacket(copies.getFirst().getId(),selected,BattleFormat.Companion.getGEN_9_SINGLES()),server,player);
+        }
         if (raidEndedTick >= 0 && ticks >= raidEndedTick + 120 && !captureChecked) throw new AssertionError("Batalhas de captura não iniciaram após a vitória");
         if (raidEndedTick >= 0 && ticks >= raidEndedTick + 20 && !captureChecked
             && BattleRegistry.getBattleByParticipatingPlayer(players.get(0))!=null && BattleRegistry.getBattleByParticipatingPlayer(players.get(2))!=null) {

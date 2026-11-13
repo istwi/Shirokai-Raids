@@ -56,6 +56,12 @@ public final class TeleportIntegration implements ModInitializer {
         player=FakePlayer.get(server.overworld(),new GameProfile(UUID.fromString("bdf41527-c5bb-4057-86aa-74dcbf69c774"),"[RaidTest]"));
         player.setPos(0,200,0);
         require(command(server,"raidadmin setspawn")==1,"setspawn falhou");
+        player.setPos(22.25,200,-20.75);player.setYRot(73);player.setXRot(11);
+        require(command(server,"raidadmin setentrada")==1,"setentrada falhou");
+        require(command(server,"raidadmin reload")==1,"reload da entrada falhou");
+        var config=new com.google.gson.Gson().fromJson(Files.readString(Path.of("config/shirokai-raids/config.json")),com.shirokai.raids.RaidConfig.class);
+        require(config.entry.configured&&config.entry.x==22.25&&config.entry.z==-20.75&&config.x==0&&config.z==0,"Entrada não persistiu ou alterou o spawn do boss");
+        require(server.getCommands().getDispatcher().getRoot().getChild("raid").getChild("lobby")==null,"raid lobby ainda registrado");
         require(command(server,"raidadmin iniciar rayquaza")==1,"spawn falhou");
         var bosses=server.overworld().getEntitiesOfClass(PokemonEntity.class,new AABB(-48,180,-48,48,240,48),e->e.getTags().contains("shirokai_raids_boss"));
         require(bosses.size()==1,"boss único não encontrado");
@@ -67,10 +73,14 @@ public final class TeleportIntegration implements ModInitializer {
             +" loaded="+server.overworld().hasChunkAt(new BlockPos(10,200,0))
             +" collisionFree="+server.overworld().noCollision(player,body)
             +" entities="+server.overworld().getEntities(player,body,e->e.isAlive()&&e.isPickable()).size());
+        var waiting=FakePlayer.get(server.overworld(),new GameProfile(UUID.randomUUID(),"EntryOccupant"));
+        waiting.setPos(22.25,200,-20.75);server.overworld().addNewPlayer(waiting);
         require(command(server,"raid entrar")==1,"/raid entrar não teleportou");
+        waiting.discard();
         require(player.position().distanceToSqr(new Vec3(0,200,0))<48*48,"destino fora da arena");
         require(server.overworld().noCollision(player,player.getBoundingBox()),"jogador dentro de blocos");
         require(!bosses.getFirst().getBoundingBox().inflate(2).intersects(player.getBoundingBox()),"jogador dentro do boss");
+        require(player.position().equals(new Vec3(22.25,200,-20.75))&&player.getYRot()==73&&player.getXRot()==11,"Entrada perdeu coordenadas ou orientação exatas");
         var arrived=player.position();
         command(server,"raid tempo");
         require(arrived.equals(player.position()),"/raid tempo teleportou indevidamente");
