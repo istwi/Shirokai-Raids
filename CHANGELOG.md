@@ -1,5 +1,12 @@
 # Histórico de alterações
 
+## 0.1.20-dev
+
+- Intervalo da próxima raid começa após a derrota do boss; cancelamento e expiração também iniciam um intervalo completo.
+- Dollars e Tokens gerais passam a usar `floor(minimum + (maximum - minimum) * contribuição)`, sem sorteio de quantidade nem multiplicadores adicionais. A parte geral do TOP 3 segue a mesma regra; especiais e fragmentos mantêm seus sorteios.
+- Prévia administrativa exibe os valores determinísticos das moedas gerais para a contribuição simulada. Pendências existentes não são recalculadas.
+- Build e 125 testes JUnit aprovados; não houve novo ensaio com clientes reais nem execução dedicada da fixture de vitória nesta sessão.
+
 ## 0.1.19-dev
 
 - Prefixo do chat e BossBars de raid, captura e próxima raid passam a usar somente RAID. Retirada a divulgação da chance por bola na introdução de captura.

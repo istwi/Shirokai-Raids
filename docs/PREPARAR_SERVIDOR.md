@@ -37,7 +37,7 @@ Após vitória, a entrega é automática, inclusive para quem saiu da batalha. O
 
 ## Agendamento e informações
 
-O intervalo conta a partir do início do evento. `SKIP_MISSED` pula uma ocorrência vencida ao reiniciar; `START_ONCE` admite uma única ocorrência vencida, sem acumular eventos. Os avisos configurados aparecem uma vez em cada limiar. Avisos maiores que o intervalo ficam inativos sem serem apagados; após uma pausa é emitido apenas o aviso mais próximo ainda pertinente.
+O intervalo começa quando o boss é derrotado, sem descontar o tempo de combate. Em caso de expiração ou cancelamento, o intervalo completo começa no encerramento. `SKIP_MISSED` pula uma ocorrência vencida ao reiniciar; `START_ONCE` admite uma única ocorrência vencida, sem acumular eventos. Os avisos configurados aparecem uma vez em cada limiar. Avisos maiores que o intervalo ficam inativos sem serem apagados; após uma pausa é emitido apenas o aviso mais próximo ainda pertinente.
 
 Quando o cenário estiver preparado, `/raidadmin automatico true` habilita e reagenda a próxima ocorrência. Para testar imediatamente: `/raidadmin iniciar rayquaza`. Para cancelar: `/raidadmin parar`. `/raidadmin status` ou `info` mostra persistência, agendamento, configurações, sessões, ticket, pendências, MSPT médio e memória heap. O valor de limite configurado não demonstra capacidade operacional.
 

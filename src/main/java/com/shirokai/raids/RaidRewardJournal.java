@@ -108,7 +108,7 @@ final class RaidRewardJournal {
     private static Grant grant(String raid,UUID player,String scope,String difficulty,int rank,double contribution,RaidRewardSettings.Reward r,List<RaidRewardSettings.Reward> pool,double multiplier,RaidRewardSettings settings,RandomGenerator random){
         var g=new Grant();g.raid=raid;g.player=player.toString();g.scope=scope;g.difficulty=difficulty;g.rank=rank;g.contribution=contribution;g.originalReward=r.id;
         g.id=UUID.nameUUIDFromBytes((raid+":"+player+":"+scope+":"+r.id).getBytes(StandardCharsets.UTF_8)).toString();
-        g.choice=new Choice(r,RaidRewardSettings.amount(r,contribution,multiplier,settings.integrations.maximumAmount,random));
+        g.choice=new Choice(r,RaidRewardSettings.scopedAmount(scope,r,contribution,multiplier,settings.integrations.maximumAmount,random));
         var policy=r.type.equals("title")?settings.duplicates.titles:settings.duplicates.particles;
         g.policy=JsonFiles.copy(policy,RaidRewardSettings.Policy.class);
         if(g.policy.compensation!=null){
@@ -116,7 +116,7 @@ final class RaidRewardJournal {
             g.policy.compensation.maximum=Math.min(cap,g.policy.compensation.maximum);
             g.policy.compensation.minimum=Math.min(cap,g.policy.compensation.minimum);
         }
-        for(var alternative:pool)if(alternative.rarity<=r.rarity&&eligible(alternative,contribution,rank))g.alternatives.add(new Choice(alternative,RaidRewardSettings.amount(alternative,contribution,multiplier,settings.integrations.maximumAmount,random)));
+        for(var alternative:pool)if(alternative.rarity<=r.rarity&&eligible(alternative,contribution,rank))g.alternatives.add(new Choice(alternative,RaidRewardSettings.scopedAmount(scope,alternative,contribution,multiplier,settings.integrations.maximumAmount,random)));
         g.resolved=!r.cosmetic();return g;
     }
     private static RaidRewardSettings.Reward select(List<RaidRewardSettings.Reward> pool,RandomGenerator random){int n=random.nextInt(pool.stream().mapToInt(r->r.weight).sum());for(var r:pool){n-=r.weight;if(n<0)return r;}throw new AssertionError();}

@@ -47,6 +47,6 @@ No `config/shirokai-raids/config.json`, mantenha:
 }
 ```
 
-Esses já são os valores padrão. O intervalo é contado a partir do início do evento; com raid ativa, outro boss não aparece. No momento do evento automático, o mod sorteia com chances iguais um dos bosses carregados da pasta `bosses`. Repetições entre eventos são possíveis. Não existe uma segunda lista para sincronizar.
+Esses já são os valores padrão. O intervalo começa quando o boss é derrotado; o tempo de combate não consome a espera até a próxima raid. Se o evento expirar ou for cancelado, o intervalo completo começa nesse encerramento. Com raid ativa, outro boss não aparece. No momento do evento automático, o mod sorteia com chances iguais um dos bosses carregados da pasta `bosses`. Repetições entre eventos são possíveis. Não existe uma segunda lista para sincronizar.
 
 Configure a arena com `/raidadmin setspawn`. Para ajustar um servidor já configurado, fora de evento ativo, use `/raidadmin intervalo 7200` e `/raidadmin automatico true`. Isso salva a configuração e recalcula o próximo evento. Editar o JSON e recarregar preserva a ocorrência já agendada; o novo intervalo vale para os agendamentos seguintes. Para recalcular imediatamente, use o comando de intervalo. Não altere `state.json` manualmente. `/raidadmin iniciar <id>` continua permitindo escolher um boss manualmente.

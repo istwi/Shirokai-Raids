@@ -6,11 +6,27 @@ Minecraft 1.21.1, Fabric, Java 21 e Cobblemon 1.8.3. Impactor e Shirokai Crates 
 
 O dano efetivamente aplicado é acumulado por UUID. Sair, voltar e desconectar não apaga a contribuição. O ranking usa dano decrescente e UUID crescente no desempate. Estar ausente na vitória não remove o direito às recompensas gerais/especiais; as regras de captura continuam exigindo presença.
 
-Todos os jogadores com dano positivo e contribuição mínima recebem os sorteios gerais. A contribuição é dano/HP máximo global. Recompensas com `chance: 1` são fixas; as demais fazem um sorteio independente. Valores aleatórios são sorteados entre `minimum` e `maximum`, inclusive.
+Todos os jogadores com dano positivo e contribuição mínima recebem os sorteios gerais. A contribuição é dano/HP máximo global. Recompensas com `chance: 1` são fixas; as demais fazem um sorteio independente. Dollars e Tokens gerais usam uma quantidade determinística por dano, sem sorteio de valor. As demais recompensas sorteiam valores entre `minimum` e `maximum`, inclusive.
 
 Apenas as posições originais 1, 2 e 3 podem concorrer aos especiais. Jogador inelegível não promove o quarto colocado. Cada posição tem uma chance de realizar um sorteio; depois, um prêmio é escolhido por `weight` e passa por sua própria `chance`. Pode não haver nenhum especial. No máximo um especial inicial por jogador e raid. Os padrões dão chances maiores ao TOP 1 que ao TOP 2, e ao TOP 2 que ao TOP 3.
 
-A quantidade final, inteira, é:
+## Quantidade das moedas gerais
+
+Para `type: "currency"` em `general.json` (Dollars e Tokens), a quantidade é:
+
+```
+floor(minimum + (maximum - minimum) * contribuição)
+```
+
+A contribuição é o dano efetivo do jogador dividido pelo HP máximo global do boss, limitada entre 0 e 1. Não é normalizada pelo primeiro colocado. O valor é limitado por `maximumAmount`, com mínimo de 1. `baseMultiplier`, `damageMultiplier` e os multiplicadores de dificuldade/boss não se aplicam às moedas gerais; use `minimum`/`maximum` por pool para definir suas faixas. Não há um novo campo obrigatório de configuração.
+
+Exemplo: com Dollars entre 5.000 e 15.000 e Tokens entre 5 e 25, contribuições de 1%, 10%, 25%, 50% e 100% rendem, respectivamente, 5.100/5, 6.000/7, 7.500/10, 10.000/15 e 15.000/25 (Dollars/Tokens). Na mesma raid e tabela, causar menos dano nunca aumenta a quantidade da mesma moeda; arredondamento e teto podem empatar valores. As chances configuradas de cada prêmio continuam valendo; com `chance: 1`, as moedas gerais são garantidas aos elegíveis.
+
+Essa regra vale para todos os participantes elegíveis, inclusive a parte geral do TOP 3. O special continua com seleção e quantidade aleatórias, podendo mudar o total final recebido. Fragmentos, compensações e drops antigos mantêm seus cálculos. Pendências já sorteadas mantêm a quantidade salva e não são recalculadas. A prévia administrativa apresenta o valor determinístico para a contribuição simulada.
+
+## Quantidade das demais recompensas
+
+Para fragmentos e prêmios especiais, a quantidade final, inteira, é:
 
 ```
 floor(base_sorteada * (baseMultiplier + contribuição * damageMultiplier)

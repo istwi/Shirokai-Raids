@@ -89,6 +89,7 @@ final class RaidAdminRewardMenu extends ChestMenu {
             lore.add("&7Raridade: &f"+RaidRewardOdds.rarityName(line.rarity()));lore.add((view.scope==RaidRewardOdds.Scope.LEGACY?"&aChance por sorteio: &f":"&aChance inicial: &f")+RaidRewardOdds.percent(line.chance()));
             lore.add("&7Chance configurada: "+RaidRewardOdds.percent(line.configuredChance()));if(view.scope!=RaidRewardOdds.Scope.GENERAL)lore.add("&7Seleção por peso: "+RaidRewardOdds.percent(line.selectionChance()));
             lore.add((view.scope==RaidRewardOdds.Scope.LEGACY?"&7Quantidade base: &f":"&7Quantidade calculada: &f")+line.minimum()+"–"+line.maximum());
+            if(view.scope==RaidRewardOdds.Scope.GENERAL && line.type().equals("currency")) lore.add("&7Valor por dano; sem sorteio ou multiplicadores.");
             lore.add("&7Contribuição mínima: "+RaidRewardOdds.percent(line.minimumContribution()));
             lore.add("&7Posição máxima: "+(view.scope==RaidRewardOdds.Scope.SPECIAL?Math.min(3,line.maximumRank()==0?3:line.maximumRank()):line.maximumRank()==0?"Sem restrição":line.maximumRank()));
             lore.add(line.eligible()?"&aElegível nesta simulação":"&cNão elegível nesta simulação");

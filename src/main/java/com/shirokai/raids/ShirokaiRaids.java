@@ -559,7 +559,6 @@ public final class ShirokaiRaids implements ModInitializer {
         if (!world.addFreshEntity(entity)) { RaidPresentation.clearGlow(entity); active = null; throw new IllegalStateException(msg("textos.spawn_recusado")); }
         state.activeRaid = candidate.id; state.bossEntity = entity.getUUID().toString(); state.hp = definition.hp; state.damage.clear();
         state.archive.current = new RaidArchive.Event(candidate.id, definition.name, definition.species, System.currentTimeMillis(), definition.hp);
-        state.nextRaid = RaidSchedule.next(System.currentTimeMillis(),config.intervalSeconds);
         if(automaticDraw!=null) RaidAutomaticCatalog.record(state,automaticDraw,catalogSettings);
         try { save(); } catch (RuntimeException e) { RaidPresentation.clearGlow(entity); entity.discard(); active = null; throw e; }
         retained = true;
@@ -737,6 +736,8 @@ public final class ShirokaiRaids implements ModInitializer {
                 state.completed.add(raid.id);
             }
             state.archive.complete(outcome, System.currentTimeMillis(), drops);
+            // Start a full interval only when this boss event ends, never at spawn.
+            state.nextRaid = RaidSchedule.next(victoryTime, config.intervalSeconds);
             state.activeRaid=null; state.bossEntity=null; save();
             if (defeated) {
                 raid.battles.close();

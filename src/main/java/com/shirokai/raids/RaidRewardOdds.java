@@ -26,8 +26,8 @@ final class RaidRewardOdds {
             double selection=scope==Scope.GENERAL?1:total==0||!RaidRewardJournal.eligible(r,contribution,rank)?0:(double)r.weight/total;
             double gate=scope==Scope.GENERAL?1:rank<=3?top.get(rank-1):0;
             double chance=settings.integrations.enabled&&eligible?r.chance*selection*gate:0;
-            long min=RaidRewardSettings.scaledAmount(r,r.minimum,contribution,multiplier,settings.integrations.maximumAmount).longValueExact();
-            long max=RaidRewardSettings.scaledAmount(r,r.maximum,contribution,multiplier,settings.integrations.maximumAmount).longValueExact();
+            long min=RaidRewardSettings.scopedScaledAmount(scope==Scope.GENERAL?"general":"special",r,r.minimum,contribution,multiplier,settings.integrations.maximumAmount).longValueExact();
+            long max=RaidRewardSettings.scopedScaledAmount(scope==Scope.GENERAL?"general":"special",r,r.maximum,contribution,multiplier,settings.integrations.maximumAmount).longValueExact();
             lines.add(new Line(r.id,r.type,r.reference,Integer.toString(r.rarity),chance,r.chance,selection,min,max,eligible,Math.max(settings.integrations.minimumContribution,r.minimumContribution),r.maximumRank));
         }
         return result(effective,multiplier,top,lines,scope!=Scope.GENERAL,1,settings.integrations.enabled,scope==Scope.GENERAL?"Por vitória; sorteios independentes":"Por vitória e posição; antes de duplicatas");

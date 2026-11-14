@@ -37,6 +37,7 @@ public final class VictoryIntegration implements ModInitializer {
     private boolean inspected,disconnected;
     private float originalScale;
     private long deadline;
+    private long defeatedAfter;
     private void require(boolean yes,String message){checks++;if(!yes)throw new AssertionError(message);}
     public void onInitialize(){ServerTickEvents.END_SERVER_TICK.register(s->{server=s;try{tick();}catch(Throwable error){finish(false,error.toString());}});}
     private static Object get(Object object,String name)throws Exception{var f=object.getClass().getDeclaredField(name);f.setAccessible(true);return f.get(object);}
@@ -60,6 +61,9 @@ public final class VictoryIntegration implements ModInitializer {
         var active=activeField.get(mod);require(active!=null,"Raid não iniciou");boss=(PokemonEntity)get(active,"boss");originalScale=boss.getPokemon().getScaleModifier();lease=(RaidChunkLease)get(active,"chunks");
         var health=(RaidCombatCoordinator)get(active,"health");var damage=(RaidDamageTracker)get(active,"damage");long hp=health.maximum();
         damage.record(first.getUUID(),first.getGameProfile().getName(),UUID.randomUUID(),hp*3/5,System.currentTimeMillis());damage.record(second.getUUID(),second.getGameProfile().getName(),UUID.randomUUID(),hp-hp*3/5,System.currentTimeMillis());
+        // Simulate a fight that outlasted the old spawn-based deadline.
+        state.nextRaid=System.currentTimeMillis()-60_000;
+        defeatedAfter=System.currentTimeMillis();
         var token=health.join(first.getUUID()).orElseThrow();health.applyDamage(token,1,hp);inspected=false;disconnected=false;
     }
     private void tick()throws Exception {
@@ -68,6 +72,9 @@ public final class VictoryIntegration implements ModInitializer {
         if(stage<=2&&transition!=null){
             var animation=(RaidVictoryTransition)get(transition,"animation");int age=animation.age();
             if(!inspected&&age>=10){
+                long interval=((RaidConfig)get(mod,"config")).intervalSeconds*1000L;
+                require(state.nextRaid>=defeatedAfter+interval && state.nextRaid<=System.currentTimeMillis()+interval,"Próxima raid não recebeu intervalo completo após a derrota");
+                require(JsonFiles.read(server.getWorldPath(net.minecraft.world.level.storage.LevelResource.ROOT).resolve("data/shirokai-raids/state.json"),RaidState.class).nextRaid==state.nextRaid,"Agendamento após derrota não foi persistido");
                 require(!boss.isRemoved()&&boss.getPokemon().getScaleModifier()<originalScale,"Boss sumiu sem contração gradual");require(!lease.closed(),"Ticket liberado antes de terminar efeito");
                 require(ShirokaiRaids.captureManager().hasGrant(first)&&!ShirokaiRaids.captureManager().active(first.getUUID()),"Captura apareceu instantaneamente");require(copyCount()==0,"Cópias apareceram durante contração");
                 require(Boolean.TRUE.equals(boss.getEntityData().get(PokemonEntity.getUNBATTLEABLE())),"Boss derrotado ainda aceita desafio");require(!boss.hurt(server.overworld().damageSources().generic(),1),"Boss de transição recebeu dano");

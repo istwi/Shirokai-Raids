@@ -115,6 +115,20 @@ public final class RaidRewardSettings {
     static boolean probability(double n){return finite(n,0,1);}
     static boolean finite(double n,double min,double max){return Double.isFinite(n)&&n>=min&&n<=max;}
     static void require(boolean value,String error){if(!value)throw new IllegalArgumentException(error);}
+    /** General currency is a deterministic interpolation; other rewards retain their rolls. */
+    static BigDecimal scopedAmount(String scope,Reward reward,double contribution,double multiplier,long cap,java.util.random.RandomGenerator random) {
+        if (scope.equals("general") && reward.type.equals("currency"))
+            return scopedScaledAmount(scope,reward,reward.minimum,contribution,multiplier,cap);
+        return amount(reward,contribution,multiplier,cap,random);
+    }
+    static BigDecimal scopedScaledAmount(String scope,Reward reward,long base,double contribution,double multiplier,long cap) {
+        if (scope.equals("general") && reward.type.equals("currency")) {
+            var amount = BigDecimal.valueOf(reward.minimum).add(
+                BigDecimal.valueOf(reward.maximum-reward.minimum).multiply(BigDecimal.valueOf(Math.clamp(contribution,0,1))));
+            return BigDecimal.valueOf(Math.max(1,Math.min(cap,amount.longValue())));
+        }
+        return scaledAmount(reward,base,contribution,multiplier,cap);
+    }
     static BigDecimal amount(Reward reward,double contribution,double multiplier,long cap,java.util.random.RandomGenerator random) {
         if(reward.cosmetic())return BigDecimal.ONE;
         long base=random.nextLong(reward.minimum,reward.maximum+1);

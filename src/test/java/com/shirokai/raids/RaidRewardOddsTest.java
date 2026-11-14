@@ -46,8 +46,9 @@ class RaidRewardOddsTest {
         var s=RaidRewardSettings.defaults();var o=new RaidRewardSettings.Override();o.difficulty="supremo";o.general="normal";o.quantityMultiplier=2;s.bosses.values.put("auto_arcanine",o);
         var r=RaidRewardOdds.calculate(s,"normal","auto_arcanine",RaidRewardOdds.Scope.GENERAL,1,.5,null);
         assertEquals("supremo",r.difficulty());assertEquals(6,r.multiplier());assertEquals(s.top3.chances.get("supremo"),r.topChances());
-        var reward=s.general.pools.get("normal").getFirst();assertEquals(RaidRewardSettings.scaledAmount(reward,reward.minimum,.5,6,s.integrations.maximumAmount).longValueExact(),r.lines().getFirst().minimum());
-        assertEquals(2100,r.lines().getFirst().minimum());assertEquals(4200,r.lines().getFirst().maximum());
+        assertEquals(300,r.lines().getFirst().minimum());assertEquals(300,r.lines().getFirst().maximum());
+        var fragment=r.lines().get(2);
+        assertEquals(10,fragment.minimum());assertEquals(21,fragment.maximum());
     }
     @Test void previewDoesNotMutateConfigurationAndPercentFormattingPreservesTinyNonzeroValues(){
         var s=RaidRewardSettings.defaults();var before=new com.google.gson.Gson().toJson(s);for(var scope:RaidRewardOdds.Scope.values())odds(s,scope,1,.25);assertEquals(before,new com.google.gson.Gson().toJson(s));

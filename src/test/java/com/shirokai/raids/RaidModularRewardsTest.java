@@ -51,13 +51,48 @@ class RaidModularRewardsTest {
         assertEquals(PLAYER,tracker.ranking().getFirst().player());assertEquals(200,tracker.damage(PLAYER));assertEquals(.2,tracker.contribution(PLAYER,1000));
     }
     @Test void contributionsDifficultyAndBossOverridesScaleAmountsAndRespectCaps(){
-        var s=settings();var r=s.general.pools.get("normal").getFirst();r.damageMultiplier=3;
+        var s=settings();var r=s.general.pools.get("normal").getFirst();r.damageMultiplier=3;r.type="test";
         s.integrations.maximumAmount=250;
         var data=awards(s,600,300,100);
         var amounts=data.grants.values().stream().filter(g->g.scope.equals("general")).map(g->g.choice.amount.longValueExact()).toList();
         assertEquals(List.of(250L,190L,130L),amounts);
         var o=new RaidRewardSettings.Override();o.difficulty="supremo";o.general="normal";o.special="normal";o.quantityMultiplier=2;s.bosses.values.put("rayquaza",o);
         assertEquals(250L,awards(s,100).grants.values().iterator().next().choice.amount.longValueExact());
+    }
+    @Test void generalCurrencyIsMonotonicForAllRanksAndPersistsWithoutReroll() {
+        var s=settings();
+        var dollars=new RaidRewardSettings.Reward("dollars","currency","impactor:dollars",5000,15000);
+        var tokens=new RaidRewardSettings.Reward("tokens","currency","impactor:tokens",5,25);
+        s.general.pools.put("normal",List.of(dollars,tokens));
+        var o=new RaidRewardSettings.Override();o.quantityMultiplier=6;s.bosses.values.put("rayquaza",o);
+        var data=awards(s,500,250,150,100);
+        for(var g:data.grants.values()) if(g.scope.equals("general")) {
+            long expected=g.choice.reward.reference.equals("impactor:dollars")
+                ? 5000+10_000*ranking(500,250,150,100).get(g.rank-1).damage()/1000
+                : 5+20*ranking(500,250,150,100).get(g.rank-1).damage()/1000;
+            assertEquals(expected,g.choice.amount.longValueExact());
+        }
+        var restored=JsonFiles.copy(data,RaidRewardJournal.Data.class);
+        assertEquals(data.grants.values().stream().map(g->g.choice.amount).toList(),restored.grants.values().stream().map(g->g.choice.amount).toList());
+    }
+    @Test void generalCurrencyDoesNotDrawAmountsButSpecialAndFragmentsStillDo() {
+        var r=new RaidRewardSettings.Reward("dollars","currency","impactor:dollars",5000,15000);
+        var low=new Random(){@Override public long nextLong(long origin,long bound){return origin;}};
+        var high=new Random(){@Override public long nextLong(long origin,long bound){return bound-1;}};
+        assertEquals(new BigDecimal("6000"),RaidRewardSettings.scopedAmount("general",r,.1,100,1000000,low));
+        assertEquals(new BigDecimal("6000"),RaidRewardSettings.scopedAmount("general",r,.1,100,1000000,high));
+        assertNotEquals(RaidRewardSettings.scopedAmount("special",r,.1,1,1000000,low),RaidRewardSettings.scopedAmount("special",r,.1,1,1000000,high));
+        r.type="fragment";r.minimum=1;r.maximum=4;r.baseMultiplier=1;r.damageMultiplier=0;
+        assertEquals(new BigDecimal("1"),RaidRewardSettings.scopedAmount("general",r,.1,1,1000000,low));
+        assertEquals(new BigDecimal("4"),RaidRewardSettings.scopedAmount("general",r,.1,1,1000000,high));
+    }
+    @Test void generalCurrencyInterpolationHonorsEndpointsRoundingAndCaps() {
+        var r=new RaidRewardSettings.Reward("tokens","currency","impactor:tokens",5,25);
+        for(int i=0;i<=100;i++) {
+            long expected=5+20L*i/100;
+            assertEquals(expected,RaidRewardSettings.scopedAmount("general",r,i/100d,99,100,new Random(i)).longValueExact());
+        }
+        assertEquals(10,RaidRewardSettings.scopedAmount("general",r,1,1,10,new Random()).longValueExact());
     }
     @Test void awardIsUniqueAndResolvedValuesSurviveSerializationAndConfigChanges(){
         var s=settings();var data=awards(s,600);var before=JsonFiles.copy(data,RaidRewardJournal.Data.class);
