@@ -30,7 +30,7 @@ O prazo é fixo: **120 segundos desde a derrota do boss**. Ao terminar, a batalh
 
 As bolas são vinculadas à sua sessão e ao seu alvo. Há um projétil por vez e os lançamentos respeitam o turno de captura nativo. Cada lançamento efetivo gasta uma tentativa, inclusive se errar o alvo. Não há reembolso de bolas erradas. A animação e a inserção do Pokémon na equipe/PC usam o Cobblemon. Falhas também fazem os três shakes; o resultado é visualizado antes da limpeza normal, com pequena espera final, sempre respeitando o limite de dois minutos. O chat distingue captura bem-sucedida, bolas esgotadas, tempo esgotado, saída e fim da batalha sem captura.
 
-A chance padrão continua sendo **2% por lançamento**, substituindo o resultado nativo nesta fase: HP/status/captura crítica não aumentam essa chance fixa. Cinco tentativas representam aproximadamente 9,6% de chance de ao menos um sucesso. A batalha permite enfraquecer e aplicar status normalmente, mas eles não alteram a probabilidade configurada nesta implementação.
+A chance padrão é **25% por lançamento nas raids comuns** (normal, rara e épica) e **5% nas especiais/lendárias** (lendária e suprema, incluindo a 20ª raid do catálogo), substituindo o resultado nativo nesta fase: HP/status/captura crítica não aumentam essa chance fixa. Cinco tentativas representam aproximadamente 76,3% nas comuns e 22,6% nas especiais de chance de ao menos um sucesso. A batalha permite enfraquecer e aplicar status normalmente, mas eles não alteram a probabilidade configurada nesta implementação.
 
 Um sucesso é reservado antes da animação terminar, para impedir repetição. Uma desconexão, saída, término do prazo ou interrupção nessa janela pode encerrar a oportunidade sem entregar o Pokémon. Não há transação atômica entre os arquivos da raid e os do Cobblemon.
 
@@ -42,7 +42,7 @@ O prazo não começa ao terminar a captura e não depende do horário de reconex
 
 ## Configuração e teste
 
-Em `config/shirokai-raids/config.json`, `capture.enabled`, `firstPlaceBalls`, `podiumBalls`, `participantBalls` e `chancePerThrow` controlam habilitação, quantidades (1–64) e chance (maior que zero e até 1). `durationSeconds` deve permanecer em `120`; o retorno é fixo em dez minutos. Alterações valem para novas vitórias. Use `/raidadmin reload` fora de uma raid ativa. Mensagens estão em `messages.json`, nas chaves `captura.*` e `raid.inventario_vazio`/`raid.retorno_automatico`.
+Em `config/shirokai-raids/config.json`, `capture.enabled`, `firstPlaceBalls`, `podiumBalls`, `participantBalls` e `normalChancePerThrow`/`specialChancePerThrow` controlam habilitação, quantidades (1–64) e chance (maior que zero e até 1). `durationSeconds` deve permanecer em `120`; o retorno é fixo em dez minutos. O campo antigo `chancePerThrow` não define mais a probabilidade; configurações antigas recebem os novos padrões automaticamente. Alterações valem para novas vitórias; direitos de captura já concedidos mantêm a chance persistida. Use `/raidadmin reload` fora de uma raid ativa. Mensagens estão em `messages.json`, nas chaves `captura.*` e `raid.inventario_vazio`/`raid.retorno_automatico`.
 
 O teste `bash scripts/run-capture-integration.sh` usa servidor dedicado descartável e requer a EULA aceita explicitamente. Exercita batalhas privadas, cálculo/armazenamento nativo, elegibilidade, limpeza seletiva e os limites de tempo com avanço controlado do relógio da verificação. Não representa clientes humanos nem ensaio de capacidade para 100 jogadores.
 

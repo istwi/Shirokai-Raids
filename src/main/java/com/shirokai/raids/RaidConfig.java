@@ -20,10 +20,22 @@ public final class RaidConfig {
         public boolean enabled = true;
         public int firstPlaceBalls = 5, podiumBalls = 3, participantBalls = 1;
         public int durationSeconds = 120;
+        /** Legacy setting retained for reading old configuration; category rates take precedence. */
+        @Deprecated
         public double chancePerThrow = 0.02;
+        public double normalChancePerThrow = 0.25;
+        public double specialChancePerThrow = 0.05;
+        public double chanceForBoss(Boss boss) {
+            return switch (boss.difficulty) {
+                case "lendario", "supremo" -> specialChancePerThrow;
+                default -> normalChancePerThrow;
+            };
+        }
         public void validate() {
             if (firstPlaceBalls < 1 || firstPlaceBalls > 64 || podiumBalls < 1 || podiumBalls > 64
                 || participantBalls < 1 || participantBalls > 64 || durationSeconds != 120
+                || !Double.isFinite(normalChancePerThrow) || normalChancePerThrow <= 0 || normalChancePerThrow > 1
+                || !Double.isFinite(specialChancePerThrow) || specialChancePerThrow <= 0 || specialChancePerThrow > 1
                 || !Double.isFinite(chancePerThrow) || chancePerThrow <= 0 || chancePerThrow > 1)
                 throw new IllegalArgumentException("Configuração da captura inválida");
         }

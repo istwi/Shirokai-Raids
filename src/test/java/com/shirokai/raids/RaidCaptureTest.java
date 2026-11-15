@@ -33,6 +33,23 @@ class RaidCaptureTest {
         assertEquals(601000,restored.arenaExits.values().iterator().next().deadline);
         assertTrue(restored.arenaExits.values().iterator().next().due(700000,"minecraft:overworld",0,200,0));
     }
+    @Test void categoryRatesOverrideLegacyChanceAndSurviveConfigurationReload() {
+        var config=new com.google.gson.Gson().fromJson("{\"capture\":{\"chancePerThrow\":0.02}}",RaidConfig.class);
+        config.validate();
+        var restored=JsonFiles.copy(config,RaidConfig.class);
+        var boss=new RaidConfig.Boss();
+        for(var difficulty:List.of("normal","raro","epico","lendario","supremo")) {
+            boss.difficulty=difficulty;
+            assertEquals(Set.of("lendario","supremo").contains(difficulty) ? .05 : .25,restored.capture.chanceForBoss(boss));
+        }
+        restored.capture.normalChancePerThrow=Double.NaN;
+        assertThrows(IllegalArgumentException.class,restored::validate);
+        restored.capture.normalChancePerThrow=.25;
+        restored.capture.specialChancePerThrow=1.01;
+        assertThrows(IllegalArgumentException.class,restored::validate);
+        restored.capture.specialChancePerThrow=0;
+        assertThrows(IllegalArgumentException.class,restored::validate);
+    }
     @Test void rankBudgetsAndConfigBounds() {
         var config = new RaidConfig();
         config.validate();

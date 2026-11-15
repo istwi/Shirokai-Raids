@@ -115,7 +115,7 @@ public final class RaidCapture {
             grant.boss=JsonFiles.copy(boss, RaidConfig.Boss.class);
             grant.arena=new RaidState.ReturnPosition(config.dimension, config.x, config.y, config.z, config.spawnYaw, config.spawnPitch);
             grant.radius=config.arenaRadius; grant.remaining=config.capture.ballsForRank(rank);
-            grant.durationSeconds=120; grant.expiresAt=victoryTime+120_000L; grant.chance=config.capture.chancePerThrow;
+            grant.durationSeconds=120; grant.expiresAt=victoryTime+120_000L; grant.chance=config.capture.chanceForBoss(boss);
             state.captures.put(grant.id,grant);
         }
     }

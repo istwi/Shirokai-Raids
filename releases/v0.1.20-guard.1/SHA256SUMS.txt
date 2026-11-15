@@ -1,1 +1,1 @@
-05e3c0bd1ffe2effec9baabc2c788ae6a37bfa5d0d6866b0513ad798f0373a8a  Shirokai-Raids-0.1.20-guard.1-fabric-1.21.1.jar
+63578538e943e32db30ccd636647c98beef72f841dd97966bdf1bdebe4c00f69  Shirokai-Raids-0.1.20-guard.1-fabric-1.21.1.jar

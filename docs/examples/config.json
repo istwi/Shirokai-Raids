@@ -24,7 +24,8 @@
     "podiumBalls": 3,
     "participantBalls": 1,
     "durationSeconds": 120,
-    "chancePerThrow": 0.02
+    "normalChancePerThrow": 0.25,
+    "specialChancePerThrow": 0.05
   },
   "entry": {
     "configured": false,
