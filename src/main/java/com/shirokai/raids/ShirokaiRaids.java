@@ -107,6 +107,7 @@ public final class ShirokaiRaids implements ModInitializer {
             RaidInventory.removeRaidBalls(player);
         });
         ServerPlayConnectionEvents.DISCONNECT.register((handler, s) -> {
+            GuardRaidAccess.invalidate(handler.getPlayer().getUUID());
             countdownBar.removePlayer(handler.getPlayer());
             if (victory!=null) victory.animation.removeViewer(handler.getPlayer());
             if (active != null) active.battles.leave(handler.getPlayer().getUUID());
@@ -344,7 +345,6 @@ public final class ShirokaiRaids implements ModInitializer {
         if (tick < teleportCooldown.getOrDefault(player.getUUID(),0L)) {
             source.sendFailure(RaidMessages.chat(msg("textos.aguarde_cinco_segundos_entre_teleportes"))); return 0;
         }
-        teleportCooldown.put(player.getUUID(),tick+100);
         var raid=active;
         if (raid.boss.isRemoved() || !raid.boss.isAlive() || server.getLevel(raid.world.dimension()) != raid.world) {
             source.sendFailure(RaidMessages.chat(msg("textos.a_arena_nao_esta_disponivel"))); return 0;
@@ -378,8 +378,13 @@ public final class ShirokaiRaids implements ModInitializer {
             player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot()));
         state.returns.get(key).raid=raid.id;
         save(); // Persist the origin before moving the player; never move or store personal items.
+        if (!GuardRaidAccess.teleport(player,destinationWorld,destination.x,destination.y,destination.z,yaw,pitch,raid.id)) {
+            state.returns.remove(key);
+            save();
+            return reply(source,"Entrada bloqueada pela proteção da região. Avise a administração.");
+        }
         raid.rewardParticipants.add(player.getUUID());
-        player.teleportTo(destinationWorld,destination.x,destination.y,destination.z,Set.of(),yaw,pitch);
+        teleportCooldown.put(player.getUUID(),tick+100);
         player.fallDistance=0;
         if(inArena(player)) raid.bar.addPlayer(player);
         return reply(source,msg("textos.voce_chegou_a_arena_envie_seu_pokemon_e_desafie_o_boss_com_r_para_escolher_"));
@@ -420,6 +425,7 @@ public final class ShirokaiRaids implements ModInitializer {
             && world.getEntities(player,body,entity -> entity.isAlive() && entity.isPickable() && (!allowPlayers || !(entity instanceof ServerPlayer))).isEmpty();
     }
     private void cleanup(Active raid) {
+        GuardRaidAccess.end(raid.id);
         try { if (raid.battles != null) raid.battles.close(); }
         finally {
             try { raid.bar.removeAllPlayers(); RaidPresentation.clearGlow(raid.boss); raid.boss.discard(); }
@@ -617,7 +623,9 @@ public final class ShirokaiRaids implements ModInitializer {
         if (com.cobblemon.mod.common.battles.BattleRegistry.getBattleByParticipatingPlayer(player) != null)
             return reply(source,msg("textos.encerre_sua_batalha_atual_antes_de_retornar"));
         player.closeContainer();
-        player.teleportTo(world,origin.x,origin.y,origin.z,Set.of(),origin.yaw,origin.pitch);
+        GuardRaidAccess.invalidate(player.getUUID());
+        if (!player.teleportTo(world,origin.x,origin.y,origin.z,Set.of(),origin.yaw,origin.pitch))
+            return reply(source,"Retorno bloqueado; sua posição de retorno foi preservada. Avise a administração.");
         player.fallDistance=0;
         state.returns.remove(key);
         state.arenaExits.remove(key);
