@@ -13,6 +13,10 @@ final class RaidAutomaticCatalog {
         double power(){return total()+(offense()-100)*.75+(speed-80)*.6+(hp+defence+specialDefence-240)*.15;}
     }
     record Draw(Species species,RaidConfig.Boss boss,boolean special) {}
+    static int slotsUntilSpecial(long starts) {
+        if(starts<0||starts==Long.MAX_VALUE)throw new IllegalArgumentException("Contador automático inválido");
+        return RaidCatalogSettings.SPECIAL_INTERVAL-(int)(starts%RaidCatalogSettings.SPECIAL_INTERVAL);
+    }
     static boolean specialDue(long starts){if(starts<0||starts==Long.MAX_VALUE)throw new IllegalArgumentException("Contador automático inválido");return starts%RaidCatalogSettings.SPECIAL_INTERVAL==RaidCatalogSettings.SPECIAL_INTERVAL-1;}
     static boolean eligible(Species s,RaidCatalogSettings c){
         return s.implemented&&s.finalEvolution&&s.id.matches("[a-z0-9_.-]+:[a-z0-9_.-]+")&&c.namespaces.contains(s.id.split(":",2)[0])&&!c.blocked.contains(s.id)

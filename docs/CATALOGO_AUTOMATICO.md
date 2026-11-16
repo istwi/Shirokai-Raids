@@ -78,3 +78,16 @@ Arquivo: `config/shirokai-raids/catalog.json`. [Exemplo completo](examples/catal
 `/raidadmin sortear` inicia o próximo evento do catálogo e **consome uma posição do ciclo**, como uma raid agendada. Serve para iniciar antes do horário e para testar.
 
 `/raidadmin iniciar <id>` continua iniciando um boss cadastrado manualmente e não interfere na sequência automática. Todos os comandos administrativos mantêm a permissão `shirokai.raids.admin`.
+
+## Consultar a próxima especial
+
+Use `/raidadmin especial` para abrir o menu do contador; pelo console, o comando
+mostra as mesmas informações em texto. Também há um botão **Próxima raid especial**
+em `/raidadmin menu`. Exige OP 2 ou `shirokai.raids.admin`, inclusive durante raids.
+O menu atualiza automaticamente e permite atualização por clique.
+
+Mostra total de raids automáticas iniciadas, progresso do ciclo e quantas faltam
+(incluindo a própria especial), além do número de comuns anteriores. Com 19 raids
+iniciadas, informa que a próxima será especial; com 20, começa um novo ciclo.
+Raids manuais não contam e não é necessário vencer. Catálogo ou agendamento
+desativados são sinalizados. A consulta não altera nem reinicia o contador.

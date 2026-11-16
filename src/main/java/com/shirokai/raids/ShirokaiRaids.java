@@ -157,6 +157,7 @@ public final class ShirokaiRaids implements ModInitializer {
                 .executes(c -> start(c.getSource(), StringArgumentType.getString(c,"boss")))));
             admin.then(Commands.literal("parar").executes(c -> { finish(false,msg("textos.raid_encerrada_pela_administracao")); return 1; }));
             admin.then(Commands.literal("sortear").executes(c -> { try {beginAutomatic();return reply(c.getSource(),"Raid sorteada e iniciada. O ciclo automático foi contabilizado.");}catch(Exception e){return reply(c.getSource(),"Sorteio recusado: "+e.getMessage());} }));
+            admin.then(Commands.literal("especial").executes(c -> specialStatus(c.getSource())));
             admin.then(Commands.literal("catalogo").executes(c -> catalogStatus(c.getSource())));
             admin.then(Commands.literal("setspawn").executes(c -> setSpawn(c.getSource())));
             admin.then(Commands.literal("rewardreload").executes(c -> rewardReload(c.getSource())));
@@ -504,12 +505,27 @@ public final class ShirokaiRaids implements ModInitializer {
         try { begin(id); return reply(source,msg("textos.raid_iniciada")); }
         catch (Exception e) { LOG.error("Falha ao iniciar raid",e); return reply(source,msg("raid.erro_inicio", "erro", e.getMessage())); }
     }
+    private int specialStatus(CommandSourceStack source) {
+        if(state==null)return reply(source,"Contador de raids indisponível.");
+        if(source.getPlayer()==null) {
+            for(var line:specialProgress().lines())reply(source,line);
+        } else openSpecialMenu(source.getPlayer());
+        return 1;
+    }
+    private RaidSpecialMenu.Progress specialProgress() {
+        return new RaidSpecialMenu.Progress(state.automaticRaidStarts,catalogSettings.enabled,config.automaticRaids);
+    }
+    static void openSpecialMenu(ServerPlayer player) {
+        var mod=instance;
+        if(mod==null||mod.state==null)return;
+        RaidSpecialMenu.open(player,mod::specialProgress,()->mod.healthy);
+    }
     private int catalogStatus(CommandSourceStack source) {
         if(state==null)return reply(source,"Catálogo indisponível.");
         var species=RaidCatalogPokemon.species(catalogSettings);
         var counts=new TreeMap<String,Long>();
         species.stream().filter(p -> RaidAutomaticCatalog.eligible(p,catalogSettings)).forEach(p -> counts.merge(RaidAutomaticCatalog.difficulty(p),1L,Long::sum));
-        reply(source,"Catálogo: "+counts+" | raids automáticas iniciadas: "+state.automaticRaidStarts+" | próxima especial em "+(20-state.automaticRaidStarts%20)+" raid(s).");
+        reply(source,"Catálogo: "+counts+" | raids automáticas iniciadas: "+state.automaticRaidStarts+" | próxima especial em "+RaidAutomaticCatalog.slotsUntilSpecial(state.automaticRaidStarts)+" raid(s).");
         return 1;
     }
     private void beginAutomatic() {

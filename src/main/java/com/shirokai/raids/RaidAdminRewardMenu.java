@@ -27,7 +27,7 @@ final class RaidAdminRewardMenu extends ChestMenu {
     private final List<Context> contexts;
 
     static boolean allowed(ServerPlayer player){var command=player.createCommandSourceStack();return RaidPermissions.check(command,"shirokai.raids.admin",command.hasPermission(2));}
-    static boolean allowedCommand(String command){return command.strip().matches("raidadmin(?: +menu| +recompensas(?: +[a-z0-9_@.-]+)?)?");}
+    static boolean allowedCommand(String command){return command.strip().matches("raidadmin(?: +menu| +especial| +recompensas(?: +[a-z0-9_@.-]+)?)?");}
     static void open(ServerPlayer player,Supplier<Source> source,BooleanSupplier healthy,String requested){
         if(!healthy.getAsBoolean()||!allowed(player))return;
         var data=source.get();
@@ -78,7 +78,7 @@ final class RaidAdminRewardMenu extends ChestMenu {
         getContainer().setItem(11,icon(Items.GLASS_BOTTLE,"&eSem prêmio: "+RaidRewardOdds.percent(odds.none()),List.of("&7Nesta categoria e situação simulada.","&7Itens antigos: chance por sorteio.")));
         getContainer().setItem(12,icon(Items.BOOK,"&fComo ler as porcentagens",List.of("&7"+odds.basis(),view.scope==RaidRewardOdds.Scope.GENERAL?"&7Cada prêmio geral é um sorteio separado.":"&7As chances incluem o filtro selecionado.","&7TOP 3: chance da posição × peso × chance.","&7Duplicatas/compensações ocorrem depois.","&7Disponibilidade não elimina o sorteio:","&7prêmios sem integração ficam pendentes.")));
         getContainer().setItem(13,icon(Items.COMPARATOR,"&fEstado e multiplicadores",List.of(odds.enabled()?"&aCategoria ativada":"&cCategoria desativada","&7Quantidade: multiplicador x"+number(odds.multiplier()),"&7Contribuição mínima: "+RaidRewardOdds.percent(view.scope==RaidRewardOdds.Scope.LEGACY&&legacy!=null?legacy.minimumContribution:settings.integrations.minimumContribution),view.scope==RaidRewardOdds.Scope.LEGACY?"&7Máximo de itens por vitória: "+(legacy==null?0:legacy.maximumItems):"&7Máximo por entrega: "+settings.integrations.maximumAmount,"&7Fragmentos: máximo de 64.","&7Quantidades mostram a contribuição simulada.")));
-        getContainer().setItem(14,icon(Items.PAPER,"&fPrévia somente para consulta",List.of("&7Não sorteia nem entrega recompensas.","&7Nenhum item deste menu pode ser retirado.")));
+        getContainer().setItem(14,icon(Items.NETHER_STAR,"&6Próxima raid especial",List.of("&7Clique para consultar o contador.","&7Veja quantas raids faltam para a especial.")));
         getContainer().setItem(15,icon(Items.NAME_TAG,"&fPolíticas de cosméticos",List.of("&7Títulos: "+settings.duplicates.titles.policy,"&7Partículas: "+settings.duplicates.particles.policy,"&7Chances mostradas são antes das políticas.")));
         getContainer().setItem(16,icon(Items.CLOCK,"&aAtualizar configurações da prévia",List.of("&7Lê as configurações já carregadas.","&7Para reler JSON: /raidadmin rewardreload")));
         getContainer().setItem(17,icon(Items.BARRIER,"&cFechar",List.of()));
@@ -131,6 +131,7 @@ final class RaidAdminRewardMenu extends ChestMenu {
             else if(slot==6)next=new View(view.difficulty,view.scope,RANKS.get((RANKS.indexOf(view.rank)+1)%RANKS.size()),view.share,view.boss,0,false);
             else if(slot==7){var shares=new TreeSet<Double>(List.of(.01,.05,.10,.25,.50,.75,1d));shares.add(source.get().settings.integrations.minimumContribution);var values=List.copyOf(shares);double share=values.stream().filter(s->s>view.share+1e-9).findFirst().orElse(values.getFirst());next=new View(view.difficulty,view.scope,view.rank,share,view.boss,0,false);}
             else if(slot==8)next=new View(view.difficulty,view.scope,view.rank,view.share,view.boss,0,true);
+            else if(slot==14){ShirokaiRaids.openSpecialMenu(viewer);return;}
             else if(slot==16)next=new View(view.difficulty,view.scope,view.rank,view.share,view.boss,view.page,false);
             else if(slot==45&&view.page>0)next=new View(view.difficulty,view.scope,view.rank,view.share,view.boss,view.page-1,false);
             else if(slot==53&&view.page+1<pages)next=new View(view.difficulty,view.scope,view.rank,view.share,view.boss,view.page+1,false);
