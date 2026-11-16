@@ -1,0 +1,85 @@
+{
+  "source_commit": "0375de86abdf828b412367cccf5860993254d6af",
+  "base_sha256": "3f7b66df88d7c9bd3b6d545943b5976b2d656cc9a057f241f8f0a312d908993b",
+  "output_sha256": "125f422ebf5bf6d042c74ef662b54b47cab45b3a43a683ba4c97bebf3a33d715",
+  "changed_entries": [
+    "com/shirokai/raids/RaidSpecialMenu.class",
+    "fabric.mod.json",
+    "shirokai/messages.json"
+  ],
+  "message_changes": [
+    {
+      "key": "chat.prefixo",
+      "before": "&c&lRAID&r &8» &f{texto}",
+      "after": "&f✦ &lZORYKAI&r &c&lRAID&r &8» &f{texto}"
+    },
+    {
+      "key": "bossbar.proxima",
+      "before": "&c&lRAID&r &8┃ &fPróxima em &e{tempo}",
+      "after": "&f✦ &lZORYKAI&r &c&lRAID&r &8┃ &fPróxima em &e{tempo}"
+    },
+    {
+      "key": "bossbar.titulo",
+      "before": "&c&lRAID&r &8┃ &c{boss} &8┃ &f{vida}&7/&f{vida_maxima} &c♥ &8┃ &e{tempo}",
+      "after": "&f✦ &lZORYKAI&r &c&lRAID&r &8┃ &c{boss} &8┃ &f{vida}&7/&f{vida_maxima} &c♥ &8┃ &e{tempo}"
+    },
+    {
+      "key": "textos.configuracao_shirokai_raids_invalida",
+      "before": "Configuração Shirokai Raids inválida",
+      "after": "Configuração Zorykai Raids inválida"
+    },
+    {
+      "key": "textos.raid_informacoes",
+      "before": "Raid — Informações",
+      "after": "§f✦ §lZORYKAI§r §7Raid — Informações"
+    },
+    {
+      "key": "textos.suas_ultimas_raids",
+      "before": "Suas últimas raids",
+      "after": "§f✦ §lZORYKAI§r §7Suas últimas raids"
+    },
+    {
+      "key": "textos.recompensas_pendentes",
+      "before": "Recompensas pendentes | ",
+      "after": "§f✦ §lZORYKAI§r §7Recompensas pendentes | "
+    },
+    {
+      "key": "textos.ranking",
+      "before": "Ranking: ",
+      "after": "§f✦ §lZORYKAI§r §7Ranking: "
+    },
+    {
+      "key": "captura.bossbar",
+      "before": "&b&lRAID&r &8┃ &b&lCAPTURA&r &8┃ &b{boss} &8┃ &e{tempo} &8┃ &f{quantidade} bolas",
+      "after": "&f✦ &lZORYKAI&r &b&lRAID&r &8┃ &b&lCAPTURA&r &8┃ &b{boss} &8┃ &e{tempo} &8┃ &f{quantidade} bolas"
+    },
+    {
+      "key": "vitoria.titulo",
+      "before": "&c&lRAID &8✦ &a&lVITÓRIA!",
+      "after": "&f✦ &lZORYKAI&r &c&lRAID &8✦ &a&lVITÓRIA!"
+    },
+    {
+      "key": "admin.recompensas.titulo",
+      "before": "&f&lSHIROKAI &8┃ &cRecompensas da Raid",
+      "after": "&f✦ &lZORYKAI&r &8┃ &cRecompensas da Raid"
+    },
+    {
+      "key": "bossbar.vitoria",
+      "before": "&c&lRAID&r &8┃ &aBoss derrotado &8┃ &bPreparando captura...",
+      "after": "&f✦ &lZORYKAI&r &c&lRAID&r &8┃ &aBoss derrotado &8┃ &bPreparando captura..."
+    }
+  ],
+  "unchanged": "All other ZIP entries; all JSON message keys/placeholders; all class field/method/instruction bytes; IDs, namespaces, commands, permissions, packages and dependencies.",
+  "validation": {
+    "baseline_unit_tests": 128,
+    "unit_failures": 0,
+    "patched_jar_admin_menu_checks": 206,
+    "admin_menu_passed": true,
+    "real_clients": 0
+  },
+  "remote_branches_checked": {
+    "main": "0375de86abdf828b412367cccf5860993254d6af",
+    "zorykai": "18a4654315d1679f01d50ccae3cad13a5d0a0d7e"
+  },
+  "branch_comparison": "zorykai adds only a visual JAR variant; source code matches main exactly."
+}

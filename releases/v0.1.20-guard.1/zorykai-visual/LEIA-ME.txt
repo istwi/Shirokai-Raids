@@ -1,0 +1,22 @@
+Visual Zorykai — Shirokai-Raids 0.1.20-guard.1
+Base: main, commit 0375de86abdf828b412367cccf5860993254d6af.
+Branches remotas consultadas: main e zorykai (18a4654).
+A branch zorykai acrescentava uma variante visual; o código-fonte era igual ao main.
+
+Somente nomes/descrições visuais e cabeçalhos foram editados no JAR.
+IDs, comandos, permissões, namespaces, classes, lógica, chaves e placeholders
+permanecem originais. O nome técnico do arquivo foi mantido de propósito.
+
+Pare o servidor, faça backup e substitua somente o JAR. Não mantenha duas
+versões do mesmo mod juntas. As configurações e os dados continuam nos mesmos
+caminhos shirokai-raids.
+
+Se config/shirokai-raids/messages.json já existir, seus textos têm prioridade
+sobre o catálogo do JAR. Atualize SOMENTE seus valores visuais, preservando
+as personalizações. O messages.json incluído aqui é o catálogo padrão Zorykai
+para referência; não sobrescreva uma configuração personalizada sem backup.
+
+Validação: 128 testes da base e 206 verificações do menu administrativo
+aprovados em servidor dedicado com Cobblemon 1.8.3. Sem cliente gráfico real.
+Comparação binária: somente 3 entradas do JAR mudaram; todas as instruções
+das classes e todas as demais entradas foram preservadas.
