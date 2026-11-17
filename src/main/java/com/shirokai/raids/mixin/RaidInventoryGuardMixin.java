@@ -22,7 +22,24 @@ public abstract class RaidInventoryGuardMixin {
         if (shirokai$guard()) ci.cancel();
     }
     @Inject(method="handlePlayerAction", at=@At("HEAD"), cancellable=true)
-    private void shirokaiAction(ServerboundPlayerActionPacket packet, CallbackInfo ci) { if (shirokai$guard()) ci.cancel(); }
+    private void shirokaiAction(ServerboundPlayerActionPacket packet, CallbackInfo ci) {
+        if (!shirokai$guard()) return;
+        switch (packet.getAction()) {
+            case START_DESTROY_BLOCK, ABORT_DESTROY_BLOCK, STOP_DESTROY_BLOCK -> {
+                // Vanilla normally acknowledges predictions; cancelling at HEAD skips that step.
+                player.connection.ackBlockChangesUpTo(packet.getSequence());
+                var pos=packet.getPos();
+                var world=player.serverLevel();
+                // Never load arbitrary chunks supplied by a client packet.
+                if (pos.distSqr(player.blockPosition())<=4096 && world.hasChunkAt(pos)) {
+                    player.connection.send(new ClientboundBlockUpdatePacket(world,pos));
+                    player.connection.send(new ClientboundBlockDestructionPacket(player.getId(),pos,-1));
+                }
+            }
+            default -> { }
+        }
+        ci.cancel();
+    }
     @Inject(method="handleSetCreativeModeSlot", at=@At("HEAD"), cancellable=true)
     private void shirokaiCreative(ServerboundSetCreativeModeSlotPacket packet, CallbackInfo ci) { if (shirokai$guard()) ci.cancel(); }
     @Inject(method="handlePlaceRecipe", at=@At("HEAD"), cancellable=true)

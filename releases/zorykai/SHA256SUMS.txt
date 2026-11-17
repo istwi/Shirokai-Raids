@@ -1,1 +1,1 @@
-9e87529712336bfb63e1a5022a0695049f88108b54ef09ebba6f640d0d9794d8  Zorykai-Raids-0.1.20-guard.1-fabric-1.21.1.jar
+16d1c6b4be825eebdfcc3ca4aa3027191d169151792d28e81713bf82161555e0  Zorykai-Raids-0.1.20-guard.1-fabric-1.21.1.jar

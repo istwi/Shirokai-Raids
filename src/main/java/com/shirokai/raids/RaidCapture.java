@@ -76,6 +76,14 @@ public final class RaidCapture {
     static boolean locked(net.minecraft.world.entity.player.Player player) {
         return player instanceof ServerPlayer p && RaidInventory.locked(p);
     }
+    static boolean facilityAllowed(boolean legacyPending, boolean captureActive, boolean battling) {
+        return !legacyPending && !captureActive && !battling;
+    }
+    private static boolean canUseFacility(ServerPlayer player) {
+        var manager=ShirokaiRaids.captureManager();
+        return facilityAllowed(RaidLegacyInventory.pending(player),manager!=null && manager.active(player.getUUID()),
+            BattleRegistry.getBattleByParticipatingPlayer(player)!=null);
+    }
     static void register() {
         UseItemCallback.EVENT.register((player, world, hand) -> {
             var stack=player.getItemInHand(hand);
@@ -84,7 +92,14 @@ public final class RaidCapture {
             if (isBall(stack)) ShirokaiRaids.throwCaptureBall(p, hand);
             return InteractionResultHolder.fail(stack);
         });
-        UseBlockCallback.EVENT.register((player, world, hand, hit) -> locked(player) ? InteractionResult.FAIL : InteractionResult.PASS);
+        UseBlockCallback.EVENT.register((player, world, hand, hit) -> {
+            if (!locked(player)) return InteractionResult.PASS;
+            var block=world.getBlockState(hit.getBlockPos()).getBlock();
+            boolean facility=block instanceof com.cobblemon.mod.common.block.PCBlock
+                || block instanceof com.cobblemon.mod.common.block.HealingMachineBlock;
+            if (player instanceof ServerPlayer p && facility && canUseFacility(p)) return InteractionResult.PASS;
+            return InteractionResult.FAIL;
+        });
         AttackBlockCallback.EVENT.register((player, world, hand, pos, face) -> locked(player) ? InteractionResult.FAIL : InteractionResult.PASS);
         UseEntityCallback.EVENT.register((player, world, hand, entity, hit) -> locked(player) ? InteractionResult.FAIL : InteractionResult.PASS);
         AttackEntityCallback.EVENT.register((player, world, hand, entity, hit) -> locked(player) ? InteractionResult.FAIL : InteractionResult.PASS);

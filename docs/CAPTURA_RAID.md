@@ -71,3 +71,15 @@ A arena mantém seu ticket durante o efeito. O boss derrotado fica protegido e n
 Os dois minutos continuam contados desde a vitória, incluindo a transição. A introdução usa o tempo efetivamente restante (aproximadamente 1min57s num servidor a 20 TPS), sem informar chance por bola. A chance configurada de captura não foi alterada. Sair ou desconectar durante a espera remove a chance e reconectar não a recupera. Direitos que expirem antes da revelação são encerrados sem criar cópia.
 
 Chat e BossBars passam a usar somente RAID. Valores iguais aos padrões antigos de SHIROKAI em `messages.json` são atualizados em memória; não é necessário apagar a configuração. Textos personalizados são preservados. O título do menu administrativo continua com a identidade do servidor.
+
+### PC, healer e proteção da arena
+
+Participantes podem usar os blocos PC e máquina de cura do Cobblemon fora de
+batalhas e da fase individual de captura. As restrições nativas do Cobblemon e
+as permissões de outros mods continuam valendo. Recuperações pendentes de
+inventário antigo continuam bloqueadas. Baús, outros blocos, coleta e manipulação
+de itens continuam protegidos.
+
+Tentativas de quebrar blocos durante a participação continuam bloqueadas no
+servidor. O servidor confirma a sequência de previsão e reenvia o bloco ao cliente,
+para evitar blocos visualmente removidos até sair/voltar à arena.
