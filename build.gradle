@@ -59,3 +59,28 @@ tasks.register('remapIntegrationJar', net.fabricmc.loom.task.RemapJarTask) {
     destinationDirectory = layout.buildDirectory.dir('integration')
 }
 build.dependsOn tasks.remapIntegrationJar
+
+// Sources in this repository stop at 0.1.20. Package fixes over the complete 0.1.22
+// distribution so recovery/authentication and private damage chat cannot regress.
+configurations { hotfixTools }
+dependencies { hotfixTools 'org.ow2.asm:asm-tree:9.8' }
+remapJar { destinationDirectory = layout.buildDirectory.dir('intermediates') }
+tasks.register('compileHotfixTools', JavaCompile) {
+ source = files('tools/PatchLatestRaid.java')
+ classpath = configurations.hotfixTools
+ destinationDirectory = layout.buildDirectory.dir('hotfix-tools')
+ options.release = 21
+ javaCompiler = javaToolchains.compilerFor { languageVersion = JavaLanguageVersion.of(21) }
+}
+tasks.register('packageLatestRaidFix', Exec) {
+ dependsOn tasks.remapJar, tasks.compileHotfixTools
+ def launcher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(21) }
+ doFirst {
+  commandLine 'python3','tools/package_latest_fix.py','--java',launcher.get().executablePath.asFile.absolutePath,
+   '--tools-cp',files(tasks.compileHotfixTools.destinationDirectory,configurations.hotfixTools).asPath,
+   '--candidate',tasks.remapJar.archiveFile.get().asFile.absolutePath,
+   '--output',layout.buildDirectory.file("libs/Zorykai-Raids-${project.version}-fabric-1.21.1.jar").get().asFile.absolutePath,
+   '--version',project.version.toString()
+ }
+}
+build.dependsOn tasks.packageLatestRaidFix

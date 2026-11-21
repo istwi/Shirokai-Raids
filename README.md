@@ -1,5 +1,12 @@
 # Shirokai Raids
 
+## Correção 0.1.23-capturefix.1
+
+Compatibilidade com prêmios do quiz durante a captura, acesso a PC/healer e preservação da oportunidade de captura após encerramento da batalha privada. O prazo e a quantidade/chance das bolas não mudam. A validação exata do desmaio simultâneo ao golpe final ainda requer jogadores reais.
+
+Instale apenas o JAR de `releases/zorykai/v0.1.23-capturefix.1`, substituindo a versão anterior com o servidor parado. Veja [evidências, limites e build sobre a distribuição mais recente](docs/tests/capturefix-0.1.23/README.md). Não instale a fixture de testes.
+
+
 Mod **somente servidor** para Minecraft 1.21.1, Fabric e Cobblemon 1.8.3.
 
 **0.1.19-dev: entrada configurável, captura por R com cópia brilhante, BossBar individual e resultado no chat. Não é uma Release estável.**

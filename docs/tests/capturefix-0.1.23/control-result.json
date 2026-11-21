@@ -1,0 +1,8 @@
+{
+  "checks": 14,
+  "realClients": 0,
+  "passed": false,
+  "message": "java.lang.IllegalStateException: Guarde os itens do inventário, da hotbar, da mão secundária e do cursor antes de entrar na raid. Armadura e acessórios equipados são permitidos.",
+  "expectedFailure": true,
+  "version": "0.1.22-damagechat.1"
+}

@@ -1,0 +1,26 @@
+// Optional offline build using official distributions supplied by the operator.
+// -PcobblemonJar=/path/cobblemon.jar -PimpactorJar=/path/impactor.jar
+// -PcobblemonLibraries=/path/extracted-libraries -PimpactorLibraries=/path/api-libraries
+allprojects {
+ configurations.configureEach {
+  withDependencies { deps ->
+   ['com.cobblemon':'cobblemonJar', 'net.impactdev.impactor.api':'impactorJar'].each { groupName, propertyName ->
+    if(project.hasProperty(propertyName)) {
+     def matches=deps.findAll { it.group==groupName }
+     matches.each { deps.remove(it) }
+     if(!matches.empty) {
+      deps.add(project.dependencies.create(project.files(project.property(propertyName))))
+      if(propertyName=='impactorJar' && project.hasProperty('impactorLibraries'))
+       deps.add(project.dependencies.create(project.fileTree(project.property('impactorLibraries')) { include 'adventure-*.jar'; include 'examination-*.jar' }))
+     }
+    }
+   }
+  }
+ }
+ afterEvaluate {
+  if(project.hasProperty('cobblemonLibraries')) {
+   dependencies.add('compileOnly', files(fileTree(project.property('cobblemonLibraries')) { include '*.jar' }))
+   dependencies.add('testImplementation', files(fileTree(project.property('cobblemonLibraries')) { include '*.jar' }))
+  }
+ }
+}

@@ -77,20 +77,27 @@ public final class RaidCapture {
         return player instanceof ServerPlayer p && RaidInventory.locked(p);
     }
     static boolean facilityAllowed(boolean legacyPending, boolean captureActive, boolean battling) {
-        return !legacyPending && !captureActive && !battling;
+        return !legacyPending && !battling;
     }
     private static boolean canUseFacility(ServerPlayer player) {
         var manager=ShirokaiRaids.captureManager();
-        return facilityAllowed(RaidLegacyInventory.pending(player),manager!=null && manager.active(player.getUUID()),
-            BattleRegistry.getBattleByParticipatingPlayer(player)!=null);
+        if (RaidLegacyInventory.pending(player)) return false;
+        var battle=BattleRegistry.getBattleByParticipatingPlayer(player);
+        if (battle==null) return true;
+        // Only our own private capture battle may be paused, never another player's/boss battle.
+        return manager!=null && manager.pauseForFacility(player,battle);
     }
     static void register() {
         UseItemCallback.EVENT.register((player, world, hand) -> {
             var stack=player.getItemInHand(hand);
             if (!(player instanceof ServerPlayer p)) return InteractionResultHolder.pass(stack);
             if (!isBall(stack) && !RaidInventory.locked(p)) return InteractionResultHolder.pass(stack);
-            if (isBall(stack)) ShirokaiRaids.throwCaptureBall(p, hand);
-            return InteractionResultHolder.fail(stack);
+            var manager=ShirokaiRaids.captureManager();
+            boolean captureBallRequest=hand==InteractionHand.MAIN_HAND && manager!=null && manager.active(p.getUUID())
+                && stack.getItem() instanceof com.cobblemon.mod.common.item.PokeBallItem;
+            if (isBall(stack) || captureBallRequest) ShirokaiRaids.throwCaptureBall(p, hand);
+            // A reconciliation can select another slot. Returning the stale reward stack could overwrite it.
+            return InteractionResultHolder.fail(p.getItemInHand(hand));
         });
         UseBlockCallback.EVENT.register((player, world, hand, hit) -> {
             if (!locked(player)) return InteractionResult.PASS;
@@ -152,7 +159,7 @@ public final class RaidCapture {
         if (!state.returns.containsKey(player.getUUID().toString()) || !grant.raid.equals(state.returns.get(player.getUUID().toString()).raid)) throw new IllegalStateException(msg("captura.sem_direito"));
         if (player.serverLevel()!=world || player.distanceToSqr(grant.arena.x,grant.arena.y,grant.arena.z)>grant.radius*grant.radius)
             throw new IllegalStateException(msg("captura.sem_direito"));
-        RaidInventory.requireEmpty(player);
+        RaidInventory.requireParticipant(player);
         var boss=grant.boss;
         var entity=PokemonProperties.Companion.parse(boss.species+" level="+boss.level+" shiny="+boss.shiny+" uncatchable=no"+(boss.form.isEmpty()?"":" form="+boss.form)).createEntity(world);
         entity.addTag(TARGET_TAG); entity.addTag(OWNER_TAG+player.getUUID()); entity.setNoAi(true); entity.setInvulnerable(true); entity.setPersistenceRequired();
@@ -234,11 +241,16 @@ public final class RaidCapture {
     void throwBall(ServerPlayer player, InteractionHand hand) {
         var session=sessions.get(player.getUUID());
         var stack=player.getItemInHand(hand);
-        if (session == null || !isBall(stack) || !session.grant.id.equals(stack.get(DataComponents.CUSTOM_DATA).copyTag().getString(ITEM_KEY))) return;
+        if (session == null) return;
+        boolean granted=isBall(stack) && session.grant.id.equals(stack.get(DataComponents.CUSTOM_DATA).copyTag().getString(ITEM_KEY));
+        if (!granted && (hand!=InteractionHand.MAIN_HAND || !(stack.getItem() instanceof com.cobblemon.mod.common.item.PokeBallItem))) return;
         long now=System.currentTimeMillis();
         if (session.result!=null || session.flight!=null || now<session.nextThrow || session.grant.resolved || session.grant.remaining<=0 || now>=session.ends) return;
         if (session.battle==null || session.battle.getEnded() || BattleRegistry.getBattleByParticipatingPlayer(player)!=session.battle
             || !(session.battle.getSide1().getActors()[0] instanceof PlayerBattleActor actor) || !actor.canFitForcedAction()) return;
+        // A quiz may give ordinary balls and Cobblemon may select them by item type.
+        // Keep that reward intact: the throw always uses this session's grant and chance.
+        if (!granted) refreshBalls(player,session);
         // Spend and save before creating the projectile. A crash never restores a spent throw.
         session.grant.remaining--;
         persist.run();
@@ -287,7 +299,11 @@ public final class RaidCapture {
             if(session.result!=null) { if(now>=session.finishAt) close(player,session.result);continue; }
             if (sessions.get(id)!=session) continue;
             if (!player.isAlive() || !inside(player,session)) { close(player,Outcome.LEFT);continue; }
-            if(session.target.isRemoved() && session.flight==null || session.battle!=null && session.battle.getEnded() && session.flight==null) { close(player,Outcome.BATTLE_ENDED);continue; }
+            if(session.target.isRemoved() && session.flight==null) { close(player,Outcome.BATTLE_ENDED);continue; }
+            if(session.battle!=null && session.battle.getEnded() && session.flight==null) {
+                pause(session);
+                tell(player,"captura.equipe_indisponivel");
+            }
             if (session.flight!=null && session.flight.isRemoved() && now>=session.nextThrow && !session.flight.getCaptureFuture().isDone()) {
                 session.flight=null;
                 if (session.grant.remaining==0 || session.grant.resolved) close(player,session.grant.resolved?Outcome.CANCELLED:Outcome.NO_BALLS);
@@ -309,6 +325,22 @@ public final class RaidCapture {
             ShirokaiRaids.inventoryRestored(player);
             if (session!=null || pending!=null) tell(player,reason.message,"boss",session!=null?session.grant.boss.name:pending.boss.name);
         } catch(Exception error) { throw new IllegalStateException("Não foi possível encerrar a captura com segurança.",error); }
+    }
+    private boolean pauseForFacility(ServerPlayer player, PokemonBattle battle) {
+        var session=sessions.get(player.getUUID());
+        if(session==null || session.battle!=battle || session.flight!=null || session.result!=null
+            || session.grant.resolved || System.currentTimeMillis()>=session.ends) return false;
+        pause(session);
+        return BattleRegistry.getBattleByParticipatingPlayer(player)==null;
+    }
+    private void pause(Session session) {
+        var battle=session.battle;
+        if(battle==null) return;
+        try { syncPP(session); }
+        catch(RuntimeException error) { org.slf4j.LoggerFactory.getLogger("shirokai_raids").warn("Não foi possível sincronizar PP ao pausar captura",error); }
+        session.battle=null;
+        if(!battle.getEnded()) battle.stop();
+        // Grant, clock, private target and authoritative throw count stay exactly as they were.
     }
     private void syncPP(Session session) {
         if(session.battle==null) return;
@@ -358,14 +390,22 @@ public final class RaidCapture {
     boolean capturePokemon(UUID id) { return sessions.values().stream().anyMatch(s -> s.target.getPokemon().getUuid().equals(id)); }
     boolean knownTarget(Entity entity) { return sessions.values().stream().anyMatch(s -> s.target==entity); }
     private void refreshBalls(ServerPlayer player, Session session) {
+        int preferred=-1;
+        for(int i=0;i<9;i++) if(isBall(player.getInventory().getItem(i))) { preferred=i;break; }
         RaidInventory.removeRaidBalls(player);
         if (session.grant.remaining>0) {
             var stack=new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.parse("cobblemon:poke_ball")),session.grant.remaining);
             var data=new CompoundTag(); data.putString(ITEM_KEY,session.grant.id);
             stack.set(DataComponents.CUSTOM_DATA,CustomData.of(data));
             stack.set(DataComponents.CUSTOM_NAME,RaidMessages.component(msg("captura.bola")));
-            int slot=player.getInventory().getFreeSlot();
-            if(slot<0) throw new IllegalStateException(msg("raid.inventario_vazio"));
+            int slot=preferred;
+            if(slot<0) for(int i=0;i<9;i++) if(player.getInventory().getItem(i).isEmpty()) { slot=i;break; }
+            if(slot<0) {
+                int free=player.getInventory().getFreeSlot();
+                if(free<0) throw new IllegalStateException(msg("captura.sem_espaco_bolas"));
+                slot=player.getInventory().selected>=0&&player.getInventory().selected<9?player.getInventory().selected:0;
+                player.getInventory().setItem(free,player.getInventory().getItem(slot));
+            }
             player.getInventory().setItem(slot,stack);
             player.getInventory().selected=slot;
         }

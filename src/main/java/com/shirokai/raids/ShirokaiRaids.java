@@ -279,7 +279,7 @@ public final class ShirokaiRaids implements ModInitializer {
             if(!com.cobblemon.mod.common.util.PlayerExtensionsKt.canInteractWith(player,mod.active.boss,
                 com.cobblemon.mod.common.Cobblemon.config.getBattleWildMaxDistance()))
                 throw new IllegalStateException(msg("textos.aproxime_se_do_boss_para_desafia_lo"));
-            RaidInventory.requireEmpty(player);
+            RaidInventory.requireParticipant(player);
             mod.active.battles.challenge(player,packet.getSelectedPokemonId());
             mod.state.archive.current.participants.put(player.getUUID().toString(), player.getGameProfile().getName());
             mod.snapshot();

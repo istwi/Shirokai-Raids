@@ -1,5 +1,14 @@
 # Histórico de alterações
 
+## 0.1.23-capturefix.1
+
+- Preserva o JAR completo 0.1.22-damagechat.1 e suas funcionalidades de recuperação, autenticação e dano privado.
+- Prêmios recebidos após a admissão não bloqueiam captura/desafio; reconcilia hotbar e conserva bolas comuns externas.
+- PC/healer podem pausar a batalha privada sem renovar prazo ou reembolsar tentativas.
+- Encerramento da batalha privada mantém a oportunidade de curar e retomar a captura.
+- Relatório e limites em `docs/tests/capturefix-0.1.23/README.md`.
+
+
 ## 0.1.20-dev
 
 - Intervalo da próxima raid começa após a derrota do boss; cancelamento e expiração também iniciam um intervalo completo.

@@ -1,0 +1,12 @@
+{
+  "baseSHA256": "7edaf39537c447819d77e815f395ac10b73884b0868e7a2fc785b07104ce6254",
+  "artifactSHA256": "52e3f8c8044a8f0f1055e22151ee0113ad48ed760913f0b89328e9fbdbcfe13b",
+  "version": "0.1.23-capturefix.1",
+  "changedEntries": [
+    "com/shirokai/raids/RaidCapture.class",
+    "com/shirokai/raids/RaidInventory.class",
+    "com/shirokai/raids/ShirokaiRaids.class",
+    "fabric.mod.json",
+    "shirokai/messages.json"
+  ]
+}

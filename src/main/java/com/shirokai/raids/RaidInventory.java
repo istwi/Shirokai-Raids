@@ -16,6 +16,11 @@ public final class RaidInventory {
         if (!emptyForEntry(player)) throw new IllegalStateException(RaidMessages.msg("raid.inventario_vazio"));
         if (player.isCreative() || player.isSpectator()) throw new IllegalStateException(RaidMessages.msg("captura.sobrevivencia"));
     }
+    /** Already admitted players may receive external rewards; never delete them or re-run entry emptiness checks. */
+    public static void requireParticipant(ServerPlayer player) {
+        if (RaidLegacyInventory.pending(player)) throw new IllegalStateException("Recupere o inventário do build anterior antes de continuar na raid.");
+        if (player.isCreative() || player.isSpectator()) throw new IllegalStateException(RaidMessages.msg("captura.sobrevivencia"));
+    }
     static void removeRaidBalls(ServerPlayer player) {
         for (int i=0;i<player.getInventory().items.size();i++)
             if (RaidCapture.isBall(player.getInventory().getItem(i))) player.getInventory().setItem(i,ItemStack.EMPTY);
@@ -27,5 +32,7 @@ public final class RaidInventory {
         player.getInventory().setChanged();
         player.inventoryMenu.broadcastChanges();
         player.containerMenu.sendAllDataToRemote();
+        if (player.getInventory().selected>=0 && player.getInventory().selected<9)
+            player.connection.send(new net.minecraft.network.protocol.game.ClientboundSetCarriedItemPacket(player.getInventory().selected));
     }
 }

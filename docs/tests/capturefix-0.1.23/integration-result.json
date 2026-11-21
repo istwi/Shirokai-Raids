@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "message": "Quiz original, conservação de prêmios, PC/healer reais, equipe desmaiada, retomada de captura, orçamento, sucesso/esgotamento/timeout e isolamento validados.",
+  "checks": 79,
+  "realClients": 0,
+  "runtime": {
+    "minecraft": "1.21.1",
+    "fabricLoader": "0.17.2",
+    "fabricAPI": "0.116.6+1.21.1",
+    "java": "21.0.9",
+    "cobblemon": "1.8.3",
+    "quiz": "CRZquiz 1.0.0"
+  },
+  "quizSHA256": "42fecf9d4eab7b6a5e56b722fe61f5c71137be69ef0f9ba1a3fcc2290bacc37c"
+}

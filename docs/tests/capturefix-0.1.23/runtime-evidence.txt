@@ -1,0 +1,9 @@
+[06:26:16] [main/INFO]: Launching Cobblemon 1.8.3 
+[06:26:36] [Server thread/INFO]: [REWARD] Executing command: give CaptureProbe cobblemon:rare_candy 1
+[06:26:36] [Server thread/INFO]: Gave 1 [Rare Candy] to CaptureProbe
+[06:26:36] [Server thread/INFO]: [REWARD] Executing command: give CaptureProbe cobblemon:poke_ball 3
+[06:26:36] [Server thread/INFO]: Gave 3 [Poké Ball] to CaptureProbe
+[06:26:47] [Server thread/INFO]: [REWARD] Executing command: give CaptureProbe cobblemon:rare_candy 1
+[06:26:47] [Server thread/INFO]: Gave 1 [Rare Candy] to CaptureProbe
+[06:26:47] [Server thread/INFO]: [REWARD] Executing command: give CaptureProbe cobblemon:poke_ball 3
+[06:26:47] [Server thread/INFO]: Gave 3 [Poké Ball] to CaptureProbe
