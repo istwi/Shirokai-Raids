@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "guard": true,
+  "message": "Native return/spawn recovery passed",
+  "realClients": 0,
+  "essentials": true,
+  "checks": 50,
+  "artifactSHA256": "ba6143f744bd02001e06bf4ff59bf1bc2c8d1728e418d84fcfe28d3d8674deb2"
+}

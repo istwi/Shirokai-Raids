@@ -1,0 +1,12 @@
+{
+  "baseSHA256": "9709ece1b392b984d10dfaa3941d8c6a2aaff02ab459190b9cb1af9fcb81cb09",
+  "artifactSHA256": "ba6143f744bd02001e06bf4ff59bf1bc2c8d1728e418d84fcfe28d3d8674deb2",
+  "version": "0.1.25-returnspawn.1",
+  "changedEntries": [
+    "com/shirokai/raids/ShirokaiRaids.class",
+    "fabric.mod.json"
+  ],
+  "addedEntries": [
+    "com/shirokai/raids/RaidReturnFallback.class"
+  ]
+}

@@ -60,7 +60,7 @@ tasks.register('remapIntegrationJar', net.fabricmc.loom.task.RemapJarTask) {
 }
 build.dependsOn tasks.remapIntegrationJar
 
-// Sources in this repository stop at 0.1.20. Package fixes over the complete 0.1.22
+// Sources in this repository stop at 0.1.20. Package fixes over the complete 0.1.24
 // distribution so recovery/authentication and private damage chat cannot regress.
 configurations { hotfixTools }
 dependencies { hotfixTools 'org.ow2.asm:asm-tree:9.8' }

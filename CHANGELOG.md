@@ -1,5 +1,13 @@
 # Histórico de alterações
 
+## 0.1.25-returnspawn.1
+
+- Retorno alternativo ao spawn diante de falhas do destino salvo; mantém autenticação, Guard e verificação de playerdata.
+- Detecta o spawn do Shirokai Essentials, permite posição explícita de recuperação e usa o spawn global como alternativa sem provedor.
+- Mensagem manual de saída mostra a causa real da pendência.
+- Preserva o JAR completo 0.1.24 e os bloqueios/correções anteriores.
+
+
 ## 0.1.24-quizguard.1
 
 - Bloqueia o processamento de respostas do CRZquiz para participantes da raid, incluindo a captura, antes de registrar vencedor ou entregar prêmio.

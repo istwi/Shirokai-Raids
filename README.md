@@ -1,5 +1,12 @@
 # Shirokai Raids
 
+## Atualização 0.1.25-returnspawn.1
+
+Retorno ao spawn quando o local anterior da raid estiver inválido, obstruído ou indisponível. Usa a posição de `/spawn` do Shirokai Essentials; sem esse provedor, usa o spawn global do Overworld. Só conclui a saída e libera comandos após confirmar teleporte e salvamento. `/raid sair` também mostra o motivo específico quando ainda houver pendência.
+
+Produto em `releases/zorykai/v0.1.25-returnspawn.1`. Veja [destino opcional, preservação da versão anterior, testes e limitações](docs/tests/returnspawn-0.1.25/README.md).
+
+
 ## Atualização 0.1.24-quizguard.1
 
 Bloqueia respostas/vitória/prêmios do CRZquiz durante toda a participação na raid, inclusive captura. Os demais jogadores continuam participando; sair da raid libera novamente. Instale o JAR de `releases/zorykai/v0.1.24-quizguard.1`, com o servidor parado. Não é necessário alterar o quiz. [Relatório e testes](docs/tests/quizguard-0.1.24/README.md).

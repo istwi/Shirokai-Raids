@@ -1,0 +1,8 @@
+[18:18:53] [main/INFO]: Loading Minecraft 1.21.1 with Fabric Loader 0.17.2
+[18:19:28] [Server thread/INFO]: Retorno alternativo da raid confirmado no spawn para 7f56c675-83ff-42b2-a43a-0942527d2716: minecraft:overworld [1000.5, 200.0, 1000.5]
+[18:19:28] [Server thread/INFO]: Retorno alternativo da raid confirmado no spawn para 7f56c675-83ff-42b2-a43a-0942527d2716: minecraft:overworld [1000.5, 200.0, 1000.5]
+[18:19:28] [Server thread/INFO]: Retorno alternativo da raid confirmado no spawn para 7f56c675-83ff-42b2-a43a-0942527d2716: minecraft:overworld [1000.5, 200.0, 1000.5]
+[18:19:28] [Server thread/INFO]: Retorno alternativo da raid confirmado no spawn para 7f56c675-83ff-42b2-a43a-0942527d2716: minecraft:overworld [1000.5, 200.0, 1000.5]
+[18:19:28] [Server thread/INFO]: Retorno alternativo da raid confirmado no spawn para 7f56c675-83ff-42b2-a43a-0942527d2716: minecraft:overworld [100.5, 200.0, 100.5]
+[18:19:28] [Server thread/INFO]: Retorno alternativo da raid confirmado no spawn para 7f56c675-83ff-42b2-a43a-0942527d2716: minecraft:overworld [1000.5, 200.0, 1000.5]
+[18:19:28] [Server thread/INFO]: [STDOUT]: RETURN_SPAWN true 50 Native return/spawn recovery passed
