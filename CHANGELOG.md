@@ -1,5 +1,13 @@
 # Histórico de alterações
 
+## 0.1.24-quizguard.1
+
+- Bloqueia o processamento de respostas do CRZquiz para participantes da raid, incluindo a captura, antes de registrar vencedor ou entregar prêmio.
+- Mantém a pergunta disponível aos demais jogadores e libera a participação após sair da raid.
+- Integração opcional no mod de raids: não modifica nem redistribui o quiz. Mensagem editável `quiz.bloqueado_na_raid`.
+- Preserva as correções de captura anteriores.
+
+
 ## 0.1.23-capturefix.1
 
 - Preserva o JAR completo 0.1.22-damagechat.1 e suas funcionalidades de recuperação, autenticação e dano privado.

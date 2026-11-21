@@ -14,7 +14,8 @@
     "RaidCaptureVisibilityMixin",
     "RaidCaptureCollisionMixin",
     "RaidPokemonItemGuardMixin",
-    "RaidInventoryMixin"
+    "RaidInventoryMixin",
+    "RaidQuizGuardMixin"
   ],
   "injectors": {
     "defaultRequire": 1

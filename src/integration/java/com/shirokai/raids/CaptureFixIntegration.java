@@ -353,7 +353,19 @@ public final class CaptureFixIntegration implements ModInitializer {
         Object question=questionClass.getConstructor(String.class,String.class,List.class,String.class).newInstance("Synthetic integration question",answer,List.of("wrong-a","wrong-b","wrong-c"),"easy");
         Class<?> sessionClass=Class.forName("it.carrozza.crzquiz.models.QuizSession");Object synthetic=sessionClass.getConstructor(questionClass,int.class).newInstance(question,30);
         var current=quiz.getClass().getDeclaredField("currentSession");current.setAccessible(true);current.set(quiz,synthetic);
-        var process=Arrays.stream(quiz.getClass().getMethods()).filter(m->m.getName().equals("processAnswer")).findFirst().orElseThrow();process.invoke(quiz,p,answer);
+        var process=Arrays.stream(quiz.getClass().getMethods()).filter(m->m.getName().equals("processAnswer")).findFirst().orElseThrow();
+        if("quizguard".equals(System.getProperty("shirokai.integration.mode"))) {
+            int before=ordinaryBallCount(p);
+            process.invoke(quiz,p,answer);
+            require(sessionClass.getMethod("getWinnerId").invoke(synthetic)==null,"Raid participant won quiz");
+            require(ordinaryBallCount(p)==before,"Blocked quiz delivered rewards");
+            require((boolean)sessionClass.getMethod("isActive").invoke(synthetic),"Blocked participant ended quiz for others");
+            // Leaving restores eligibility; exercise the same real quiz/reward path without waiting.
+            var origin=state.returns.remove(p.getUUID().toString());
+            require(origin!=null,"Quiz guard test requires actual raid membership");
+            try { process.invoke(quiz,p,answer); }
+            finally { state.returns.put(p.getUUID().toString(),origin); }
+        } else process.invoke(quiz,p,answer);
         require((boolean)sessionClass.getMethod("getWinnerId").invoke(synthetic).equals(p.getUUID()),"Real quiz did not accept answer");
     }
     private void require(boolean condition,String message) { if(!condition) throw new AssertionError(message);checks++; }
@@ -362,7 +374,7 @@ public final class CaptureFixIntegration implements ModInitializer {
         try {
             if(manager!=null) manager.shutdown();
             for(var p:Arrays.asList(player,other)) if(p!=null) {lookup.remove(p.getUUID());server.getPlayerList().getPlayers().remove(p);}
-            Files.writeString(Path.of("capturefix-integration-result.json"),new com.google.gson.Gson().toJson(Map.of("passed",passed,"checks",checks,"message",message,"realClients",0)));
+            Files.writeString(Path.of("quizguard".equals(System.getProperty("shirokai.integration.mode"))?"quizguard-integration-result.json":"capturefix-integration-result.json"),new com.google.gson.Gson().toJson(Map.of("passed",passed,"checks",checks,"message",message,"realClients",0)));
         }catch(Exception error){throw new RuntimeException(error);}
         server.overworld().setChunkForced(0,0,false);server.halt(false);
     }

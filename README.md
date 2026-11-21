@@ -1,5 +1,10 @@
 # Shirokai Raids
 
+## Atualização 0.1.24-quizguard.1
+
+Bloqueia respostas/vitória/prêmios do CRZquiz durante toda a participação na raid, inclusive captura. Os demais jogadores continuam participando; sair da raid libera novamente. Instale o JAR de `releases/zorykai/v0.1.24-quizguard.1`, com o servidor parado. Não é necessário alterar o quiz. [Relatório e testes](docs/tests/quizguard-0.1.24/README.md).
+
+
 ## Correção 0.1.23-capturefix.1
 
 Compatibilidade com prêmios do quiz durante a captura, acesso a PC/healer e preservação da oportunidade de captura após encerramento da batalha privada. O prazo e a quantidade/chance das bolas não mudam. A validação exata do desmaio simultâneo ao golpe final ainda requer jogadores reais.

@@ -1,0 +1,13 @@
+{
+  "message": "Quiz original, conservação de prêmios, PC/healer reais, equipe desmaiada, retomada de captura, orçamento, sucesso/esgotamento/timeout e isolamento validados.",
+  "passed": true,
+  "realClients": 0,
+  "checks": 87,
+  "coverage": [
+    "Quiz answer blocked before capture",
+    "Quiz answer blocked during private capture battle",
+    "Blocked answer does not end question or award Pokeballs",
+    "Same answer accepted after removing raid membership",
+    "Native capture regression"
+  ]
+}

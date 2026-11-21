@@ -229,5 +229,6 @@
   "admin.recompensas.titulo": "&f&lSHIROKAI &8┃ &cRecompensas da Raid",
   "bossbar.vitoria": "&c&lRAID&r &8┃ &aBoss derrotado &8┃ &bPreparando captura...",
   "captura.equipe_indisponivel": "Sua captura continua disponível. Cure ou troque sua equipe no PC e desafie sua cópia novamente com R. O prazo e as bolas restantes continuam os mesmos.",
-  "captura.sem_espaco_bolas": "Não há espaço para as bolas da raid. Seus itens foram preservados; avise a administração."
+  "captura.sem_espaco_bolas": "Não há espaço para as bolas da raid. Seus itens foram preservados; avise a administração.",
+  "quiz.bloqueado_na_raid": "&7Você não pode participar do quiz enquanto estiver na raid. Saia da raid para voltar a responder."
 }

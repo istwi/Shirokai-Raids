@@ -1,0 +1,17 @@
+{
+  "baseSHA256": "7edaf39537c447819d77e815f395ac10b73884b0868e7a2fc785b07104ce6254",
+  "artifactSHA256": "9709ece1b392b984d10dfaa3941d8c6a2aaff02ab459190b9cb1af9fcb81cb09",
+  "version": "0.1.24-quizguard.1",
+  "changedEntries": [
+    "com/shirokai/raids/RaidCapture.class",
+    "com/shirokai/raids/RaidInventory.class",
+    "com/shirokai/raids/ShirokaiRaids.class",
+    "fabric.mod.json",
+    "shirokai-raids.mixins.json",
+    "shirokai/messages.json"
+  ],
+  "addedEntries": [
+    "com/shirokai/raids/RaidQuizGuard.class",
+    "com/shirokai/raids/mixin/RaidQuizGuardMixin.class"
+  ]
+}
