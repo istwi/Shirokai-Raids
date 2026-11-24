@@ -1,0 +1,6 @@
+{
+  "passed": true,
+  "checks": 25,
+  "message": "Offline/full inventory dispatch suppressed; real menu and claim deliver modular rewards with receipt protection",
+  "artifactSHA256": "347d0e9c623d1cd631059467cc32c8360a302be5c3a5b460fcc8758c34886160"
+}

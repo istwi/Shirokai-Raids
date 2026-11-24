@@ -1,0 +1,6 @@
+{
+  "passed": true,
+  "checks": 18,
+  "message": "Saved and live receipt recovery verified without reissue; missing/corrupt proofs and currency remain uncertain; manual delivery preserved",
+  "artifactSHA256": "347d0e9c623d1cd631059467cc32c8360a302be5c3a5b460fcc8758c34886160"
+}

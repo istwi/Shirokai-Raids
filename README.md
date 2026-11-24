@@ -1,5 +1,13 @@
 # Shirokai Raids
 
+## Distribuição atual: Zorykai Raids 0.1.30-events.1
+
+[Baixar JAR](https://github.com/istwi/Shirokai-Raids/raw/refs/heads/main/releases/v0.1.30-events.1/Zorykai-Raids-0.1.30-events.1-fabric-1.21.1.jar) · [Pacote completo com código e testes](https://github.com/istwi/Shirokai-Raids/raw/refs/heads/main/releases/v0.1.30-events.1/zorykai-raids-0.1.30-events.1-completo.zip) · [Comandos e instalação](releases/v0.1.30-events.1/INSTRUCOES.md)
+
+Inclui os nove eventos de raid, escolha da próxima raridade e preserva o resgate manual/recibos da 0.1.29. Os eventos precisam ser ativados por comando. Veja os [resultados e limites dos testes](releases/v0.1.30-events.1/TESTES.md).
+
+As seções abaixo documentam versões históricas. Para esta distribuição, use o JAR e as instruções acima; o pacote de código contém o build sobre o binário recente fixado.
+
 Mod **somente servidor** para Minecraft 1.21.1, Fabric e Cobblemon 1.8.3.
 
 **0.1.19-dev: entrada configurável, captura por R com cópia brilhante, BossBar individual e resultado no chat. Não é uma Release estável.**

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.shirokai.raids.RaidReceiptRecoveryTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-11-24T10:47:51.832Z" hostname="738c8a5a62b8" time="0.062">
+  <properties/>
+  <testcase name="failedJournalSaveDoesNotLoseUncertainOrLogFalseSuccess()" classname="com.shirokai.raids.RaidReceiptRecoveryTest" time="0.002"/>
+  <testcase name="absentReceiptAndUnsupportedCurrencyRemainUncertain()" classname="com.shirokai.raids.RaidReceiptRecoveryTest" time="0.002"/>
+  <testcase name="pendingWithPersistedReceiptIsReconciledWithoutManualResend()" classname="com.shirokai.raids.RaidReceiptRecoveryTest" time="0.001"/>
+  <testcase name="offlinePlayersAreNeverProbed()" classname="com.shirokai.raids.RaidReceiptRecoveryTest" time="0.004"/>
+  <testcase name="failureAfterEffectBeforeJournalConfirmationRecoversWithoutDuplicate()" classname="com.shirokai.raids.RaidReceiptRecoveryTest" time="0.002"/>
+  <testcase name="unavailablePlayerdataIsThrottledWithoutStatusOrInventoryChanges()" classname="com.shirokai.raids.RaidReceiptRecoveryTest" time="0.03"/>
+  <testcase name="confirmsUncertainFromReceiptWithoutGivingAnotherReward()" classname="com.shirokai.raids.RaidReceiptRecoveryTest" time="0.002"/>
+  <testcase name="unprovenReceiptsCannotStarveLaterValidReceiptUnderBoundedBudget()" classname="com.shirokai.raids.RaidReceiptRecoveryTest" time="0.017"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

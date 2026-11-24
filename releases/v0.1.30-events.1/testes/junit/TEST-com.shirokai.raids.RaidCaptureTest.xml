@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.shirokai.raids.RaidCaptureTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-24T10:47:43.765Z" hostname="738c8a5a62b8" time="0.036">
+  <properties/>
+  <testcase name="categoryRatesOverrideLegacyChanceAndSurviveConfigurationReload()" classname="com.shirokai.raids.RaidCaptureTest" time="0.002"/>
+  <testcase name="captureRightsSurviveSerializationButDuplicatesAndInvalidBudgetsAreRejected()" classname="com.shirokai.raids.RaidCaptureTest" time="0.007"/>
+  <testcase name="entryPointIsOptionalAndItsCoordinatesAreValidated()" classname="com.shirokai.raids.RaidCaptureTest" time="0.003"/>
+  <testcase name="failedCaptureHasFullAnimationAndDistinctResults()" classname="com.shirokai.raids.RaidCaptureTest" time="0.002"/>
+  <testcase name="legacyStateLoadsAndRemovedCaptureCommandIsNotAllowed()" classname="com.shirokai.raids.RaidCaptureTest" time="0.003"/>
+  <testcase name="automaticReturnUsesTheVictoryDeadlineAndOnlyTheArena()" classname="com.shirokai.raids.RaidCaptureTest" time="0.002"/>
+  <testcase name="rankBudgetsAndConfigBounds()" classname="com.shirokai.raids.RaidCaptureTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

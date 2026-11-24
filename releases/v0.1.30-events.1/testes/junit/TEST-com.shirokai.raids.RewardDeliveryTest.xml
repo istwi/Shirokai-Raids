@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.shirokai.raids.RewardDeliveryTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-11-24T10:47:52.878Z" hostname="738c8a5a62b8" time="0.173">
+  <properties/>
+  <testcase name="recoveredReservationWaitsForEnoughSpaceWithoutLosingOrSplittingIt()" classname="com.shirokai.raids.RewardDeliveryTest" time="0.013"/>
+  <testcase name="offlineContributorsAndOtherPlayersAreNotTouched()" classname="com.shirokai.raids.RewardDeliveryTest" time="0.008"/>
+  <testcase name="legacyUncertainReservationsAreNeverReplayed()" classname="com.shirokai.raids.RewardDeliveryTest" time="0.008"/>
+  <testcase name="[1] BEFORE_RESERVATION" classname="com.shirokai.raids.RewardDeliveryTest" time="0.014"/>
+  <testcase name="[2] AFTER_RESERVATION" classname="com.shirokai.raids.RewardDeliveryTest" time="0.007"/>
+  <testcase name="[3] BEFORE_INSERT" classname="com.shirokai.raids.RewardDeliveryTest" time="0.006"/>
+  <testcase name="[4] AFTER_INSERT" classname="com.shirokai.raids.RewardDeliveryTest" time="0.007"/>
+  <testcase name="[5] BEFORE_PLAYER_SAVE" classname="com.shirokai.raids.RewardDeliveryTest" time="0.007"/>
+  <testcase name="[6] AFTER_PLAYER_SAVE" classname="com.shirokai.raids.RewardDeliveryTest" time="0.008"/>
+  <testcase name="[7] BEFORE_ACK" classname="com.shirokai.raids.RewardDeliveryTest" time="0.006"/>
+  <testcase name="[8] AFTER_ACK" classname="com.shirokai.raids.RewardDeliveryTest" time="0.005"/>
+  <testcase name="workPerPassIsBoundedAndRemainingEntriesAreRetried()" classname="com.shirokai.raids.RewardDeliveryTest" time="0.019"/>
+  <testcase name="partialDeliveryPreservesExactRemainderAndRetryDoesNotRollAgain()" classname="com.shirokai.raids.RewardDeliveryTest" time="0.015"/>
+  <testcase name="persistedReceiptPreventsReplayEvenIfItemsWereConsumedBeforeRestart()" classname="com.shirokai.raids.RewardDeliveryTest" time="0.008"/>
+  <testcase name="fullInventoryAndMissingItemsRemainPendingAcrossRestart()" classname="com.shirokai.raids.RewardDeliveryTest" time="0.007"/>
+  <testcase name="onlineDeliveryIsPersistentAndRepeatedAttemptsCannotDuplicate()" classname="com.shirokai.raids.RewardDeliveryTest" time="0.006"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

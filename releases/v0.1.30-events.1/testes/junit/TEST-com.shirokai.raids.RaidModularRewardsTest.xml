@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.shirokai.raids.RaidModularRewardsTest" tests="20" skipped="0" failures="0" errors="0" timestamp="2026-11-24T10:47:51.716Z" hostname="738c8a5a62b8" time="0.116">
+  <properties/>
+  <testcase name="retrySafeReceiptRecoversInterruptedEffectWithoutDuplicate()" classname="com.shirokai.raids.RaidModularRewardsTest" time="0.016"/>
+  <testcase name="noSpecialIsGuaranteedAndMinimumContributionIsApplied()" classname="com.shirokai.raids.RaidModularRewardsTest" time="0.004"/>
+  <testcase name="uncertainExternalPaymentNeverAutomaticallyReplaysAfterRestart()" classname="com.shirokai.raids.RaidModularRewardsTest" time="0.002"/>
+  <testcase name="settingsLoadSevenFilesAndRejectInvalidReloadWithoutMutatingExistingSnapshot()" classname="com.shirokai.raids.RaidModularRewardsTest" time="0.044"/>
+  <testcase name="generalCurrencyIsMonotonicForAllRanksAndPersistsWithoutReroll()" classname="com.shirokai.raids.RaidModularRewardsTest" time="0.015"/>
+  <testcase name="reservesCapacityBeforeAdmissionAndAllowsRepeatedPlayersWithoutAdditionalRewards()" classname="com.shirokai.raids.RaidModularRewardsTest" time="0.0"/>
+  <testcase name="generalCurrencyInterpolationHonorsEndpointsRoundingAndCaps()" classname="com.shirokai.raids.RaidModularRewardsTest" time="0.001"/>
+  <testcase name="tiesAndAccumulatedDamageAreDeterministicAcrossLeaveReturnAndDisconnect()" classname="com.shirokai.raids.RaidModularRewardsTest" time="0.001"/>
+  <testcase name="generalCurrencyDoesNotDrawAmountsButSpecialAndFragmentsStillDo()" classname="com.shirokai.raids.RaidModularRewardsTest" time="0.001"/>
+  <testcase name="awardIsUniqueAndResolvedValuesSurviveSerializationAndConfigChanges()" classname="com.shirokai.raids.RaidModularRewardsTest" time="0.002"/>
+  <testcase name="compensationIsPersistedOnceAndNeverPaidAgainAfterRestart()" classname="com.shirokai.raids.RaidModularRewardsTest" time="0.002"/>
+  <testcase name="contributionsDifficultyAndBossOverridesScaleAmountsAndRespectCaps()" classname="com.shirokai.raids.RaidModularRewardsTest" time="0.002"/>
+  <testcase name="exhaustedRerollCompensatesOrSkipsAndPermanentUnlocksPersistByUuid()" classname="com.shirokai.raids.RaidModularRewardsTest" time="0.002"/>
+  <testcase name="persistBarrierPreventsEffectWhenJournalCannotBeSaved()" classname="com.shirokai.raids.RaidModularRewardsTest" time="0.001"/>
+  <testcase name="boundedRerollCannotPromoteRarityOrCrossGeneralSpecialPools()" classname="com.shirokai.raids.RaidModularRewardsTest" time="0.001"/>
+  <testcase name="futureParticlePolicyIsIndependentAndExhaustedRerollCanEndWithoutCompensation()" classname="com.shirokai.raids.RaidModularRewardsTest" time="0.001"/>
+  <testcase name="retryingOfflineEntriesCannotStarveOtherPlayersWithinTheDeliveryBudget()" classname="com.shirokai.raids.RaidModularRewardsTest" time="0.01"/>
+  <testcase name="skipConsultsOwnershipAndDoesNotCompensate()" classname="com.shirokai.raids.RaidModularRewardsTest" time="0.001"/>
+  <testcase name="missingIntegrationRemainsPendingAndOfflineUuidCanReceiveCurrencyLater()" classname="com.shirokai.raids.RaidModularRewardsTest" time="0.001"/>
+  <testcase name="onlyOriginalTopThreeGetSpecialsAndAllEligiblePlayersGetGeneralRewards()" classname="com.shirokai.raids.RaidModularRewardsTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

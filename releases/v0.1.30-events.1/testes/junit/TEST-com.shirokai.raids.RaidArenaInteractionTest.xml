@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.shirokai.raids.RaidArenaInteractionTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-11-24T10:47:43.313Z" hostname="738c8a5a62b8" time="0.055">
+  <properties/>
+  <testcase name="facilitiesAllowCaptureOutsideBattleButKeepLegacyAndForeignBattleRestrictions()" classname="com.shirokai.raids.RaidArenaInteractionTest" time="0.055"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
