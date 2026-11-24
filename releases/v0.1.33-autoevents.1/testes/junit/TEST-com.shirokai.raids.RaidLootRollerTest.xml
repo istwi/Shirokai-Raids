@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.shirokai.raids.RaidLootRollerTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-24T12:42:10.672Z" hostname="738c8a5a62b8" time="0.024">
+  <properties/>
+  <testcase name="bossControlsValidateFiniteDamageHpScaleAndDefaults()" classname="com.shirokai.raids.RaidLootRollerTest" time="0.001"/>
+  <testcase name="jsonRoundTripPreservesOldFilesAndNewTieredTables()" classname="com.shirokai.raids.RaidLootRollerTest" time="0.002"/>
+  <testcase name="defaultRarityDistributionMatchesEachConfiguredContributionBandExactly()" classname="com.shirokai.raids.RaidLootRollerTest" time="0.015"/>
+  <testcase name="itemBudgetAndRollCountAreBoundedAndSameAcrossTiers()" classname="com.shirokai.raids.RaidLootRollerTest" time="0.001"/>
+  <testcase name="legacyCustomItemsAndRollRulesRemainAvailable()" classname="com.shirokai.raids.RaidLootRollerTest" time="0.0"/>
+  <testcase name="itemWeightsAreASecondIndependentDrawWithinChosenRarity()" classname="com.shirokai.raids.RaidLootRollerTest" time="0.002"/>
+  <testcase name="invalidProbabilitiesRangesReferencesAndPoolsFailBeforeRolling()" classname="com.shirokai.raids.RaidLootRollerTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

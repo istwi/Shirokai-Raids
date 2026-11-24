@@ -1,0 +1,17 @@
+{
+  "version": "0.1.33-autoevents.1",
+  "artifactSHA256": "38d5ddec703ba338213d735e8f5c27a227e71aad25e94807a7d5a67572668fb6",
+  "unit": {
+    "tests": 189,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "nativeChecks": 167,
+  "nativeSuites": 4,
+  "sigkillRestarts": 2,
+  "defaultAutomaticChancePercent": 1,
+  "pityOrEscalation": false,
+  "visualClientTested": false,
+  "productionChanged": false
+}

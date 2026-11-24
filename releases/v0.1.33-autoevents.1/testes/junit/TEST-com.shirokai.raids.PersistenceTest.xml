@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.shirokai.raids.PersistenceTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-11-24T12:42:03.172Z" hostname="738c8a5a62b8" time="0.042">
+  <properties/>
+  <testcase name="rejectsInvalidReturnCoordinates()" classname="com.shirokai.raids.PersistenceTest" time="0.002"/>
+  <testcase name="returnPositionSurvivesRestartWithDimensionAndOrientation()" classname="com.shirokai.raids.PersistenceTest" time="0.004"/>
+  <testcase name="malformedOrDuplicateDeliveryJournalIsRejected()" classname="com.shirokai.raids.PersistenceTest" time="0.001"/>
+  <testcase name="concurrentCombatConfigurationDefaultsToOneHundredAndRejectsHigherLimits()" classname="com.shirokai.raids.PersistenceTest" time="0.001"/>
+  <testcase name="commandLockAllowsOnlyExitAndRaidMenu()" classname="com.shirokai.raids.PersistenceTest" time="0.002"/>
+  <testcase name="nextRaidWarningsUseNaturalCompactTimes()" classname="com.shirokai.raids.PersistenceTest" time="0.009"/>
+  <testcase name="rejectsDirectoryAsStateAndWorksWithUnicodePaths()" classname="com.shirokai.raids.PersistenceTest" time="0.005"/>
+  <testcase name="customConfigsAreNotOverwrittenAndCorruptStateIsNotSilentlyReset()" classname="com.shirokai.raids.PersistenceTest" time="0.004"/>
+  <testcase name="restartKeepsPendingOfflineRewardsAndCompletedRaidLedger()" classname="com.shirokai.raids.PersistenceTest" time="0.004"/>
+  <testcase name="displaysHoursMinutesAndSecondsAtBoundaries()" classname="com.shirokai.raids.PersistenceTest" time="0.002"/>
+  <testcase name="invalidConfigurationCannotEscapeSafetyLimits()" classname="com.shirokai.raids.PersistenceTest" time="0.002"/>
+  <testcase name="legacyStateLoadsWithoutInventingNewDeliveries()" classname="com.shirokai.raids.PersistenceTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

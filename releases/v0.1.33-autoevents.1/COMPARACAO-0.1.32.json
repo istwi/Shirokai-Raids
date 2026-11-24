@@ -1,0 +1,18 @@
+{
+  "baseSHA256": "7fef85911526c49d8c41139f70f9ddb062df1b1416d166f16834be9fdf7a22f1",
+  "artifactSHA256": "38d5ddec703ba338213d735e8f5c27a227e71aad25e94807a7d5a67572668fb6",
+  "changedEntries": [
+    "fabric.mod.json",
+    "com/shirokai/raids/RaidEventState$Vote.class",
+    "com/shirokai/raids/RaidEventState.class",
+    "com/shirokai/raids/RaidEvents$Settings.class",
+    "com/shirokai/raids/RaidEvents.class"
+  ],
+  "newEntries": [
+    "com/shirokai/raids/RaidAutomaticEvents$Config.class",
+    "com/shirokai/raids/RaidAutomaticEvents$Rule.class",
+    "com/shirokai/raids/RaidAutomaticEvents$State.class",
+    "com/shirokai/raids/RaidAutomaticEvents.class"
+  ],
+  "allOtherEntriesByteIdentical": true
+}

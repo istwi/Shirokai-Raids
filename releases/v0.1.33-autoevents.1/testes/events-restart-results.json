@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "verificationChecks": 4,
+  "jvms": 3,
+  "sigkillRestarts": 2,
+  "checks": 13,
+  "artifactSHA256": "38d5ddec703ba338213d735e8f5c27a227e71aad25e94807a7d5a67572668fb6"
+}

@@ -1,0 +1,70 @@
+{
+  "automatic": {
+    "enabled": true,
+    "chancePercent": 1.0,
+    "maximumWaitMinutes": 30,
+    "events": {
+      "shiny": {
+        "enabled": true,
+        "weight": 1,
+        "value": 10.0
+      },
+      "ivs": {
+        "enabled": true,
+        "weight": 1,
+        "value": 3.0
+      },
+      "drop": {
+        "enabled": true,
+        "weight": 1,
+        "value": 2.0
+      },
+      "token": {
+        "enabled": true,
+        "weight": 1,
+        "value": 2.0
+      },
+      "invasao": {
+        "enabled": true,
+        "weight": 1
+      },
+      "elemental": {
+        "enabled": true,
+        "weight": 1,
+        "types": [
+          "bug",
+          "dark",
+          "dragon",
+          "electric",
+          "fairy",
+          "fighting",
+          "fire",
+          "flying",
+          "ghost",
+          "grass",
+          "ground",
+          "ice",
+          "normal",
+          "poison",
+          "psychic",
+          "rock",
+          "steel",
+          "water"
+        ]
+      },
+      "votacao": {
+        "enabled": true,
+        "weight": 1,
+        "candidates": []
+      },
+      "enfurecido": {
+        "enabled": true,
+        "weight": 1
+      },
+      "dupla": {
+        "enabled": true,
+        "weight": 1
+      }
+    }
+  }
+}

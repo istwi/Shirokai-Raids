@@ -1,10 +1,10 @@
 # Shirokai Raids
 
-## Distribuição atual: Zorykai Raids 0.1.32-eventnames.1
+## Distribuição atual: Zorykai Raids 0.1.33-autoevents.1
 
-[Baixar JAR](https://github.com/istwi/Shirokai-Raids/raw/refs/heads/main/releases/v0.1.32-eventnames.1/Zorykai-Raids-0.1.32-eventnames.1-fabric-1.21.1.jar) · [Pacote completo com código e testes](https://github.com/istwi/Shirokai-Raids/raw/refs/heads/main/releases/v0.1.32-eventnames.1/zorykai-raids-0.1.32-eventnames.1-completo.zip) · [Comandos e instalação](releases/v0.1.32-eventnames.1/INSTRUCOES.md)
+[Baixar JAR](https://github.com/istwi/Shirokai-Raids/raw/refs/heads/main/releases/v0.1.33-autoevents.1/Zorykai-Raids-0.1.33-autoevents.1-fabric-1.21.1.jar) · [Pacote completo com código e testes](https://github.com/istwi/Shirokai-Raids/raw/refs/heads/main/releases/v0.1.33-autoevents.1/zorykai-raids-0.1.33-autoevents.1-completo.zip) · [Configuração e instalação](releases/v0.1.33-autoevents.1/INSTRUCOES.md)
 
-Atualiza os nomes dos eventos, mostra aviso na boss bar uma vez por minuto e permite dois bosses aleatórios no Desafio Duplo. Mantém os ajustes anteriores de mensagens discretas, comandos de staff com TAB, held items e resgate manual. Veja [testes e limitações](releases/v0.1.32-eventnames.1/TESTES.md).
+Adiciona sorteio automático com **1% fixo**, sem acúmulo/escalonamento, após encerramento elegível e liberação das capturas/retornos. Lista de eventos e valores configuráveis em `events.json`, com anúncio curto do Arceus quando houver evento para a próxima raid. Mantém horário normal, prioridade de programação manual e as proteções anteriores. Veja [testes e limitações](releases/v0.1.33-autoevents.1/TESTES.md).
 
 As seções abaixo documentam versões históricas. Para esta distribuição, use o JAR e as instruções acima; o pacote de código contém o build sobre o binário recente fixado.
 

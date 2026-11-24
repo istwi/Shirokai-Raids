@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.shirokai.raids.core.RaidCoreTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-24T12:42:11.880Z" hostname="738c8a5a62b8" time="0.018">
+  <properties/>
+  <testcase name="phasesAndDamageHaveExplicitBoundaries()" classname="com.shirokai.raids.core.RaidCoreTest" time="0.001"/>
+  <testcase name="countdownEmptiesAndClampsAfterDeadlineOrIntervalReload()" classname="com.shirokai.raids.core.RaidCoreTest" time="0.0"/>
+  <testcase name="simultaneousAttacksCannotLoseOrDuplicateDamage()" classname="com.shirokai.raids.core.RaidCoreTest" time="0.013"/>
+  <testcase name="cooldownOwnershipRangeAndBattleAreAuthoritative()" classname="com.shirokai.raids.core.RaidCoreTest" time="0.0"/>
+  <testcase name="sharedHealthClampsOverkillAndRejectsInvalidDamage()" classname="com.shirokai.raids.core.RaidCoreTest" time="0.0"/>
+  <testcase name="contributionUsesAppliedDamageAndPreservesOfflinePlayers()" classname="com.shirokai.raids.core.RaidCoreTest" time="0.0"/>
+  <testcase name="scheduleDoesNotAccumulateAndPreventsSecondRaid()" classname="com.shirokai.raids.core.RaidCoreTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
