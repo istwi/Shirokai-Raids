@@ -1,0 +1,40 @@
+{
+  "baseSHA256": "3f37930a20d07be7c6c305ed5bc93fc1d8d1db630ad82e86027ba9c614d9923f",
+  "artifactSHA256": "bdd74f996482189123d4f5d75a1024cd48e467a089e69f334a3e324c003212e6",
+  "changedEntries": [
+    "com/shirokai/raids/CratesRaidRewards.class",
+    "com/shirokai/raids/PendingRewardMenu.class",
+    "com/shirokai/raids/RaidRewardHandler.class",
+    "com/shirokai/raids/RaidRewardJournal$Choice.class",
+    "com/shirokai/raids/RaidRewardJournal$Data.class",
+    "com/shirokai/raids/RaidRewardJournal$Grant.class",
+    "com/shirokai/raids/RaidRewardJournal$Status.class",
+    "com/shirokai/raids/RaidRewardJournal.class",
+    "com/shirokai/raids/ShirokaiRaids.class",
+    "fabric.mod.json",
+    "com/shirokai/raids/ItemRaidRewards.class"
+  ],
+  "newEntries": [
+    "com/shirokai/raids/PendingRewardMenu$1.class",
+    "com/shirokai/raids/PendingRewardMenu$Entry.class",
+    "com/shirokai/raids/RaidRewardDispatch.class",
+    "com/shirokai/raids/RaidRewardJournal$Retry.class"
+  ],
+  "preservedClasses": [
+    "RaidAuthentication",
+    "GuardRaidAccess",
+    "RaidReturnPersistence",
+    "RaidReturnFallback",
+    "RaidCapture",
+    "RaidInventory",
+    "RaidQuizGuard",
+    "TraditionalRaidBattles",
+    "RaidAutomaticCatalog",
+    "RaidCatalogSettings",
+    "RaidSpecialMenu",
+    "PlayerRewardTarget",
+    "ImpactorRaidRewards"
+  ],
+  "version": "0.1.28-manualrewards.1",
+  "note": "Manual-only delivery, offline preflight, per-player retry backoff, unified pending menu and modular claim; raid recovery, capture, damage chat and draws retained from full 0.1.27."
+}

@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "checks": 19,
+  "availableSpecies": {
+    "supremo": 6,
+    "normal": 133,
+    "raro": 47,
+    "epico": 13,
+    "lendario": 13
+  },
+  "distribution10000": {
+    "epico": 2516,
+    "normal": 3024,
+    "raro": 2935,
+    "supremo": 315,
+    "lendario": 1210
+  }
+}

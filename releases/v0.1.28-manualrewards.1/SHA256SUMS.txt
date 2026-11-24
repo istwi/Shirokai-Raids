@@ -1,0 +1,2 @@
+bdd74f996482189123d4f5d75a1024cd48e467a089e69f334a3e324c003212e6  Zorykai-Raids-0.1.28-manualrewards.1-fabric-1.21.1.jar
+28d139fe60eca0c65b36cfd67fb6f9740a351acd2cea32ef6ccb964791a674c0  zorykai-raids-0.1.28-manualrewards.1-codigo.zip

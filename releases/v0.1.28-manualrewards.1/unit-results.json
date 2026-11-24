@@ -1,0 +1,120 @@
+{
+  "tests": 143,
+  "failures": 0,
+  "suites": [
+    {
+      "suite": "com.shirokai.raids.RaidVictoryTransitionTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "suite": "com.shirokai.raids.OperationsTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "suite": "com.shirokai.raids.RaidLootRollerTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "suite": "com.shirokai.raids.RaidAutomaticCatalogTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "suite": "com.shirokai.raids.RaidRewardOddsTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "suite": "com.shirokai.raids.RaidArchiveTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "suite": "com.shirokai.raids.RaidModularRewardsTest",
+      "tests": 20,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "suite": "com.shirokai.raids.core.RaidCombatCoordinatorTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "suite": "com.shirokai.raids.RaidCustomizationTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "suite": "com.shirokai.raids.RaidArenaInteractionTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "suite": "com.shirokai.raids.RaidSpecialMenuTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "suite": "com.shirokai.raids.RewardDeliveryTest",
+      "tests": 16,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "suite": "com.shirokai.raids.RaidRewardRetryTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "suite": "com.shirokai.raids.core.RewardAndTypesTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "suite": "com.shirokai.raids.core.RaidCoreTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "suite": "com.shirokai.raids.RaidCaptureTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "suite": "com.shirokai.raids.RaidDifficultyChancesTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "suite": "com.shirokai.raids.core.SafeTeleportSearchTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "suite": "com.shirokai.raids.PersistenceTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0
+    }
+  ]
+}

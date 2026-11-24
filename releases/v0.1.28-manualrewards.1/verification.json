@@ -1,0 +1,41 @@
+{
+  "version": "0.1.28-manualrewards.1",
+  "artifactSHA256": "bdd74f996482189123d4f5d75a1024cd48e467a089e69f334a3e324c003212e6",
+  "unitTests": 143,
+  "nativeChecks": 296,
+  "manualDelivery": true,
+  "productionModified": false,
+  "humanClientTested": false,
+  "nativeResults": {
+    "reward-retry-results.json": {
+      "passed": true,
+      "checks": 25,
+      "message": "Offline/full inventory dispatch suppressed; real menu and claim deliver modular rewards with receipt protection"
+    },
+    "item-rewards-results.json": {
+      "passed": true,
+      "checks": 252,
+      "message": "Native item rewards delivered; receipt, reload, offline and capacity checks passed",
+      "itemTypes": 34,
+      "uncertainFragmentsModified": false
+    },
+    "catalog-chances-results.json": {
+      "passed": true,
+      "checks": 19,
+      "availableSpecies": {
+        "supremo": 6,
+        "normal": 133,
+        "raro": 47,
+        "epico": 13,
+        "lendario": 13
+      },
+      "distribution10000": {
+        "epico": 2516,
+        "normal": 3024,
+        "raro": 2935,
+        "supremo": 315,
+        "lendario": 1210
+      }
+    }
+  }
+}

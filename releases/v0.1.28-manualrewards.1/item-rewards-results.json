@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "checks": 252,
+  "message": "Native item rewards delivered; receipt, reload, offline and capacity checks passed",
+  "itemTypes": 34,
+  "uncertainFragmentsModified": false
+}
