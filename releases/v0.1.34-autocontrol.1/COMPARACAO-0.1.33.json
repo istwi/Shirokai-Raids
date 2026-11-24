@@ -1,0 +1,10 @@
+{
+  "baseSHA256": "38d5ddec703ba338213d735e8f5c27a227e71aad25e94807a7d5a67572668fb6",
+  "artifactSHA256": "5d1902d509084293ad9d659802d66caabc4b60cebc8a695eec7c22cdfadeeb11",
+  "changedEntries": [
+    "fabric.mod.json",
+    "com/shirokai/raids/RaidEventCommands.class",
+    "com/shirokai/raids/RaidEvents.class"
+  ],
+  "allOtherEntriesByteIdentical": true
+}

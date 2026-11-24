@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.shirokai.raids.RaidAutomaticEventsTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-11-24T13:31:01.504Z" hostname="738c8a5a62b8" time="0.095">
+  <properties/>
+  <testcase name="weightsChooseWithinPoolWithoutChangingOverallChance()" classname="com.shirokai.raids.RaidAutomaticEventsTest" time="0.082"/>
+  <testcase name="onePercentMeansOneOutOfHundredNotOnePerPreset()" classname="com.shirokai.raids.RaidAutomaticEventsTest" time="0.001"/>
+  <testcase name="fixedProbabilityDoesNotEscalateAfterFailures()" classname="com.shirokai.raids.RaidAutomaticEventsTest" time="0.003"/>
+  <testcase name="zeroAndOneHundredRespectConfiguration()" classname="com.shirokai.raids.RaidAutomaticEventsTest" time="0.0"/>
+  <testcase name="pendingOpportunityHasDurableSnapshot()" classname="com.shirokai.raids.RaidAutomaticEventsTest" time="0.003"/>
+  <testcase name="eventParametersHaveNoExtraRewardsOrPermissions()" classname="com.shirokai.raids.RaidAutomaticEventsTest" time="0.001"/>
+  <testcase name="cancellingDoesNotIncreaseProbability()" classname="com.shirokai.raids.RaidAutomaticEventsTest" time="0.001"/>
+  <testcase name="onlyEnabledRulesParticipate()" classname="com.shirokai.raids.RaidAutomaticEventsTest" time="0.001"/>
+  <testcase name="emptyListIsAnExplicitNoEvent()" classname="com.shirokai.raids.RaidAutomaticEventsTest" time="0.001"/>
+  <testcase name="valuesAndBoundsAreValidated()" classname="com.shirokai.raids.RaidAutomaticEventsTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

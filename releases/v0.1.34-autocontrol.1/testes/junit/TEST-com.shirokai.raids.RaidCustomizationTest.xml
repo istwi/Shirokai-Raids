@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.shirokai.raids.RaidCustomizationTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-11-24T13:31:01.616Z" hostname="738c8a5a62b8" time="0.158">
+  <properties/>
+  <testcase name="invalidCatalogIsRejectedWithoutReplacingActiveMessages()" classname="com.shirokai.raids.RaidCustomizationTest" time="0.004"/>
+  <testcase name="formatsColorsBoldResetAndHexWithoutDroppingUnknownCodes()" classname="com.shirokai.raids.RaidCustomizationTest" time="0.116"/>
+  <testcase name="createsEditableCatalogWithoutOverwritingCustomTextAndFallsBackForMissingKeys()" classname="com.shirokai.raids.RaidCustomizationTest" time="0.01"/>
+  <testcase name="upgradesLegacyBossLabelAndPreservesOtherCustomNames()" classname="com.shirokai.raids.RaidCustomizationTest" time="0.004"/>
+  <testcase name="substitutionsAreLiteralAndSinglePass()" classname="com.shirokai.raids.RaidCustomizationTest" time="0.007"/>
+  <testcase name="loadsNewBossFilesAndRandomlySelectsOnlyRegisteredBosses()" classname="com.shirokai.raids.RaidCustomizationTest" time="0.004"/>
+  <testcase name="upgradesOnlyShippedVisualDefaultsWithoutOverwritingCustomizedMessages()" classname="com.shirokai.raids.RaidCustomizationTest" time="0.001"/>
+  <testcase name="rejectsDuplicateInvalidAndEmptyBossLists()" classname="com.shirokai.raids.RaidCustomizationTest" time="0.009"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

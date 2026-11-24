@@ -1,0 +1,15 @@
+{
+  "version": "0.1.34-autocontrol.1",
+  "artifactSHA256": "5d1902d509084293ad9d659802d66caabc4b60cebc8a695eec7c22cdfadeeb11",
+  "unit": {
+    "tests": 189,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "nativeChecks": 100,
+  "nativeSuites": 3,
+  "sigkillRestarts": 2,
+  "visualClientTested": false,
+  "productionChanged": false
+}
