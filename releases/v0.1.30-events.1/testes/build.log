@@ -1,0 +1,113 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :
+Fabric Loom: 1.10.5
+
+> Task :compileJava
+/workspace/Shirokai-Raids-events/src/main/java/com/shirokai/raids/mixin/ChallengeHandlerMixin.java:17: warning: Cannot find target method "handle(Lcom/cobblemon/mod/common/net/messages/server/BattleChallengePacket;Lnet/minecraft/server/MinecraftServer;Lnet/minecraft/class_3222;)V" for @Inject.method="handle(Lcom/cobblemon/mod/common/net/messages/server/BattleChallengePacket;Lnet/minecraft/server/MinecraftServer;Lnet/minecraft/class_3222;)V" in com.cobblemon.mod.common.net.serverhandling.ChallengeHandler
+    @Inject(method={
+    ^
+/workspace/Shirokai-Raids-events/src/main/java/com/shirokai/raids/ImpactorRaidRewards.java:24: warning: [removal] depositAsync(BigDecimal) in Account has been deprecated and marked for removal
+        return economy.account(currency,player).thenCompose(account->account.depositAsync(amount)
+                                                                            ^
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+2 warnings
+
+> Task :processResources UP-TO-DATE
+> Task :classes
+> Task :jar
+
+> Task :compileIntegrationJava
+Note: /workspace/Shirokai-Raids-events/src/integration/java/com/shirokai/raids/integration/TeleportIntegration.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+
+> Task :compileTestJava
+Note: /workspace/Shirokai-Raids-events/src/test/java/com/shirokai/raids/RaidCaptureTest.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+
+> Task :processIncludeJars UP-TO-DATE
+> Task :sourcesJar
+> Task :remapSourcesJar
+> Task :processIntegrationResources UP-TO-DATE
+> Task :integrationClasses
+> Task :integrationJar
+> Task :processTestResources NO-SOURCE
+> Task :testClasses
+> Task :test
+> Task :validateAccessWidener NO-SOURCE
+> Task :check
+> Task :compileHotfixTools UP-TO-DATE
+> Task :remapJar
+> Task :assemble
+
+> Task :packageLatestRaidFix
+ShirokaiRaids: 4 audited hooks
+RaidState: 2 audited hooks
+RaidConfig$Boss: 1 audited hooks
+RaidRewardSettings: 1 audited hooks
+RaidCatalogPokemon: 1 audited hooks
+RaidCapture: 1 audited hooks
+RaidCommands: 1 audited hooks
+{
+  "baseSHA256": "3b51d32e0409a9110e5285fccf206318d0aed303a23ef146355a0ce44d8b9002",
+  "artifactSHA256": "347d0e9c623d1cd631059467cc32c8360a302be5c3a5b460fcc8758c34886160",
+  "changedEntries": [
+    "com/shirokai/raids/RaidCapture.class",
+    "com/shirokai/raids/RaidCatalogPokemon.class",
+    "com/shirokai/raids/RaidCommands.class",
+    "com/shirokai/raids/RaidConfig$Boss.class",
+    "com/shirokai/raids/RaidRewardJournal$Data.class",
+    "com/shirokai/raids/RaidRewardJournal$Grant.class",
+    "com/shirokai/raids/RaidRewardJournal.class",
+    "com/shirokai/raids/RaidRewardSettings.class",
+    "com/shirokai/raids/RaidState.class",
+    "com/shirokai/raids/ShirokaiRaids.class",
+    "fabric.mod.json",
+    "com/shirokai/raids/RaidRewardJournal$Retry.class"
+  ],
+  "newEntries": [
+    "com/shirokai/raids/RaidEventPlan.class",
+    "com/shirokai/raids/RaidEventRewards.class",
+    "com/shirokai/raids/RaidEventState$Vote.class",
+    "com/shirokai/raids/RaidEventState.class",
+    "com/shirokai/raids/RaidEvents$Settings.class",
+    "com/shirokai/raids/RaidEvents.class"
+  ],
+  "preservedClasses": [
+    "RaidAuthentication",
+    "GuardRaidAccess",
+    "RaidReturnPersistence",
+    "RaidReturnFallback",
+    "RaidInventory",
+    "RaidQuizGuard",
+    "TraditionalRaidBattles",
+    "RaidAutomaticCatalog",
+    "RaidCatalogSettings",
+    "RaidSpecialMenu",
+    "ImpactorRaidRewards",
+    "ItemRaidRewards",
+    "CratesRaidRewards",
+    "PlayerRewardTarget",
+    "PendingRewardMenu",
+    "RaidRewardDispatch"
+  ],
+  "version": "0.1.30-events.1"
+}
+
+> Task :remapIntegrationJar
+> Task :build
+
+[Incubating] Problems report is available at: file:///workspace/Shirokai-Raids-events/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1m
+15 actionable tasks: 11 executed, 4 up-to-date
