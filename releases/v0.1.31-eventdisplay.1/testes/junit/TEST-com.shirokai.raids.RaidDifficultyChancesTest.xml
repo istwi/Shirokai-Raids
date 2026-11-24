@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.shirokai.raids.RaidDifficultyChancesTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-24T11:28:16.661Z" hostname="738c8a5a62b8" time="6.742">
+  <properties/>
+  <testcase name="unavailableCategoriesRedistributeOnlyAmongEnabledAvailableOnes()" classname="com.shirokai.raids.RaidDifficultyChancesTest" time="0.002"/>
+  <testcase name="singleDifficultyAndZeroWeightsAreRespectedIncludingSpecialOnFirstRaid()" classname="com.shirokai.raids.RaidDifficultyChancesTest" time="0.01"/>
+  <testcase name="oldConfigLoadsWithNewDefaultsWithoutChangingProfilesOrHistory()" classname="com.shirokai.raids.RaidDifficultyChancesTest" time="0.003"/>
+  <testcase name="invalidWeightsModeAndTotalsAreRejected()" classname="com.shirokai.raids.RaidDifficultyChancesTest" time="0.001"/>
+  <testcase name="adminMenuDoesNotPromiseCountdownInWeightedMode()" classname="com.shirokai.raids.RaidDifficultyChancesTest" time="0.001"/>
+  <testcase name="distributionUsesDifficultyRatherThanSpeciesCount()" classname="com.shirokai.raids.RaidDifficultyChancesTest" time="6.723"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

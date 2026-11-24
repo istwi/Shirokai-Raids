@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "checks": 252,
+  "message": "Native item rewards delivered; receipt, reload, offline and capacity checks passed",
+  "itemTypes": 34,
+  "uncertainFragmentsModified": false,
+  "artifactSHA256": "e1c2d4e8bb3963112985203842c58f41d96efb42707f537623e262912f8b7f16"
+}

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.shirokai.raids.RaidRewardRetryTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-11-24T11:28:24.092Z" hostname="738c8a5a62b8" time="0.469">
+  <properties/>
+  <testcase name="thousandOfflineReservationsCauseZeroDeliveriesWritesOrLogsForSimulatedHour()" classname="com.shirokai.raids.RaidRewardRetryTest" time="0.454"/>
+  <testcase name="failedManualRequestDoesNotAutomaticallyResumeAfterSpaceOrReconnect()" classname="com.shirokai.raids.RaidRewardRetryTest" time="0.003"/>
+  <testcase name="manualModeHasNoAutomaticWorkAndOnlySelectedAwardIsAuthorized()" classname="com.shirokai.raids.RaidRewardRetryTest" time="0.003"/>
+  <testcase name="manualWakeCannotReplayUncertainOrInFlightTransactions()" classname="com.shirokai.raids.RaidRewardRetryTest" time="0.001"/>
+  <testcase name="asynchronousPreparationCannotResumeCanceledManualClaimOnFastReconnect()" classname="com.shirokai.raids.RaidRewardRetryTest" time="0.002"/>
+  <testcase name="providerRetryIsDurablyPreservedButDoesNotSpamConsoleOrWriteEveryTick()" classname="com.shirokai.raids.RaidRewardRetryTest" time="0.002"/>
+  <testcase name="disconnectDuringAsyncOwnershipQueryDoesNotStartExternalDelivery()" classname="com.shirokai.raids.RaidRewardRetryTest" time="0.001"/>
+  <testcase name="blockedPreflightBacksOffWithoutPersistingAndControlledWakeDeliversExactlyOnce()" classname="com.shirokai.raids.RaidRewardRetryTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

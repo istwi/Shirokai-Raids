@@ -1,0 +1,5 @@
+{
+  "bossbar.evento.proximo": "&f✦ &lZORYKAI&r &c&lRAID&r &8| &fEvento &e{evento} &fem &e{tempo}",
+  "bossbar.evento.ativo": "&f✦ &lZORYKAI&r &c&lRAID&r &8| &fEvento &e{evento} &f| Termina em &e{tempo}",
+  "bossbar.evento.aguardando": "&f✦ &lZORYKAI&r &c&lRAID&r &8| &fEvento &e{evento} &f| Aguardando captura e retorno"
+}
