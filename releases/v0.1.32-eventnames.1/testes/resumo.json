@@ -1,0 +1,15 @@
+{
+  "version": "0.1.32-eventnames.1",
+  "artifactSHA256": "7fef85911526c49d8c41139f70f9ddb062df1b1416d166f16834be9fdf7a22f1",
+  "unit": {
+    "tests": 179,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "nativeChecks": 113,
+  "nativeSuites": 3,
+  "sigkillRestarts": 2,
+  "visualClientTested": false,
+  "productionChanged": false
+}

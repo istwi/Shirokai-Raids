@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "voteSeconds": 60,
+  "duoDelaySeconds": 30,
+  "duoMaximumWaitSeconds": 900,
+  "eventBarSeconds": 4,
+  "eventBarIntervalSeconds": 60
+}

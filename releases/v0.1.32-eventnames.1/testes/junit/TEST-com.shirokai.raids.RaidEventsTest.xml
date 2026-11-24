@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.shirokai.raids.RaidEventsTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-11-24T11:59:29.009Z" hostname="738c8a5a62b8" time="0.084">
+  <properties/>
+  <testcase name="ordinaryPlayersOnlyGainReadAndVoteRoutes()" classname="com.shirokai.raids.RaidEventsTest" time="0.063"/>
+  <testcase name="dollarsDoNotGainDropOrTokenMultipliers()" classname="com.shirokai.raids.RaidEventsTest" time="0.003"/>
+  <testcase name="topThreeDoublesCombinedPhysicalProbability()" classname="com.shirokai.raids.RaidEventsTest" time="0.002"/>
+  <testcase name="validatesFiniteAndBoundedValues()" classname="com.shirokai.raids.RaidEventsTest" time="0.0"/>
+  <testcase name="oldStateGetsEmptyEventDefaults()" classname="com.shirokai.raids.RaidEventsTest" time="0.003"/>
+  <testcase name="eventSnapshotSurvivesReloadWithoutRerolling()" classname="com.shirokai.raids.RaidEventsTest" time="0.001"/>
+  <testcase name="plannedChainRoundTrips()" classname="com.shirokai.raids.RaidEventsTest" time="0.0"/>
+  <testcase name="tokenMultiplierAppliesToFinalInterpolatedAmountOnce()" classname="com.shirokai.raids.RaidEventsTest" time="0.001"/>
+  <testcase name="rageRaisesItemsAndTokensButNotFragmentCount()" classname="com.shirokai.raids.RaidEventsTest" time="0.001"/>
+  <testcase name="eventAmountsRespectSafetyCaps()" classname="com.shirokai.raids.RaidEventsTest" time="0.0"/>
+  <testcase name="noEventDefaultsRemainUnmodified()" classname="com.shirokai.raids.RaidEventsTest" time="0.001"/>
+  <testcase name="dropDoublesProbabilityWithoutChangingQuantity()" classname="com.shirokai.raids.RaidEventsTest" time="0.001"/>
+  <testcase name="probabilityCapsAtOne()" classname="com.shirokai.raids.RaidEventsTest" time="0.0"/>
+  <testcase name="invalidInvasionCombinationIsRejected()" classname="com.shirokai.raids.RaidEventsTest" time="0.001"/>
+  <testcase name="perfectIvMaskHasExactlyRequestedBitsAndIsStable()" classname="com.shirokai.raids.RaidEventsTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

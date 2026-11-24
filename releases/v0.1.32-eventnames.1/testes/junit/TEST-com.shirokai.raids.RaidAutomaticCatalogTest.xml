@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.shirokai.raids.RaidAutomaticCatalogTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-11-24T11:59:22.795Z" hostname="738c8a5a62b8" time="0.322">
+  <properties/>
+  <testcase name="emptySpecialPoolNeverFallsBackToRegisteredLegendaryOrNormalAndDoesNotAdvanceCounter()" classname="com.shirokai.raids.RaidAutomaticCatalogTest" time="0.005"/>
+  <testcase name="profilesTrainCombatAndScaleHpByExpectedGroupWithoutUsingMaximumCapacity()" classname="com.shirokai.raids.RaidAutomaticCatalogTest" time="0.01"/>
+  <testcase name="boundedHistoriesAvoidRepetitionsButSmallPoolsRemainUsable()" classname="com.shirokai.raids.RaidAutomaticCatalogTest" time="0.003"/>
+  <testcase name="loadIsEditableAndInvalidProfilesAreRejectedWithoutOverwritingFiles()" classname="com.shirokai.raids.RaidAutomaticCatalogTest" time="0.046"/>
+  <testcase name="specialLabelsDoNotLeakIntoTheNineteenRegularSlots()" classname="com.shirokai.raids.RaidAutomaticCatalogTest" time="0.012"/>
+  <testcase name="finalFormsMayHaveTwoStagesButBabiesAndIntermediateStagesNeverQualify()" classname="com.shirokai.raids.RaidAutomaticCatalogTest" time="0.002"/>
+  <testcase name="difficultyMatchesNativePowerAndOrdinaryPowerhousesNeverBecomeLegendary()" classname="com.shirokai.raids.RaidAutomaticCatalogTest" time="0.004"/>
+  <testcase name="filtersAndShinyChanceAreConfigurableWithoutChangingCadence()" classname="com.shirokai.raids.RaidAutomaticCatalogTest" time="0.001"/>
+  <testcase name="legacyStateStartsAtZeroAndEmptyManualBossDirectoryIsAllowedOnlyInCatalogMode()" classname="com.shirokai.raids.RaidAutomaticCatalogTest" time="0.008"/>
+  <testcase name="smallPassiveWeakAndUnimplementedSpeciesAreExcluded()" classname="com.shirokai.raids.RaidAutomaticCatalogTest" time="0.002"/>
+  <testcase name="onlyEveryTwentiethSlotIsSpecialAcrossHundredsOfDrawsAndRestarts()" classname="com.shirokai.raids.RaidAutomaticCatalogTest" time="0.19"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
