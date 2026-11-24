@@ -1,0 +1,5 @@
+{
+  "passed": true,
+  "checks": 18,
+  "message": "Saved and live receipt recovery verified without reissue; missing/corrupt proofs and currency remain uncertain; manual delivery preserved"
+}

@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "checks": 5,
+  "message": "Actual interrupted post-receipt confirmation recovered across two JVMs without reissue",
+  "twoJvm": true,
+  "preparedJournalStatus": "IN_FLIGHT",
+  "termination": "SIGKILL"
+}

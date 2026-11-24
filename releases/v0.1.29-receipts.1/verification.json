@@ -1,0 +1,54 @@
+{
+  "version": "0.1.29-receipts.1",
+  "artifactSHA256": "3b51d32e0409a9110e5285fccf206318d0aed303a23ef146355a0ce44d8b9002",
+  "unitTests": 151,
+  "nativeChecks": 319,
+  "manualDelivery": true,
+  "productionModified": false,
+  "humanClientTested": false,
+  "nativeResults": {
+    "receipt-recovery-results.json": {
+      "passed": true,
+      "checks": 18,
+      "message": "Saved and live receipt recovery verified without reissue; missing/corrupt proofs and currency remain uncertain; manual delivery preserved"
+    },
+    "reward-retry-results.json": {
+      "passed": true,
+      "checks": 25,
+      "message": "Offline/full inventory dispatch suppressed; real menu and claim deliver modular rewards with receipt protection"
+    },
+    "item-rewards-results.json": {
+      "passed": true,
+      "checks": 252,
+      "message": "Native item rewards delivered; receipt, reload, offline and capacity checks passed",
+      "itemTypes": 34,
+      "uncertainFragmentsModified": false
+    },
+    "catalog-chances-results.json": {
+      "passed": true,
+      "checks": 19,
+      "availableSpecies": {
+        "supremo": 6,
+        "normal": 133,
+        "raro": 47,
+        "epico": 13,
+        "lendario": 13
+      },
+      "distribution10000": {
+        "epico": 2516,
+        "normal": 3024,
+        "raro": 2935,
+        "supremo": 315,
+        "lendario": 1210
+      }
+    },
+    "receipt-restart-results.json": {
+      "passed": true,
+      "checks": 5,
+      "message": "Actual interrupted post-receipt confirmation recovered across two JVMs without reissue",
+      "twoJvm": true,
+      "preparedJournalStatus": "IN_FLIGHT",
+      "termination": "SIGKILL"
+    }
+  }
+}

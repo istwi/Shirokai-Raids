@@ -1,0 +1,32 @@
+{
+  "baseSHA256": "bdd74f996482189123d4f5d75a1024cd48e467a089e69f334a3e324c003212e6",
+  "artifactSHA256": "3b51d32e0409a9110e5285fccf206318d0aed303a23ef146355a0ce44d8b9002",
+  "changedEntries": [
+    "com/shirokai/raids/CratesRaidRewards.class",
+    "com/shirokai/raids/PendingRewardMenu.class",
+    "com/shirokai/raids/PlayerRewardTarget.class",
+    "com/shirokai/raids/RaidRewardHandler.class",
+    "com/shirokai/raids/RaidRewardJournal.class",
+    "fabric.mod.json",
+    "com/shirokai/raids/ItemRaidRewards.class",
+    "com/shirokai/raids/RaidRewardDispatch.class"
+  ],
+  "newEntries": [],
+  "preservedClasses": [
+    "RaidAuthentication",
+    "GuardRaidAccess",
+    "RaidReturnPersistence",
+    "RaidReturnFallback",
+    "RaidCapture",
+    "RaidInventory",
+    "RaidQuizGuard",
+    "TraditionalRaidBattles",
+    "RaidAutomaticCatalog",
+    "RaidCatalogSettings",
+    "RaidSpecialMenu",
+    "ShirokaiRaids",
+    "ImpactorRaidRewards"
+  ],
+  "version": "0.1.29-receipts.1",
+  "note": "Durable receipt reconciliation without reward replay. Full 0.1.28 main class, manual policy, recovery, capture, damage chat and draw classes preserved."
+}

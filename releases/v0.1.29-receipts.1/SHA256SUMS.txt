@@ -1,0 +1,2 @@
+3b51d32e0409a9110e5285fccf206318d0aed303a23ef146355a0ce44d8b9002  Zorykai-Raids-0.1.29-receipts.1-fabric-1.21.1.jar
+6d980ada7b0add43049bdc31373fd81ea241c01c27ed3545cfd50fe9013c6b22  zorykai-raids-0.1.29-receipts.1-codigo.zip
